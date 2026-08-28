@@ -53,7 +53,8 @@ def has_logrotate_entry(path: str) -> bool:
     name = Path(path).name
     directory = _sysroot.sysroot_path(LOGROTATE_DIR)
     try:
-        configs = list(directory.iterdir())
+        # Sorted so the answer does not depend on directory order.
+        configs = sorted(directory.iterdir())
     except OSError:
         return False
     for config in configs:

@@ -16,12 +16,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import re
+from typing import TYPE_CHECKING
 
-from control_panel._runner import CommandRunner
+if TYPE_CHECKING:
+    from control_panel._runner import CommandRunner
 
 # errno 98: the port is bound by someone else.
 EADDRINUSE = 98
 _PID_PATTERN = re.compile(r"pid=(\d+)")
+# `ss -tlnp` columns: State Recv-Q Send-Q Local-Address:Port ...
+_LOCAL_ADDRESS_FIELD = 3
 
 
 @dataclass(frozen=True, slots=True)
@@ -50,7 +54,9 @@ def _listener_pid(stdout: str, port: int) -> int | None:
         fields = line.split()
         # Field 3 is Local Address:Port. Match on the suffix so both 127.0.0.1
         # and [::1] forms are caught.
-        if len(fields) < 4 or not fields[3].endswith(f":{port}"):
+        if len(fields) <= _LOCAL_ADDRESS_FIELD:
+            continue
+        if not fields[_LOCAL_ADDRESS_FIELD].endswith(f":{port}"):
             continue
         match = _PID_PATTERN.search(line)
         if match:
@@ -62,7 +68,10 @@ def _read_proc(pid: int, name: str) -> str | None:
     """Read one /proc entry for ``pid``, or None if it cannot be read."""
     try:
         if name == "exe":
-            return str(Path(f"/proc/{pid}/exe").resolve())
+            # readlink, not resolve: resolve() is non-strict by default and
+            # happily returns "/proc/<dead pid>/exe" unchanged, so a vanished
+            # process would be reported as if it had that path as its binary.
+            return str(Path(f"/proc/{pid}/exe").readlink())
         raw = Path(f"/proc/{pid}/{name}").read_bytes()
     except OSError:
         return None

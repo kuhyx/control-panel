@@ -1,0 +1,129 @@
+from __future__ import annotations
+
+from http import HTTPStatus
+from typing import TYPE_CHECKING, Any
+
+import pytest
+
+from control_panel import _routes
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+STATUS: dict[str, Any] = {
+    "subsystems": [
+        {
+            "id": "alpha",
+            "logs": [
+                {"id": "a-log", "kind": "file", "path": "/var/log/a.log", "unit": None},
+                {
+                    "id": "ajournal",
+                    "kind": "journal",
+                    "path": None,
+                    "unit": "a.service",
+                },
+            ],
+        }
+    ]
+}
+
+
+@pytest.fixture
+def router(monkeypatch: pytest.MonkeyPatch) -> _routes.Router:
+    made = _routes.Router.__new__(_routes.Router)
+    monkeypatch.setattr(_routes.Router, "_status", lambda _self: STATUS)
+    made._port = 8770
+    return made
+
+
+def test_non_api_paths_are_not_ours(router: _routes.Router) -> None:
+    assert router.resolve("/index.html") is None
+    assert router.resolve("/") is None
+
+
+def test_health(router: _routes.Router) -> None:
+    status, payload = router.resolve("/api/health")
+    assert status is HTTPStatus.OK
+    assert payload == {"ok": True, "port": 8770}
+
+
+def test_unknown_endpoint_is_404(router: _routes.Router) -> None:
+    status, payload = router.resolve("/api/nope")
+    assert status is HTTPStatus.NOT_FOUND
+    assert "no such endpoint" in payload["error"]
+
+
+def test_whole_fleet_status(router: _routes.Router) -> None:
+    status, payload = router.resolve("/api/status")
+    assert status is HTTPStatus.OK
+    assert payload["subsystems"][0]["id"] == "alpha"
+
+
+def test_single_subsystem(router: _routes.Router) -> None:
+    status, payload = router.resolve("/api/status/alpha")
+    assert status is HTTPStatus.OK
+    assert payload["id"] == "alpha"
+
+
+def test_unknown_subsystem_is_404(router: _routes.Router) -> None:
+    status, payload = router.resolve("/api/status/ghost")
+    assert status is HTTPStatus.NOT_FOUND
+    assert "ghost" in payload["error"]
+
+
+def test_log_tail(router: _routes.Router, sysroot: Path) -> None:
+    log = sysroot / "var/log/a.log"
+    log.parent.mkdir(parents=True)
+    log.write_text("one\ntwo\nthree\n")
+    status, payload = router.resolve("/api/logs/a-log?lines=2")
+    assert status is HTTPStatus.OK
+    # asdict keeps tuples; json.dumps renders them as arrays on the wire.
+    assert payload["lines"] == ("two", "three")
+    assert payload["path"] == "/var/log/a.log"
+
+
+def test_journal_logs_report_that_they_are_not_implemented(
+    router: _routes.Router,
+) -> None:
+    status, payload = router.resolve("/api/logs/ajournal")
+    assert status is HTTPStatus.OK
+    assert payload["kind"] == "journal"
+    assert "not implemented" in payload["note"]
+
+
+def test_missing_log_id_is_404(router: _routes.Router) -> None:
+    status, _ = router.resolve("/api/logs/")
+    assert status is HTTPStatus.NOT_FOUND
+
+
+def test_unknown_log_is_404(router: _routes.Router) -> None:
+    status, payload = router.resolve("/api/logs/ghost")
+    assert status is HTTPStatus.NOT_FOUND
+    assert "ghost" in payload["error"]
+
+
+@pytest.mark.parametrize(
+    ("query", "expected"), [("", 200), ("lines=7", 7), ("lines=abc", 200)]
+)
+def test_line_parameter_parsing(query: str, expected: int) -> None:
+    assert _routes._int_param(query, "lines", 200) == expected
+
+
+def test_router_uses_the_runner_and_port_it_was_given(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: list[tuple[object, int]] = []
+
+    def record(runner: object, port: int) -> object:
+        seen.append((runner, port))
+        return _FAKE_STATUS
+
+    monkeypatch.setattr(_routes._aggregate, "build_status", record)
+    monkeypatch.setattr(_routes, "to_payload", lambda status: {"subsystems": []})
+    sentinel = object()
+    made = _routes.Router(sentinel, 1234)
+    made.resolve("/api/status")
+    assert seen == [(sentinel, 1234)]
+
+
+_FAKE_STATUS = object()

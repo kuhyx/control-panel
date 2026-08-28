@@ -12,13 +12,14 @@ Two of these can only be found here, not by walking declared units:
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from control_panel import _sysroot, _tail
 from control_panel._types import Anomaly, Arming, Level, Scope
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from control_panel._collect import SystemdView
     from control_panel._manifest import ManifestEntry
     from control_panel._types import SubsystemStatus

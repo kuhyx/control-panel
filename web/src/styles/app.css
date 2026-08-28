@@ -1,0 +1,268 @@
+/* Every value here is a token from @kuhyx/web-ui/tokens.css. There is not one
+   literal colour in this file, and a pre-commit hook fails the commit if one
+   appears — the palette is CI-compared across four files in ~/utils and this
+   repo must never fork it. */
+
+main {
+  margin: 0 auto;
+  max-width: 78rem;
+  padding: var(--space-4);
+}
+
+.masthead {
+  align-items: baseline;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+}
+
+.masthead h1 {
+  font-size: var(--text-title);
+  letter-spacing: var(--tracking-title);
+  margin: 0;
+}
+
+.masthead a,
+.table a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.masthead a:hover,
+.table a:hover {
+  text-decoration: underline;
+}
+
+.category {
+  color: var(--text-muted);
+  display: block;
+  font-size: var(--text-caption);
+  letter-spacing: var(--tracking-caption);
+}
+
+/* --- Card (per components.html) ------------------------------------------ */
+
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+  padding: var(--space-4);
+}
+
+.card h2 {
+  font-size: var(--text-subtitle);
+  letter-spacing: var(--tracking-subtitle);
+  margin: 0 0 var(--space-2);
+}
+
+.card h3 {
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  margin: var(--space-4) 0 var(--space-2);
+  text-transform: uppercase;
+}
+
+/* --- Rollup tiles -------------------------------------------------------- */
+
+.tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+}
+
+.tile {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  min-width: 7rem;
+  padding: var(--space-3);
+}
+
+.tile-count {
+  display: block;
+  font-size: var(--text-display);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.tile-label {
+  color: var(--text-muted);
+  font-size: var(--text-caption);
+  letter-spacing: var(--tracking-caption);
+}
+
+/* --- Badge: semantic fill + on-fill text, per the Card entry -------------- */
+
+.badge {
+  border-radius: var(--radius-sm);
+  color: var(--on-fill);
+  display: inline-block;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caption);
+  padding: 2px var(--space-2);
+  white-space: nowrap;
+}
+
+/* --- Table: card container, rows split by the Divider's 1px border -------- */
+
+.table {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-collapse: collapse;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  width: 100%;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid var(--border);
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table thead th {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.table tbody tr:last-child th,
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody th {
+  font-weight: 600;
+}
+
+.row-attention th,
+.row-attention td {
+  background: var(--surface-2);
+}
+
+.numeric {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.reason {
+  color: var(--text-muted);
+  font-size: var(--text-caption);
+  max-width: var(--measure);
+}
+
+/* --- Anomalies ----------------------------------------------------------- */
+
+.anomaly-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.anomaly {
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+}
+
+.anomaly:first-child {
+  border-top: none;
+}
+
+.dot {
+  border-radius: 50%;
+  flex: none;
+  height: 10px;
+  margin-top: 6px;
+  width: 10px;
+}
+
+.anomaly-title {
+  margin: 0;
+}
+
+.anomaly-detail,
+.anomaly-evidence {
+  color: var(--text-muted);
+  font-size: var(--text-caption);
+  margin: var(--space-1) 0 0;
+  max-width: var(--measure);
+}
+
+.anomaly-evidence {
+  font-family: var(--font-mono);
+}
+
+/* --- Detail, logs, empty states ------------------------------------------ */
+
+.detail-header {
+  align-items: center;
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+}
+
+.facts,
+.logs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fact dt {
+  color: var(--text-muted);
+  font-size: var(--text-caption);
+  letter-spacing: var(--tracking-caption);
+}
+
+.fact dd {
+  margin: 0 0 var(--space-3);
+  max-width: var(--measure);
+}
+
+.logs li {
+  border-top: 1px solid var(--border);
+  padding: var(--space-2) 0;
+}
+
+.log {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  max-height: 60vh;
+  overflow: auto;
+  padding: var(--space-3);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.empty {
+  color: var(--text-muted);
+  padding: var(--space-3) 0;
+}
+
+.sr-only {
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}

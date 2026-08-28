@@ -44,11 +44,21 @@ ARMING_SEVERITY: tuple[Arming, ...] = (
 
 
 def worst_arming(states: tuple[Arming, ...]) -> Arming:
-    """Return the most severe state in ``states``, or ARMED when empty."""
-    for candidate in ARMING_SEVERITY:
-        if candidate in states:
-            return candidate
-    return Arming.ARMED
+    """Return the state a subsystem should report, given its units' states.
+
+    Retired units are excluded unless *every* unit is retired. A subsystem is
+    not retired because it still carries the superseded units it migrated away
+    from: hosts blocking keeps five retired guards alongside three live ones,
+    and the curfew keeps the old midnight-shutdown pair. Ranking those above
+    ARMED labelled both of those systems "RETIRED" on the dashboard while they
+    were actively enforcing.
+    """
+    live = tuple(state for state in states if state is not Arming.RETIRED)
+    if not live:
+        return Arming.RETIRED if states else Arming.ARMED
+    # The loop always returns: `live` is non-empty here and ARMING_SEVERITY
+    # lists every Arming member, so there is no fallthrough to guard.
+    return next(state for state in ARMING_SEVERITY if state in live)
 
 
 class Scope(StrEnum):
