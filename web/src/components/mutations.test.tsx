@@ -27,7 +27,7 @@ describe("MutationOutcome", () => {
         result={outcome({ refused: true, stderr: "not stricter", summary: "no" })}
       />,
     );
-    const dot = container.querySelector(".dot") as HTMLElement;
+    const dot = container.querySelector<HTMLElement>(".dot")!;
     expect(dot.style.backgroundColor).toBe("var(--warning)");
     // The script's own words, not a paraphrase.
     expect(screen.getByText("not stricter")).toBeInTheDocument();
@@ -38,13 +38,13 @@ describe("MutationOutcome", () => {
       <MutationOutcome result={outcome({ ok: true, summary: "done" })} />,
     );
     expect(
-      (good.querySelector(".dot") as HTMLElement).style.backgroundColor,
+      (good.querySelector<HTMLElement>(".dot")!).style.backgroundColor,
     ).toBe("var(--success)");
     const { container: bad } = render(
       <MutationOutcome result={outcome({ summary: "broken" })} />,
     );
     expect(
-      (bad.querySelector(".dot") as HTMLElement).style.backgroundColor,
+      (bad.querySelector<HTMLElement>(".dot")!).style.backgroundColor,
     ).toBe("var(--danger)");
   });
 

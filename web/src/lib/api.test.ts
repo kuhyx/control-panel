@@ -93,7 +93,7 @@ describe("mutate", () => {
         json: () => Promise.reject(new Error("bad")),
         ok: true,
         status: 200,
-      } as unknown as Response),
+      }),
     );
     await expect(mutate("x", {})).rejects.toThrow(/malformed JSON/);
   });
