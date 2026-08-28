@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "subsystem": "phone-focus-mode",
+  "rules": {
+    "phone.auto-sync": {
+      "why": "The PC-side policy is only enforcement once it reaches the phone. Without the sync timer the phone keeps whatever policy it was last given, so a tightened blocklist silently never lands on the device it was tightened for.",
+      "cost_of_bypass": "None needed on this machine: the unit was never installed, so the policy has never been pushed from here at all. Re-running install_pc_phone_automation.sh unchanged would also produce a broken unit, because its ExecStart target moved when phone-focus-mode was extracted out of testsAndMisc.",
+      "ratchet": "none",
+      "added": "2026-08-23",
+      "supersedes": []
+    }
+  }
+}

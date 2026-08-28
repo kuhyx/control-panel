@@ -7,7 +7,7 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 from urllib.parse import parse_qs, urlsplit
 
-from control_panel import _aggregate, _tail
+from control_panel import _aggregate, _manifest, _rationale, _tail
 from control_panel._types import to_payload
 
 if TYPE_CHECKING:
@@ -43,6 +43,8 @@ class Router:
             return self._status_route(rest)
         if head == "logs":
             return self._logs_route(rest, parts.query)
+        if head == "why":
+            return self._why_route(rest)
         return HTTPStatus.NOT_FOUND, {"error": f"no such endpoint: {path}"}
 
     def _status_route(self, subsystem_id: str) -> tuple[HTTPStatus, dict[str, Any]]:
@@ -53,6 +55,14 @@ class Router:
         for subsystem in payload["subsystems"]:
             if subsystem["id"] == subsystem_id:
                 return HTTPStatus.OK, subsystem
+        return HTTPStatus.NOT_FOUND, {"error": f"no such subsystem: {subsystem_id}"}
+
+    def _why_route(self, subsystem_id: str) -> tuple[HTTPStatus, dict[str, Any]]:
+        """Explain why one subsystem is enforced, from docs and the sidecar."""
+        for entry in _manifest.load_manifest():
+            if entry.id == subsystem_id:
+                built = _rationale.build(self._runner, entry)
+                return HTTPStatus.OK, _rationale.to_payload(built)
         return HTTPStatus.NOT_FOUND, {"error": f"no such subsystem: {subsystem_id}"}
 
     def _logs_route(self, log_id: str, query: str) -> tuple[HTTPStatus, dict[str, Any]]:

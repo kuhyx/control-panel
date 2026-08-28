@@ -127,3 +127,32 @@ def test_router_uses_the_runner_and_port_it_was_given(
 
 
 _FAKE_STATUS = object()
+
+
+def test_why_route_serves_rationale(monkeypatch: pytest.MonkeyPatch) -> None:
+    from control_panel import _manifest, _rationale
+    from control_panel.tests import _fixture_fleet as fleet
+
+    monkeypatch.setattr(_manifest, "load_manifest", lambda: (fleet.entry(),))
+    monkeypatch.setattr(
+        _rationale,
+        "build",
+        lambda _runner, entry: _rationale.Rationale(subsystem=entry.id),
+    )
+    made = _routes.Router(object(), 8770)
+    status, payload = made.resolve("/api/why/s")
+    assert status is HTTPStatus.OK
+    assert payload["subsystem"] == "s"
+
+
+def test_why_route_404s_for_an_unknown_subsystem(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from control_panel import _manifest
+    from control_panel.tests import _fixture_fleet as fleet
+
+    monkeypatch.setattr(_manifest, "load_manifest", lambda: (fleet.entry(),))
+    made = _routes.Router(object(), 8770)
+    status, payload = made.resolve("/api/why/ghost")
+    assert status is HTTPStatus.NOT_FOUND
+    assert "ghost" in payload["error"]

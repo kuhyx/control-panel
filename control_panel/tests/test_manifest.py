@@ -141,3 +141,23 @@ def test_the_real_shipped_manifest_loads() -> None:
     assert "phone-focus-mode" in ids
     assert "kuhytrack" in ids
     assert len(entries) >= 13
+
+
+def test_rationale_sources_parse(tmp_path: Path) -> None:
+    body = {
+        **minimal("a"),
+        "docs": [{"path": "/etc/policy.md", "label": "policy"}],
+        "audits": [{"path": "/etc/audit.log", "label": "audit"}],
+    }
+    base = write_manifest(tmp_path / "m", [], {"a": body})
+    entry = _manifest.load_manifest(base)[0]
+    assert entry.docs[0].label == "policy"
+    assert entry.audits[0].path == "/etc/audit.log"
+
+
+def test_a_non_array_rationale_source_is_fatal(tmp_path: Path) -> None:
+    base = write_manifest(
+        tmp_path / "m", [], {"a": {**minimal("a"), "docs": {"path": "x"}}}
+    )
+    with pytest.raises(ManifestError, match="must be an array"):
+        _manifest.load_manifest(base)

@@ -11,12 +11,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import logging
 from typing import TYPE_CHECKING, Any
 
 from control_panel._types import Scope
 
 if TYPE_CHECKING:
     from control_panel._runner import CommandRunner
+
+logger = logging.getLogger(__name__)
 
 # Properties fetched for every unit. `systemctl show` silently omits properties
 # that do not apply to a unit type (a .timer has no ExecStart), so the parser
@@ -196,9 +199,22 @@ def show_many(
     result = runner.run(argv, timeout=30.0)
     if not result.ok:
         return {}
-    blocks = result.stdout.split("\n\n")
+    blocks = [block for block in result.stdout.split("\n\n") if block.strip()]
+    if len(blocks) != len(units):
+        # Refuse to guess which unit each block belongs to. Zipping the short
+        # list would leave the tail with no properties, hence no LoadState,
+        # hence NOT_INSTALLED for a unit that is installed -- exactly the false
+        # report this whole package exists to prevent. Returning nothing makes
+        # the collection visibly degraded instead of quietly wrong.
+        logger.error(
+            "systemctl show returned %d property blocks for %d units; "
+            "refusing to align them",
+            len(blocks),
+            len(units),
+        )
+        return {}
     parsed: dict[str, dict[str, str]] = {}
-    for block, requested in zip(blocks, units, strict=False):
+    for block, requested in zip(blocks, units, strict=True):
         props = _parse_block(block)
         # Prefer the canonical Id, but always record the requested name too so
         # an alias or template instance is still findable by what we asked for.

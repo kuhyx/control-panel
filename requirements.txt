@@ -1,1 +1,20 @@
-# The backend is deliberately stdlib-only; see pyproject.toml.
+# control-panel — runtime + development dependencies
+# Install with: pip install -r requirements.txt
+#
+# There are no RUNTIME entries on purpose: the backend is stdlib-only, so that
+# a dashboard whose job is to observe the machine cannot itself break on a
+# dependency bump. Everything below is test and lint tooling.
+
+bandit==1.9.4
+codespell==2.4.3
+coverage==7.15.4
+mypy==2.3.1
+pre-commit==4.6.2
+pylint==4.0.7
+pytest==9.1.1
+pytest-cov==7.1.0
+pytest-randomly==4.1.0
+pytest-sugar==1.1.1
+pytest-timeout==2.4.0
+pytest-xdist==3.8.0
+ruff==0.16.5

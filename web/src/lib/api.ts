@@ -1,4 +1,4 @@
-import type { FleetStatus, LogTail } from "./types.ts";
+import type { FleetStatus, LogTail, Rationale } from "./types.ts";
 
 export class ApiError extends Error {
   override readonly name = "ApiError";
@@ -29,4 +29,8 @@ export function fetchLog(
     `/api/logs/${encodeURIComponent(id)}?lines=${String(lines)}`,
     signal,
   );
+}
+
+export function fetchWhy(id: string, signal?: AbortSignal): Promise<Rationale> {
+  return getJson<Rationale>(`/api/why/${encodeURIComponent(id)}`, signal);
 }

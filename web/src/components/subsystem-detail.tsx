@@ -3,6 +3,7 @@ import type { LogReference, SubsystemStatus } from "../lib/types.ts";
 import { formatBytes } from "../lib/format.ts";
 import { StateBadge } from "./state-badge.tsx";
 import { UnitTable } from "./unit-table.tsx";
+import { WhyPanel } from "./why-panel.tsx";
 
 function describeLog(log: LogReference): string {
   if (log.kind !== "file") return "journal";
@@ -27,9 +28,12 @@ export function SubsystemDetail({
       <h3>Units</h3>
       <UnitTable units={subsystem.units} />
 
+      <h3>Why this is enforced</h3>
+      <WhyPanel id={subsystem.id} />
+
       {facts.length > 0 && (
         <>
-          <h3>Why this exists</h3>
+          <h3>Notes</h3>
           <dl className="facts">
             {facts.map(([key, value]) => {
               return (

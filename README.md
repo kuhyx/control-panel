@@ -54,6 +54,32 @@ no I/O, which is why its nine rules are exhaustively tested.
   a timer whose `RemainAfterExit` oneshot is still active. It gets `DEGRADED`
   with that explanation rather than a bare `UNARMED`.
 
+## Why a rule exists
+
+`GET /api/why/<subsystem>` answers it from **two** sources, and the first one
+carries the panel on its own:
+
+**(a) What is already written down**, quoted rather than summarised —
+unit-file comments, the security-hardening docs, incident write-ups, and the
+free-text `reason` columns of `/etc/shutdown-schedule-overrides.conf` and
+`exception_audit.log`. The comments are the surprise here: in this fleet the
+reasoning sits *beside the directive it justifies*, several lines into a
+section, so an extractor that stops at the first `[Unit]` header finds nothing.
+`leetcode-guard.timer` explains its `Persistent=true` flip that way, and that
+comment is now surfaced automatically.
+
+**(b) `rationale/<subsystem>.json`**, hand-written, for the rules whose reason
+was never recorded anywhere. It carries `why`, `cost_of_bypass`, `ratchet` and
+`added`. Missing, malformed or partial sidecars degrade to a warning chip and
+the artifacts still render — never an exception, never a blank panel.
+
+The `ratchet` field earns its place immediately: `shutdown.morning-end-hour`
+records that it ratchets **the opposite way** from the two evening hours, because
+`day-specific-shutdown-check.sh:94` shuts down while the clock is *below* it, so
+a larger value is a longer window and therefore stricter. Writing `-gt` there,
+as the evening hours do, would ratchet it backwards — which is exactly the
+mistake Phase 2 would otherwise make.
+
 ## Read-only, and enforced as such
 
 Phase 1 performs **no writes at all**. That is enforced by a pre-commit pygrep
@@ -81,11 +107,11 @@ Related deliberate choices:
 
 ```bash
 python -m venv .venv && .venv/bin/pip install -e .
-.venv/bin/pytest                       # 177 tests, 100% branch coverage
+.venv/bin/pytest                       # 202 tests, 100% branch coverage
 
 corepack pnpm --dir web install        # pnpm only: npm cannot install
 corepack pnpm --dir web run lint       #   @kuhyx/web-ui from a git subdirectory
-corepack pnpm --dir web run coverage   # 52 tests, 100% branch coverage
+corepack pnpm --dir web run coverage   # 58 tests, 100% branch coverage
 corepack pnpm --dir web run build      # -> web/dist, served by the Python process
 
 pre-commit run --all-files

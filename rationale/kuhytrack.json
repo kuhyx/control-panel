@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "subsystem": "kuhytrack",
+  "rules": {
+    "kuhytrack.budget": {
+      "why": "Tracking without enforcement is just a guilt meter. The budget timer is the only component that turns recorded activity into an action, so kuhytrack with kuhytrack-budget.timer disabled measures the problem and does nothing about it.",
+      "cost_of_bypass": "systemctl --user disable kuhytrack-budget.timer. No guard, no audit trail -- which is why this dashboard reports it, since nothing else would.",
+      "ratchet": "none -- this is a plain systemd timer with no protection",
+      "added": "2026-06-01",
+      "supersedes": []
+    }
+  }
+}

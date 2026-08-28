@@ -188,3 +188,22 @@ def test_property_blocks_tolerate_lines_without_an_equals_sign() -> None:
     runner = FakeRunner({argv: ok(argv, "Id=a.service\ngarbage line\nResult=success")})
     props = _systemctl.show_many(runner, units, Scope.SYSTEM)
     assert props["a.service"] == {"Id": "a.service", "Result": "success"}
+
+
+def test_a_block_count_mismatch_is_refused_rather_than_misaligned(
+    caplog: object,
+) -> None:
+    # Zipping a short block list would leave the tail with no properties, hence
+    # no LoadState, hence NOT_INSTALLED for an installed unit -- the exact
+    # false report this package exists to prevent.
+    units = ("a.service", "b.service", "c.service")
+    argv = (
+        "systemctl",
+        "show",
+        *units,
+        "--no-pager",
+        f"-p{','.join(_systemctl.SHOW_PROPERTIES)}",
+    )
+    body = show_blocks([{"Id": "a.service"}, {"Id": "b.service"}])
+    runner = FakeRunner({argv: ok(argv, body)})
+    assert _systemctl.show_many(runner, units, Scope.SYSTEM) == {}

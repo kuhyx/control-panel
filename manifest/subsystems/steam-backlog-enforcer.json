@@ -3,15 +3,39 @@
   "title": "Steam backlog enforcer",
   "category": "enforcement",
   "units": [
-    { "name": "steam-backlog-enforcer.service", "scope": "system", "kind": "service",
-      "why_it_matters": "3-second enforce loop; runs as root with OOMScoreAdjust=-900" }
+    {
+      "name": "steam-backlog-enforcer.service",
+      "scope": "system",
+      "kind": "service",
+      "why_it_matters": "3-second enforce loop; runs as root with OOMScoreAdjust=-900"
+    }
   ],
-  "probes": [ { "kind": "http", "target": "http://127.0.0.1:8000/api/dataset" } ],
+  "probes": [
+    {
+      "kind": "http",
+      "target": "http://127.0.0.1:8000/api/dataset"
+    }
+  ],
   "logs": [
-    { "id": "steam-enforcer", "kind": "journal", "unit": "steam-backlog-enforcer.service", "scope": "system" },
-    { "id": "steam-audit", "kind": "file", "path": "~/.config/steam_backlog_enforcer/exception_audit.log" }
+    {
+      "id": "steam-enforcer",
+      "kind": "journal",
+      "unit": "steam-backlog-enforcer.service",
+      "scope": "system"
+    },
+    {
+      "id": "steam-audit",
+      "kind": "file",
+      "path": "~/.config/steam_backlog_enforcer/exception_audit.log"
+    }
   ],
   "facts": {
     "note": "The daemon does not serve the web UI. `serve` is a separate command, so a down probe on :8000 is expected unless it was started by hand."
-  }
+  },
+  "audits": [
+    {
+      "path": "~/.config/steam_backlog_enforcer/exception_audit.log",
+      "label": "approved exceptions (reason column)"
+    }
+  ]
 }

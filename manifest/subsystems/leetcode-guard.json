@@ -3,9 +3,30 @@
   "title": "leetcode-guard",
   "category": "enforcement",
   "units": [
-    { "name": "leetcode-guard.timer", "scope": "user", "kind": "timer",
-      "why_it_matters": "Persistent=true was set deliberately after the 2026-08-05 incident so a missed 09:00 fires on resume" },
-    { "name": "leetcode-guard.service", "scope": "user", "kind": "service" }
+    {
+      "name": "leetcode-guard.timer",
+      "scope": "user",
+      "kind": "timer",
+      "why_it_matters": "Persistent=true was set deliberately after the 2026-08-05 incident so a missed 09:00 fires on resume"
+    },
+    {
+      "name": "leetcode-guard.service",
+      "scope": "user",
+      "kind": "service"
+    }
   ],
-  "logs": [ { "id": "leetcode-guard", "kind": "journal", "unit": "leetcode-guard.service", "scope": "user" } ]
+  "logs": [
+    {
+      "id": "leetcode-guard",
+      "kind": "journal",
+      "unit": "leetcode-guard.service",
+      "scope": "user"
+    }
+  ],
+  "docs": [
+    {
+      "path": "~/leetcode-guard/DOCS-incident-2026-08-05.md",
+      "label": "incident 2026-08-05"
+    }
+  ]
 }

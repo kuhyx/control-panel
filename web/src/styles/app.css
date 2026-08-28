@@ -25,14 +25,15 @@ main {
   margin: 0;
 }
 
-.masthead a,
-.table a {
+/* Every link inherits: the default browser blue is not in the palette, and a
+   link is not a semantic state. */
+a {
   color: inherit;
   text-decoration: none;
 }
 
-.masthead a:hover,
-.table a:hover {
+a:hover,
+a:focus-visible {
   text-decoration: underline;
 }
 
@@ -265,4 +266,48 @@ main {
   position: absolute;
   white-space: nowrap;
   width: 1px;
+}
+
+/* --- Rationale ----------------------------------------------------------- */
+
+.rule {
+  border-left: 2px solid var(--accent);
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-3);
+}
+
+.rule h4 {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  margin: 0 0 var(--space-1);
+}
+
+.rule p {
+  margin: 0 0 var(--space-2);
+  max-width: var(--measure);
+}
+
+.rule-field {
+  color: var(--text-muted);
+  font-size: var(--text-caption);
+}
+
+.rule-label {
+  display: block;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.artifact {
+  border-top: 1px solid var(--border);
+  padding: var(--space-2) 0;
+}
+
+.artifact summary {
+  cursor: pointer;
+}
+
+.artifact .log {
+  margin-top: var(--space-2);
+  max-height: 22rem;
 }

@@ -3,25 +3,95 @@
   "title": "Hosts / DNS blocking",
   "category": "enforcement",
   "units": [
-    { "name": "hosts-file-monitor.service", "scope": "system", "kind": "service",
-      "why_it_matters": "the only continuously-running check that /etc/hosts still carries the blocklist" },
-    { "name": "dns-blocklist-refresh.timer", "scope": "system", "kind": "timer" },
-    { "name": "dns-blocklist-refresh.service", "scope": "system", "kind": "service" },
-    { "name": "hosts-guard.path", "scope": "system", "kind": "path",
-      "retired": { "since": "2026-08-24", "superseded_by": "guard-file@hosts.path",
-                   "note": "migrated onto the generic guard-lib primitive by linux_configuration/fixes/migrate_hosts_guard_to_guard_lib.sh" } },
-    { "name": "hosts-guard.service", "scope": "system", "kind": "service",
-      "retired": { "since": "2026-08-24", "superseded_by": "guard-file@hosts.service", "note": "see hosts-guard.path" } },
-    { "name": "hosts-bind-mount.service", "scope": "system", "kind": "service",
-      "retired": { "since": "2026-08-24", "superseded_by": "guard-bind-mount@hosts.service", "note": "see hosts-guard.path" } },
-    { "name": "nsswitch-guard.path", "scope": "system", "kind": "path",
-      "retired": { "since": "2026-08-24", "superseded_by": "guard-file@nsswitch.path", "note": "see hosts-guard.path" } },
-    { "name": "resolved-guard.path", "scope": "system", "kind": "path",
-      "retired": { "since": "2026-08-24", "superseded_by": "guard-file@resolved.path", "note": "see hosts-guard.path" } }
+    {
+      "name": "hosts-file-monitor.service",
+      "scope": "system",
+      "kind": "service",
+      "why_it_matters": "the only continuously-running check that /etc/hosts still carries the blocklist"
+    },
+    {
+      "name": "dns-blocklist-refresh.timer",
+      "scope": "system",
+      "kind": "timer"
+    },
+    {
+      "name": "dns-blocklist-refresh.service",
+      "scope": "system",
+      "kind": "service"
+    },
+    {
+      "name": "hosts-guard.path",
+      "scope": "system",
+      "kind": "path",
+      "retired": {
+        "since": "2026-08-24",
+        "superseded_by": "guard-file@hosts.path",
+        "note": "migrated onto the generic guard-lib primitive by linux_configuration/fixes/migrate_hosts_guard_to_guard_lib.sh"
+      }
+    },
+    {
+      "name": "hosts-guard.service",
+      "scope": "system",
+      "kind": "service",
+      "retired": {
+        "since": "2026-08-24",
+        "superseded_by": "guard-file@hosts.service",
+        "note": "see hosts-guard.path"
+      }
+    },
+    {
+      "name": "hosts-bind-mount.service",
+      "scope": "system",
+      "kind": "service",
+      "retired": {
+        "since": "2026-08-24",
+        "superseded_by": "guard-bind-mount@hosts.service",
+        "note": "see hosts-guard.path"
+      }
+    },
+    {
+      "name": "nsswitch-guard.path",
+      "scope": "system",
+      "kind": "path",
+      "retired": {
+        "since": "2026-08-24",
+        "superseded_by": "guard-file@nsswitch.path",
+        "note": "see hosts-guard.path"
+      }
+    },
+    {
+      "name": "resolved-guard.path",
+      "scope": "system",
+      "kind": "path",
+      "retired": {
+        "since": "2026-08-24",
+        "superseded_by": "guard-file@resolved.path",
+        "note": "see hosts-guard.path"
+      }
+    }
   ],
   "logs": [
-    { "id": "hosts-monitor", "kind": "file", "path": "/var/log/hosts-file-monitor.log" },
-    { "id": "hosts-guard", "kind": "file", "path": "/var/log/hosts-guard.log" },
-    { "id": "hosts-monitor-journal", "kind": "journal", "unit": "hosts-file-monitor.service", "scope": "system" }
+    {
+      "id": "hosts-monitor",
+      "kind": "file",
+      "path": "/var/log/hosts-file-monitor.log"
+    },
+    {
+      "id": "hosts-guard",
+      "kind": "file",
+      "path": "/var/log/hosts-guard.log"
+    },
+    {
+      "id": "hosts-monitor-journal",
+      "kind": "journal",
+      "unit": "hosts-file-monitor.service",
+      "scope": "system"
+    }
+  ],
+  "docs": [
+    {
+      "path": "~/testsAndMisc/linux_configuration/docs/security-hardening/DOCS-01-current-state.md",
+      "label": "security hardening: current state"
+    }
   ]
 }

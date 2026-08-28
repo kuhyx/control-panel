@@ -6,7 +6,12 @@ from dataclasses import replace
 
 from control_panel import _systemctl
 from control_panel._collect import SystemdView
-from control_panel._manifest import ManifestEntry, ManifestLog, ManifestUnit, Retired
+from control_panel._manifest import (
+    ManifestEntry,
+    ManifestLog,
+    ManifestUnit,
+    Retired,
+)
 from control_panel._types import Category, Scope
 
 _BASE_ENTRY = ManifestEntry(id="s", title="S", category=Category.ENFORCEMENT)

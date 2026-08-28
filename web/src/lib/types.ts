@@ -118,3 +118,26 @@ export interface LogTail {
   total_bytes: null | number;
   truncated: boolean;
 }
+
+export interface Artifact {
+  excerpt: string;
+  kind: string;
+  label: string;
+  source: string;
+}
+
+export interface Rule {
+  added: string;
+  cost_of_bypass: string;
+  id: string;
+  ratchet: string;
+  supersedes: string[];
+  why: string;
+}
+
+export interface Rationale {
+  artifacts: Artifact[];
+  rules: Rule[];
+  signals: Signal[];
+  subsystem: string;
+}

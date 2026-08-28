@@ -80,6 +80,14 @@ class ManifestLog:
 
 
 @dataclass(frozen=True, slots=True)
+class ManifestSource:
+    """A file whose prose or reason column explains why a rule exists."""
+
+    path: str
+    label: str
+
+
+@dataclass(frozen=True, slots=True)
 class ManifestEntry:
     """One subsystem's declaration."""
 
@@ -90,6 +98,8 @@ class ManifestEntry:
     probes: tuple[ManifestProbe, ...] = ()
     logs: tuple[ManifestLog, ...] = ()
     snapshot_dirs: tuple[str, ...] = ()
+    docs: tuple[ManifestSource, ...] = ()
+    audits: tuple[ManifestSource, ...] = ()
     facts: dict[str, Any] = field(default_factory=dict)
 
 
@@ -136,6 +146,20 @@ def _parse_unit(raw: object, where: str) -> ManifestUnit:
     )
 
 
+def _parse_sources(raw: object, where: str) -> tuple[ManifestSource, ...]:
+    """Parse a `docs` or `audits` array of {path, label} objects."""
+    if not isinstance(raw, list):
+        msg = f"{where}: rationale sources must be an array"
+        raise ManifestError(msg)
+    return tuple(
+        ManifestSource(
+            path=_require(item, "path", where), label=_require(item, "label", where)
+        )
+        for item in raw
+        if isinstance(item, dict)
+    )
+
+
 def _parse_entry(raw: dict[str, Any], where: str) -> ManifestEntry:
     """Parse one ``manifest/subsystems/<id>.json`` document."""
     return ManifestEntry(
@@ -161,6 +185,8 @@ def _parse_entry(raw: dict[str, Any], where: str) -> ManifestEntry:
             for lg in raw.get("logs", ())
         ),
         snapshot_dirs=tuple(str(d) for d in raw.get("snapshot_dirs", ())),
+        docs=_parse_sources(raw.get("docs", []), where),
+        audits=_parse_sources(raw.get("audits", []), where),
         facts=dict(raw.get("facts", {})),
     )
 

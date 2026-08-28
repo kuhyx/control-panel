@@ -1,0 +1,97 @@
+# Mirrors the local gate exactly, so green-local means green-CI:
+#   pytest                     -> 100% branch coverage or fail
+#   pnpm run lint              -> tsc --noEmit && eslint .
+#   pnpm run coverage          -> vitest, which fails below 100%
+#   pnpm run build             -> tsc -b && vite build
+#   pre-commit run --all-files -> every hook, including the read-only guard
+#
+# `control-panel doctor` is deliberately NOT run here. It exits 1 whenever any
+# unit on the host is unarmed, which is permanently true on the real machine and
+# meaningless on a GitHub runner that has none of this fleet installed.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14.7"
+
+      # requirements.txt holds only test and lint tooling: the package itself
+      # is stdlib-only. scripts/ci_mirror.sh builds the identical venv locally
+      # at pre-push, so green-local means green-CI.
+      - run: pip install -r requirements.txt && pip install -e .
+
+      - name: Tests (100% branch coverage enforced)
+        # CONTROL_PANEL_ROOT is set by conftest per-test; exporting it empty
+        # here would mask a test that forgot the fixture.
+        run: pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      # No version here on purpose: the action reads the pinned pnpm from
+      # package.json's packageManager field, the same source run.sh honours
+      # through corepack. npm cannot install @kuhyx/web-ui at all -- it lives in
+      # a subdirectory of the utils repo, which only pnpm's `&path:` supports.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+          node-version: "24.20.0"
+
+      # --frozen-lockfile: CI must fail on a lockfile that does not match
+      # package.json rather than silently resolving something else.
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint (typecheck + eslint)
+        run: pnpm run lint
+
+      - name: Coverage (fails below 100%)
+        run: pnpm run coverage
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Palette must not fork
+        # The design tokens are CI-compared across four files in ~/utils. This
+        # repo consumes them and must never introduce a colour of its own.
+        working-directory: .
+        run: |
+          if grep -rnE '#[0-9a-fA-F]{3,8}\b' web/src; then
+            echo "::error::hex colour literal found; use a --token from @kuhyx/web-ui"
+            exit 1
+          fi
+
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14.7"
+      - run: pip install pre-commit
+      # Hooks that need the built frontend or a live systemd are skipped: this
+      # job exists to catch lint, formatting, file length, md naming and the
+      # read-only guard.
+      - run: pre-commit run --all-files --show-diff-on-failure
+        env:
+          SKIP: vitest-coverage,ci-mirror
