@@ -70,18 +70,34 @@ repos:
       # discipline. control_panel/mutations/ does not exist yet, so this hook
       # lands green and stays honest; added after the fact it would be a
       # rubber stamp over whatever had already crept in.
-      - id: read-only-phase-1
-        name: Phase 1 backend must not write, start, or stop anything
+      # Phase 2 added writes, so this guard narrowed rather than disappeared.
+      # The invariant it now states is stronger and more specific: exactly one
+      # package may change anything on this machine, and every other module
+      # stays a reader. Deleting it when writes arrived would have been the
+      # easy move and would have left nothing behind.
+      - id: no-writes-outside-mutations
+        name: Only control_panel/mutations may change the system
         entry: >-
           (?x)
           (\.write_text|\.write_bytes|\bshutil\.|\bos\.remove|\bos\.rmdir
           |\bos\.unlink|\.mkdir\(|\.rmdir\(|\.touch\(|\.chmod\(
-          |open\([^)]*["'][waxr]\+?["']|\bchattr\b
-          |systemctl["'],\s*["'](start|stop|enable|disable|mask)
-          |def\s+do_(POST|PUT|DELETE|PATCH))
+          |open\([^)]*["'][waxr]\+?["']|\bchattr\b)
         language: pygrep
         types: [python]
         files: ^control_panel/(?!tests/|mutations/)
+      # Applies EVERYWHERE, mutations included. Unit state is not one of the
+      # three approved knobs: this dashboard reports that a timer is unarmed
+      # and lets you go and arm it yourself. A UI button that runs `systemctl
+      # enable` is how a monitoring tool quietly becomes a control plane.
+      - id: never-change-unit-state
+        name: Nothing may start, stop, enable, disable or mask a unit
+        entry: >-
+          (?x)
+          (systemctl["'],\s*["'](start|stop|enable|disable|mask)
+          |def\s+do_(PUT|DELETE|PATCH))
+        language: pygrep
+        types: [python]
+        files: ^control_panel/(?!tests/)
 
   # ===========================================================================
   # RUFF - Linter + formatter

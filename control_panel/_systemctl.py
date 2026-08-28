@@ -77,7 +77,7 @@ def _load_json_array(stdout: str) -> list[dict[str, Any]]:
     """Parse a JSON array of objects, returning ``[]`` on any malformation."""
     try:
         parsed = json.loads(stdout)
-    except (json.JSONDecodeError, ValueError):
+    except json.JSONDecodeError, ValueError:
         return []
     if not isinstance(parsed, list):
         return []

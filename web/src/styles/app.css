@@ -311,3 +311,89 @@ a:focus-visible {
   margin-top: var(--space-2);
   max-height: 22rem;
 }
+
+/* --- Mutations ----------------------------------------------------------- */
+
+.mutate {
+  border-top: 1px solid var(--border);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+}
+
+.fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: var(--space-3) 0;
+}
+
+.fields label {
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-caption);
+  gap: var(--space-1);
+  letter-spacing: var(--tracking-caption);
+}
+
+.fields .grow {
+  flex: 1 1 18rem;
+}
+
+/* Input, per components.html: surface-2 field, 1px border, radius-sm. */
+.fields input {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font: inherit;
+  padding: var(--space-2);
+}
+
+.fields input:focus-visible,
+button:focus-visible {
+  outline: var(--focus-ring);
+}
+
+/* Button, per components.html: accent fill, on-fill text, radius-sm, and the
+   2x horizontal-to-vertical padding ratio. */
+button {
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--on-fill);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  padding: var(--space-2) var(--space-3);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.confirm {
+  align-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  max-width: var(--measure);
+  padding: var(--space-3);
+}
+
+.outcome {
+  margin-top: var(--space-3);
+}
+
+.outcome p {
+  align-items: center;
+  display: flex;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  max-width: var(--measure);
+}

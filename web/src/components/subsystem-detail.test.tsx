@@ -62,3 +62,30 @@ describe("SubsystemDetail", () => {
     expect(screen.getByText("journal")).toBeInTheDocument();
   });
 });
+
+describe("writable knobs", () => {
+  it("offers the curfew form only on the shutdown subsystem", () => {
+    render(<SubsystemDetail subsystem={{ ...hosts, id: "shutdown" }} />);
+    expect(
+      screen.getByRole("region", { name: "Tighten the curfew" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Block a domain" })).toBeNull();
+  });
+
+  it("offers the block form only on the hosts subsystem", () => {
+    render(<SubsystemDetail subsystem={hosts} />);
+    expect(
+      screen.getByRole("region", { name: "Block a domain" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: "Tighten the curfew" }),
+    ).toBeNull();
+  });
+
+  it("offers no knob at all on a read-only subsystem", () => {
+    // Eleven of the thirteen subsystems have no writable surface, and that is
+    // the design rather than an omission.
+    render(<SubsystemDetail subsystem={phone} />);
+    expect(screen.queryByRole("region", { name: /Tighten|Block/ })).toBeNull();
+  });
+});

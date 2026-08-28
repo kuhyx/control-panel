@@ -7,7 +7,9 @@
       "cost_of_bypass": "sudo chattr -i /etc/shutdown-schedule.conf, edit it, and beat guard-file@shutdown-schedule.path to the write. Roughly 90 seconds, and fully logged to /var/log/guard-lib.log.",
       "ratchet": "EARLIER only, via screen_locker/adjust_shutdown_schedule.sh",
       "added": "2026-03-01",
-      "supersedes": ["midnight-shutdown.timer"]
+      "supersedes": [
+        "midnight-shutdown.timer"
+      ]
     },
     "shutdown.thu-sun-hour": {
       "why": "Same backstop as the weeknight hour, kept as a separate value so weekends can be tightened or loosened independently of work nights.",
@@ -18,8 +20,8 @@
     },
     "shutdown.morning-end-hour": {
       "why": "Closes the small-hours window between midnight and the morning, which is where the curfew is easiest to sit out rather than sleep through.",
-      "cost_of_bypass": "Same guarded file as the evening hours -- but note this value is NOT currently ratcheted at all: adjust_shutdown_schedule.sh compares only $1 and $2.",
-      "ratchet": "LATER only -- and this is the opposite direction from the two evening hours. day-specific-shutdown-check.sh:94 shuts down while the current time is BELOW morning_end_minutes, so a LARGER value means a LONGER shutdown window, i.e. stricter. Writing `-gt` here, as the evening hours do, would ratchet it backwards.",
+      "cost_of_bypass": "Same guarded file as the evening hours: sudo chattr -i, edit, and beat guard-file@shutdown-schedule.path to the write.",
+      "ratchet": "LATER only -- the opposite direction from the two evening hours. day-specific-shutdown-check.sh:94 shuts down while the current time is BELOW morning_end_minutes, so a LARGER value means a LONGER shutdown window, i.e. stricter. Writing `-gt` here, as the evening hours do, would ratchet it backwards. Enforced since 2026-08-28; before that this value was not compared at all.",
       "added": "2026-03-01",
       "supersedes": []
     }

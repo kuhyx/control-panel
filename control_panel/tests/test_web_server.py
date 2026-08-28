@@ -62,10 +62,12 @@ def test_binds_loopback_only() -> None:
     assert _web_server.HOST == "127.0.0.1"
 
 
-def test_there_is_no_write_verb() -> None:
-    handler = _web_server.make_handler(_web_server._routes.Router(FakeRunner({}), 1))
-    for verb in ("do_POST", "do_PUT", "do_DELETE", "do_PATCH"):
-        assert not hasattr(handler, verb)
+def test_post_is_the_only_write_verb() -> None:
+    # Three approved knobs need one verb between them. PUT/DELETE/PATCH would
+    # each be a shape this dashboard has no business offering.
+    assert hasattr(_web_server.Handler, "do_POST")
+    for verb in ("do_PUT", "do_DELETE", "do_PATCH"):
+        assert not hasattr(_web_server.Handler, verb)
 
 
 def test_missing_bundle_explains_how_to_build_it(

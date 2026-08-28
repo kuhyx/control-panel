@@ -2,10 +2,11 @@
 name = "control-panel"
 version = "0.1.0"
 description = "Loopback-only read-only dashboard for the digital-wellbeing and self-hosting fleet"
-# 3.11 floor: StrEnum (3.11) and Path.is_relative_to (3.9) are both used
-# directly, and this repo tracks newest stable rather than the oldest
-# interpreter still alive.
-requires-python = ">=3.11"
+# Raised to 3.14 by the dependency-freshness gate, which tracks newest stable
+# rather than the oldest interpreter still alive. Nothing here needs 3.14
+# specifically -- StrEnum (3.11) is the highest feature floor -- but the gate
+# is the authority on this and CI runs the same version.
+requires-python = ">=3.14"
 # Deliberately empty. The backend is stdlib-only: adding FastAPI/uvicorn would
 # put a web framework on the dependency-freshness treadmill for a dashboard
 # whose entire job is to observe, not to serve traffic.
@@ -24,7 +25,7 @@ include = ["control_panel*"]
 # RUFF - Fast Python linter and formatter
 # ============================================================================
 [tool.ruff]
-target-version = "py311"
+target-version = "py314"
 include = ["*.py", "**/*.py"]
 # scripts/file_length is a VENDORED copy of ~/utils/file_length and must stay
 # byte-identical to upstream; ruff --unsafe-fixes otherwise strips its print()
@@ -73,7 +74,7 @@ docstring-code-format = true
 # MYPY - Static type checker
 # ============================================================================
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
@@ -104,7 +105,7 @@ exclude = [".venv/"]
 analyse-fallback-blocks = true
 persistent = true
 jobs = 0
-py-version = "3.11"
+py-version = "3.14"
 ignore = [".venv", "__pycache__"]
 ignore-patterns = [".*\\.pyi$"]
 

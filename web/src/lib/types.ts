@@ -141,3 +141,14 @@ export interface Rationale {
   signals: Signal[];
   subsystem: string;
 }
+
+export interface MutationResult {
+  argv: string[];
+  ok: boolean;
+  // Distinct from !ok: a refusal is the ratchet working and is rendered as
+  // such, not as an error.
+  refused: boolean;
+  stderr: string;
+  stdout: string;
+  summary: string;
+}

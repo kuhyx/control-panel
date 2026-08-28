@@ -80,13 +80,25 @@ a larger value is a longer window and therefore stricter. Writing `-gt` there,
 as the evening hours do, would ratchet it backwards — which is exactly the
 mistake Phase 2 would otherwise make.
 
-## Read-only, and enforced as such
+## Stricter only, and enforced as such
 
-Phase 1 performs **no writes at all**. That is enforced by a pre-commit pygrep
-hook (`read-only-phase-1`) that bans writes, `chattr`, `systemctl start/stop/
-enable/disable` and any `do_POST`/`do_PUT`/`do_DELETE` outside a
-`control_panel/mutations/` package that does not yet exist. Added later it would
-be a rubber stamp; added now it stays honest.
+Eleven of the thirteen subsystems have no writable surface at all. The two that
+do can only be tightened, and **this repo contains no comparator** — "is that
+stricter?" is answered by the scripts that already guard those files, so the
+dashboard is structurally incapable of permitting something they would refuse.
+
+| Endpoint | Delegates to | Why it cannot loosen |
+|---|---|---|
+| `POST /api/mutate/shutdown-hours` | `screen-locker`'s `adjust_shutdown_schedule.sh`, **never with `--restore`** | the script rejects any value that is not stricter, and its stderr is relayed verbatim |
+| `POST /api/mutate/hosts-add` | append, then `hosts-blocker/install.sh` | the installer aborts if any entry disappeared, so appending is the only edit that survives |
+| `GET /api/mutate/steam-exceptions` | nothing — view only | the enforcer loads `config.json` once and re-`chattr +i`s it every 3s tick, so a write here would be silently reverted. The panel says so instead of offering a dead control. |
+
+Two pre-commit hooks state the boundary rather than leaving it to discipline.
+`no-writes-outside-mutations` keeps every other module a reader.
+`never-change-unit-state` applies **everywhere, mutations included**: nothing may
+start, stop, enable, disable or mask a unit. This tool reports that a timer is
+unarmed and lets you go and arm it yourself — a button that runs `systemctl
+enable` is how a monitoring tool quietly becomes a control plane.
 
 Related deliberate choices:
 
@@ -107,11 +119,11 @@ Related deliberate choices:
 
 ```bash
 python -m venv .venv && .venv/bin/pip install -e .
-.venv/bin/pytest                       # 202 tests, 100% branch coverage
+.venv/bin/pytest                       # 272 tests, 100% branch coverage
 
 corepack pnpm --dir web install        # pnpm only: npm cannot install
 corepack pnpm --dir web run lint       #   @kuhyx/web-ui from a git subdirectory
-corepack pnpm --dir web run coverage   # 58 tests, 100% branch coverage
+corepack pnpm --dir web run coverage   # 78 tests, 100% branch coverage
 corepack pnpm --dir web run build      # -> web/dist, served by the Python process
 
 pre-commit run --all-files

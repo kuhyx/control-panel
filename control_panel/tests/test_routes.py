@@ -156,3 +156,58 @@ def test_why_route_404s_for_an_unknown_subsystem(
     status, payload = made.resolve("/api/why/ghost")
     assert status is HTTPStatus.NOT_FOUND
     assert "ghost" in payload["error"]
+
+
+def test_mutate_dispatches_to_the_named_handler(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from control_panel.mutations import _shutdown_hours, _types
+
+    monkeypatch.setattr(
+        _shutdown_hours,
+        "apply",
+        lambda _runner, _body: _types.MutationResult.success("done"),
+    )
+    made = _routes.Router(object(), 8770)
+    status, payload = made.mutate("shutdown-hours", {})
+    assert status is HTTPStatus.OK
+    assert payload["ok"] is True
+
+
+def test_a_refusal_is_a_200_carrying_the_reason(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from control_panel.mutations import _shutdown_hours, _types
+
+    monkeypatch.setattr(
+        _shutdown_hours,
+        "apply",
+        lambda _runner, _body: _types.MutationResult.refusal("no", "not stricter"),
+    )
+    made = _routes.Router(object(), 8770)
+    # Not a 4xx: the guard working is not the dashboard being broken.
+    status, payload = made.mutate("shutdown-hours", {})
+    assert status is HTTPStatus.OK
+    assert payload["refused"] is True
+    assert payload["stderr"] == "not stricter"
+
+
+def test_an_unknown_mutation_is_404() -> None:
+    made = _routes.Router(object(), 8770)
+    status, payload = made.mutate("rm-rf", {})
+    assert status is HTTPStatus.NOT_FOUND
+    assert "rm-rf" in payload["error"]
+
+
+def test_steam_exceptions_are_readable_over_get(sysroot: object) -> None:
+    made = _routes.Router(object(), 8770)
+    status, payload = made.resolve("/api/mutate/steam-exceptions")
+    assert status is HTTPStatus.OK
+    assert payload["read_only"] is True
+
+
+def test_a_writable_knob_is_not_readable_over_get() -> None:
+    made = _routes.Router(object(), 8770)
+    status, payload = made.resolve("/api/mutate/shutdown-hours")
+    assert status is HTTPStatus.NOT_FOUND
+    assert "POST" in payload["error"]

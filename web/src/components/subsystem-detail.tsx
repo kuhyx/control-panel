@@ -1,7 +1,9 @@
 import type { LogReference, SubsystemStatus } from "../lib/types.ts";
 
 import { formatBytes } from "../lib/format.ts";
+import { BlockDomain } from "./block-domain.tsx";
 import { StateBadge } from "./state-badge.tsx";
+import { TightenCurfew } from "./tighten-curfew.tsx";
 import { UnitTable } from "./unit-table.tsx";
 import { WhyPanel } from "./why-panel.tsx";
 
@@ -30,6 +32,20 @@ export function SubsystemDetail({
 
       <h3>Why this is enforced</h3>
       <WhyPanel id={subsystem.id} />
+
+      {/* Only two subsystems have a writable knob, and both only tighten. */}
+      {subsystem.id === "shutdown" && (
+        <>
+          <h3>Make it stricter</h3>
+          <TightenCurfew />
+        </>
+      )}
+      {subsystem.id === "hosts" && (
+        <>
+          <h3>Make it stricter</h3>
+          <BlockDomain />
+        </>
+      )}
 
       {facts.length > 0 && (
         <>

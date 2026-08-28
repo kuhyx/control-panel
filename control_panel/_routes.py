@@ -9,6 +9,8 @@ from urllib.parse import parse_qs, urlsplit
 
 from control_panel import _aggregate, _manifest, _rationale, _tail
 from control_panel._types import to_payload
+from control_panel.mutations import _hosts_add, _shutdown_hours, _steam_view
+from control_panel.mutations import _types as _mutation_types
 
 if TYPE_CHECKING:
     from control_panel._runner import CommandRunner
@@ -29,7 +31,7 @@ class Router:
         return to_payload(_aggregate.build_status(self._runner, self._port))
 
     def resolve(self, path_and_query: str) -> tuple[HTTPStatus, dict[str, Any]] | None:
-        """Return the response for an API path, or None if it is not an API path."""
+        """Return the response for an API path, or None if it is not one."""
         parts = urlsplit(path_and_query)
         path = parts.path
         if not path.startswith(API_PREFIX):
@@ -39,13 +41,18 @@ class Router:
         rest = segments[1] if len(segments) > 1 else ""
         if head == "health":
             return HTTPStatus.OK, {"ok": True, "port": self._port}
-        if head == "status":
-            return self._status_route(rest)
-        if head == "logs":
-            return self._logs_route(rest, parts.query)
-        if head == "why":
-            return self._why_route(rest)
-        return HTTPStatus.NOT_FOUND, {"error": f"no such endpoint: {path}"}
+        # A table rather than a return ladder: adding a route should not make
+        # this function harder to read.
+        routes = {
+            "status": self._status_route,
+            "why": self._why_route,
+            "mutate": self._mutate_get,
+            "logs": lambda name: self._logs_route(name, parts.query),
+        }
+        handler = routes.get(head)
+        if handler is None:
+            return HTTPStatus.NOT_FOUND, {"error": f"no such endpoint: {path}"}
+        return handler(rest)
 
     def _status_route(self, subsystem_id: str) -> tuple[HTTPStatus, dict[str, Any]]:
         """Serve the whole fleet, or one subsystem when named."""
@@ -56,6 +63,30 @@ class Router:
             if subsystem["id"] == subsystem_id:
                 return HTTPStatus.OK, subsystem
         return HTTPStatus.NOT_FOUND, {"error": f"no such subsystem: {subsystem_id}"}
+
+    # POST bodies are dispatched here. The table is explicit rather than
+    # derived from the path, so a typo cannot invent an endpoint.
+    def mutate(self, name: str, body: object) -> tuple[HTTPStatus, dict[str, Any]]:
+        """Apply one of the three approved changes, or refuse to know it."""
+        handlers = {
+            "shutdown-hours": _shutdown_hours.apply,
+            "hosts-add": _hosts_add.apply,
+        }
+        handler = handlers.get(name)
+        if handler is None:
+            return HTTPStatus.NOT_FOUND, {"error": f"no such mutation: {name}"}
+        result = handler(self._runner, body)
+        # A refusal is the guard working, so it is a 200 carrying the script's
+        # own words -- not a 4xx, which would read as "the dashboard is broken".
+        return HTTPStatus.OK, _mutation_types.to_payload(result)
+
+    def _mutate_get(self, name: str) -> tuple[HTTPStatus, dict[str, Any]]:
+        """Serve the read-only half of the mutation surface."""
+        if name == "steam-exceptions":
+            return HTTPStatus.OK, _steam_view.view()
+        return HTTPStatus.NOT_FOUND, {
+            "error": f"{name} is not readable; POST /api/mutate/{name} to change it"
+        }
 
     def _why_route(self, subsystem_id: str) -> tuple[HTTPStatus, dict[str, Any]]:
         """Explain why one subsystem is enforced, from docs and the sidecar."""
