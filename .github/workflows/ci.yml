@@ -50,7 +50,13 @@ jobs:
       # package.json's packageManager field, the same source run.sh honours
       # through corepack. npm cannot install @kuhyx/web-ui at all -- it lives in
       # a subdirectory of the utils repo, which only pnpm's `&path:` supports.
+      # package_json_file is required because this repo's package.json lives in
+      # web/, not at the root. `defaults.run.working-directory` moves the RUN
+      # steps, not the action's own file lookup, so without this the action
+      # reports "No pnpm version is specified".
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
 
       - uses: actions/setup-node@v4
         with:
@@ -88,10 +94,22 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
+      # md-naming and dependency-freshness are thin shims over ~/utils. Checking
+      # the shared gate out beats vendoring a copy, which is exactly how a gate
+      # and the thing it checks start disagreeing.
+      - name: Check out the shared gates
+        uses: actions/checkout@v4
+        with:
+          repository: kuhyx/utils
+          path: .utils
+
       - run: pip install pre-commit
-      # Hooks that need the built frontend or a live systemd are skipped: this
-      # job exists to catch lint, formatting, file length, md naming and the
-      # read-only guard.
+
+      # Hooks needing the built frontend or a clean-venv install are skipped:
+      # the frontend job already runs vitest, and ci-mirror is a pre-push
+      # rehearsal OF this very workflow.
       - run: pre-commit run --all-files --show-diff-on-failure
         env:
           SKIP: vitest-coverage,ci-mirror
+          # The shims resolve $HOME/utils; point that at the checkout.
+          UTILS_ROOT: ${{ github.workspace }}/.utils
