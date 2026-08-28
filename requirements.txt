@@ -1,0 +1,1 @@
+# The backend is deliberately stdlib-only; see pyproject.toml.

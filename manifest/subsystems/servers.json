@@ -1,0 +1,20 @@
+{
+  "id": "servers",
+  "title": "Self-hosted servers",
+  "category": "server",
+  "units": [
+    { "name": "dufs.service", "scope": "system", "kind": "service" },
+    { "name": "dnsmasq.service", "scope": "system", "kind": "service" },
+    { "name": "dnsmasq-watchdog.timer", "scope": "system", "kind": "timer" },
+    { "name": "stunnel-dot.service", "scope": "system", "kind": "service",
+      "why_it_matters": "DNS-over-TLS on :853; enabled but currently dead, which unit state alone does not reveal" },
+    { "name": "dot-cert-sync.timer", "scope": "system", "kind": "timer" }
+  ],
+  "probes": [
+    { "kind": "http", "target": "http://127.0.0.1:2019/config/" },
+    { "kind": "tcp", "target": "127.0.0.1:853" }
+  ],
+  "facts": {
+    "topology_source": "Caddy admin API at 127.0.0.1:2019 -- there is no caddy systemd unit and no /etc/caddy on this machine, so the reverse-proxy map cannot be read from disk."
+  }
+}

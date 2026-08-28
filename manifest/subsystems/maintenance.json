@@ -1,0 +1,21 @@
+{
+  "id": "maintenance",
+  "title": "Periodic maintenance and updates",
+  "category": "maintenance",
+  "units": [
+    { "name": "periodic-system-maintenance.timer", "scope": "system", "kind": "timer",
+      "why_it_matters": "hourly re-install of the pacman wrapper and the hosts file; this is what heals the other subsystems" },
+    { "name": "periodic-system-maintenance.service", "scope": "system", "kind": "service" },
+    { "name": "periodic-system-startup.service", "scope": "system", "kind": "service" },
+    { "name": "auto-system-update.timer", "scope": "system", "kind": "timer" },
+    { "name": "auto-system-update.service", "scope": "system", "kind": "service" },
+    { "name": "pc-startup-monitor.timer", "scope": "system", "kind": "timer" },
+    { "name": "pc-startup-monitor.service", "scope": "system", "kind": "service" },
+    { "name": "claude-timer-audit.timer", "scope": "user", "kind": "timer",
+      "why_it_matters": "the existing silent-failure watchdog for scheduled automations; this dashboard is its visual counterpart" }
+  ],
+  "logs": [
+    { "id": "periodic-maintenance", "kind": "file", "path": "/var/log/periodic-system-maintenance.log" },
+    { "id": "maintenance-journal", "kind": "journal", "unit": "periodic-system-maintenance.service", "scope": "system" }
+  ]
+}

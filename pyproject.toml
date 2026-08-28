@@ -1,0 +1,181 @@
+[project]
+name = "control-panel"
+version = "0.1.0"
+description = "Loopback-only read-only dashboard for the digital-wellbeing and self-hosting fleet"
+# 3.11 floor: StrEnum (3.11) and Path.is_relative_to (3.9) are both used
+# directly, and this repo tracks newest stable rather than the oldest
+# interpreter still alive.
+requires-python = ">=3.11"
+# Deliberately empty. The backend is stdlib-only: adding FastAPI/uvicorn would
+# put a web framework on the dependency-freshness treadmill for a dashboard
+# whose entire job is to observe, not to serve traffic.
+dependencies = []
+
+[project.scripts]
+control-panel = "control_panel._cli:main"
+
+# Explicit package discovery: the repo root holds both `control_panel/` and the
+# React `web/` frontend, and setuptools' flat-layout auto-discovery refuses to
+# guess between them.
+[tool.setuptools.packages.find]
+include = ["control_panel*"]
+
+# ============================================================================
+# RUFF - Fast Python linter and formatter
+# ============================================================================
+[tool.ruff]
+target-version = "py311"
+include = ["*.py", "**/*.py"]
+# scripts/file_length is a VENDORED copy of ~/utils/file_length and must stay
+# byte-identical to upstream; ruff --unsafe-fixes otherwise strips its print()
+# calls (T201) and silently guts the gate's reporting.
+exclude = [".git", ".venv", "__pycache__", "build", "dist", ".eggs", "scripts/file_length"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "D203",   # conflicts with D211
+    "D213",   # conflicts with D212
+    "COM812", # formatter handles this
+    "ISC001", # formatter may create these
+    "S603",   # prone to false positives
+]
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**/*.py" = ["ARG", "D", "PLC0415", "PLR2004", "S101", "SLF001"]
+"**/test_*.py" = ["ARG", "D", "PLC0415", "PLR2004", "S101", "SLF001"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+force-single-line = false
+force-sort-within-sections = true
+known-first-party = ["control_panel"]
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"
+inline-quotes = "double"
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
+
+# ============================================================================
+# MYPY - Static type checker
+# ============================================================================
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+disallow_any_unimported = true
+disallow_any_explicit = false
+disallow_any_generics = true
+disallow_subclassing_any = true
+strict_equality = true
+extra_checks = true
+ignore_missing_imports = true
+show_error_codes = true
+color_output = true
+exclude = [".venv/"]
+
+# ============================================================================
+# PYLINT
+# ============================================================================
+[tool.pylint.main]
+analyse-fallback-blocks = true
+persistent = true
+jobs = 0
+py-version = "3.11"
+ignore = [".venv", "__pycache__"]
+ignore-patterns = [".*\\.pyi$"]
+
+[tool.pylint.messages_control]
+enable = "all"
+disable = []
+
+[tool.pylint.design]
+min-public-methods = 0
+max-module-lines = 250
+max-attributes = 10
+
+[tool.pylint.typecheck]
+generated-members = [
+    ".*\\.assert_called_once_with",
+    ".*\\.assert_called_once",
+    ".*\\.assert_called",
+    ".*\\.assert_not_called",
+    ".*\\.assert_any_call",
+    ".*\\.call_args",
+    ".*\\.call_args_list",
+    ".*\\.call_count",
+]
+
+# ============================================================================
+# BANDIT - Security linter
+# ============================================================================
+[tool.bandit]
+exclude_dirs = ["tests", ".venv"]
+
+# ============================================================================
+# PYTEST
+# ============================================================================
+[tool.pytest.ini_options]
+testpaths = ["control_panel/tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+    "--cov=control_panel",
+    "--cov-branch",
+    "--cov-report=term-missing",
+    "--cov-report=lcov",
+]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning",
+    "default::pytest.PytestUnraisableExceptionWarning",
+]
+
+# ============================================================================
+# COVERAGE
+# ============================================================================
+[tool.coverage.run]
+source = ["control_panel"]
+branch = true
+omit = ["*/__pycache__/*", "*/tests/*", "*/.venv/*"]
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "raise AssertionError",
+    "if TYPE_CHECKING:",
+    'if __name__ == "__main__":',
+]
+partial_branches = ["pragma: no branch"]

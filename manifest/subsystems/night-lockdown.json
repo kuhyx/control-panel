@@ -1,0 +1,11 @@
+{
+  "id": "night-lockdown",
+  "title": "Night lockdown",
+  "category": "enforcement",
+  "units": [
+    { "name": "night-lockdown-unlock.timer", "scope": "system", "kind": "timer",
+      "why_it_matters": "the only scheduled path out of lockdown (05:00-07:00); if it is unarmed the machine stays locked down all day" },
+    { "name": "night-lockdown-unlock.service", "scope": "system", "kind": "service" }
+  ],
+  "logs": [ { "id": "night-lockdown", "kind": "journal", "unit": "night-lockdown-unlock.service", "scope": "system" } ]
+}

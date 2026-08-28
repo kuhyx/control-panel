@@ -1,0 +1,31 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.env
+.venv/
+venv/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage.xml
+*.lcov
+.coverage
+htmlcov/
+*.log
+.DS_Store
+
+# Web UI (Vite + React frontend)
+node_modules/
+web/dist/
+coverage/
+*.tsbuildinfo
+
+# ci_mirror.sh cached requirements.txt venv (rebuilt on demand)
+.ci-mirror-venv/

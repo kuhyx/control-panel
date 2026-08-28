@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "note": "Declared fleet. systemd is compared against THIS, not enumerated. A unit that was never installed (phone-auto-sync.timer) is invisible to systemctl and can only be found by declaring it here.",
+  "order": [
+    "hosts",
+    "guard-lib",
+    "shutdown",
+    "night-lockdown",
+    "screen-locker",
+    "leetcode-guard",
+    "diet-guard",
+    "steam-backlog-enforcer",
+    "compulsive-block",
+    "pacman-policy",
+    "maintenance",
+    "phone-focus-mode",
+    "kuhytrack",
+    "servers"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "phone-focus-mode",
+  "title": "Phone focus mode",
+  "category": "enforcement",
+  "units": [
+    { "name": "phone-auto-sync.timer", "scope": "user", "kind": "timer",
+      "why_it_matters": "declared by ~/phone-focus-mode/systemd/install_pc_phone_automation.sh but never installed here; without it the phone policy is never pushed" },
+    { "name": "phone-auto-sync.service", "scope": "user", "kind": "service" }
+  ],
+  "facts": {
+    "installer": "~/phone-focus-mode/systemd/install_pc_phone_automation.sh",
+    "note": "The historical ExecStart target ~/testsAndMisc/scripts/run_all/run_phone.sh no longer exists after the repo extraction, so re-running the installer unchanged would produce a broken unit."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "diet-guard",
+  "title": "diet-guard",
+  "category": "enforcement",
+  "units": [
+    { "name": "diet-guard-gate.timer", "scope": "user", "kind": "timer",
+      "why_it_matters": "OnCalendar rather than OnBootSec because the gate is a blocking oneshot" },
+    { "name": "diet-guard-gate.service", "scope": "user", "kind": "service" },
+    { "name": "diet-guard-sync.service", "scope": "user", "kind": "service" }
+  ],
+  "logs": [ { "id": "diet-guard", "kind": "journal", "unit": "diet-guard-gate.service", "scope": "user" } ]
+}

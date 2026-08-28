@@ -1,0 +1,17 @@
+{
+  "id": "guard-lib",
+  "title": "guard-lib file immutability",
+  "category": "enforcement",
+  "units": [
+    { "name": "guard-file@hosts.path", "scope": "system", "kind": "path",
+      "why_it_matters": "restores /etc/hosts from canonical on any write" },
+    { "name": "guard-file@nsswitch.path", "scope": "system", "kind": "path",
+      "why_it_matters": "nsswitch.conf was the documented bypass: point hosts lookups away from files and the blocklist stops applying" },
+    { "name": "guard-file@resolved.path", "scope": "system", "kind": "path" },
+    { "name": "guard-file@shutdown-schedule.path", "scope": "system", "kind": "path",
+      "why_it_matters": "blocks loosening the curfew by editing /etc/shutdown-schedule.conf directly" },
+    { "name": "guard-bind-mount@hosts.service", "scope": "system", "kind": "service",
+      "why_it_matters": "read-only self-bind-mount blocks chattr at the VFS layer" }
+  ],
+  "logs": [ { "id": "guard-lib", "kind": "file", "path": "/var/log/guard-lib.log" } ]
+}

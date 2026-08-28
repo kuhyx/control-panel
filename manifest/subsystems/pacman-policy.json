@@ -1,0 +1,11 @@
+{
+  "id": "pacman-policy",
+  "title": "pacman / makepkg policy wrapper",
+  "category": "enforcement",
+  "units": [],
+  "logs": [ { "id": "pacman", "kind": "file", "path": "/var/log/pacman.log" } ],
+  "facts": {
+    "mechanism": "/usr/bin/pacman is symlinked to a wrapper; re-linked after upgrades by /etc/pacman.d/hooks/96-restore-pkg-wrappers.hook",
+    "policy_files": ["/usr/local/bin/pacman_blocked_keywords.txt", "/usr/local/bin/pw_guard.sh"]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "compulsive-block",
+  "title": "Compulsive app-open block",
+  "category": "enforcement",
+  "units": [],
+  "logs": [ { "id": "compulsive-block", "kind": "file", "path": "~/.local/state/compulsive-block/compulsive-block.log" } ],
+  "facts": {
+    "mechanism": "binary wrapper interception plus a pacman hook, not a systemd unit",
+    "hook": "/etc/pacman.d/hooks/95-compulsive-block-rewrap.hook"
+  }
+}

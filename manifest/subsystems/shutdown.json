@@ -1,0 +1,26 @@
+{
+  "id": "shutdown",
+  "title": "Curfew / scheduled shutdown",
+  "category": "enforcement",
+  "units": [
+    { "name": "day-specific-shutdown.timer", "scope": "system", "kind": "timer",
+      "why_it_matters": "the live curfew: 11 checks between 00:00 and 05:00" },
+    { "name": "day-specific-shutdown.service", "scope": "system", "kind": "service" },
+    { "name": "shutdown-timer-monitor.service", "scope": "system", "kind": "service",
+      "why_it_matters": "RefuseManualStop=true; the anti-tamper daemon for the curfew" },
+    { "name": "shutdown-timer-monitor-watchdog.timer", "scope": "system", "kind": "timer",
+      "why_it_matters": "the watchdog on the watchdog: restarts the monitor and the curfew timer if either is stopped" },
+    { "name": "shutdown-schedule-guard.path", "scope": "system", "kind": "path",
+      "retired": { "since": "2026-08-24", "superseded_by": "guard-file@shutdown-schedule.path",
+                   "note": "migrated onto guard-lib" } },
+    { "name": "midnight-shutdown.timer", "scope": "system", "kind": "timer",
+      "retired": { "since": "2026-05-01", "superseded_by": "day-specific-shutdown.timer",
+                   "note": "single 00:00 fire replaced by a day-aware schedule; unit left installed but disabled" } },
+    { "name": "midnight-shutdown.service", "scope": "system", "kind": "service",
+      "retired": { "since": "2026-05-01", "superseded_by": "day-specific-shutdown.service", "note": "see midnight-shutdown.timer" } }
+  ],
+  "logs": [
+    { "id": "shutdown-monitor", "kind": "file", "path": "/var/log/shutdown-timer-monitor.log" },
+    { "id": "shutdown-overrides", "kind": "file", "path": "/var/log/shutdown-schedule-overrides.log" }
+  ]
+}
