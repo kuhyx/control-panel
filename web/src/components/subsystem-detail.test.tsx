@@ -13,7 +13,7 @@ describe("SubsystemDetail", () => {
     render(<SubsystemDetail subsystem={phone} />);
     expect(screen.getByText("installer")).toBeInTheDocument();
     expect(
-      screen.getByText("~/phone-focus-mode/systemd/install.sh"),
+      screen.getByText("~/src/phone-focus-mode/systemd/install.sh"),
     ).toBeInTheDocument();
   });
 

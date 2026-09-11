@@ -167,7 +167,7 @@ def test_the_real_guard_pattern_still_ignores_comments() -> None:
     # If hosts_protect_custom.sh ever stops filtering on ^0\.0\.0\.0, the
     # comment channel stops being free and this whole design breaks. Check the
     # real file rather than trusting a note.
-    guard = Path("/home/kuhy/hosts-blocker/lib/hosts_protect_custom.sh")
+    guard = Path("/home/kuhy/src/hosts-blocker/lib/hosts_protect_custom.sh")
     if not guard.is_file():
         pytest.skip("hosts-blocker is not checked out here")
     assert r"^0\.0\.0\.0[[:space:]]+" in guard.read_text(encoding="utf-8")

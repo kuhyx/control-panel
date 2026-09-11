@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
     from control_panel._runner import CommandRunner
 
-RESOLVER = "~/testsAndMisc/linux_configuration/lib/extracted_repos.sh"
+RESOLVER = "~/src/testsAndMisc/linux_configuration/lib/extracted_repos.sh"
 
 
 @dataclass(frozen=True, slots=True)

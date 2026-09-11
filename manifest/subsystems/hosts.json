@@ -90,7 +90,7 @@
   ],
   "docs": [
     {
-      "path": "~/testsAndMisc/linux_configuration/docs/security-hardening/DOCS-01-current-state.md",
+      "path": "~/src/testsAndMisc/linux_configuration/docs/security-hardening/DOCS-01-current-state.md",
       "label": "security hardening: current state"
     }
   ]

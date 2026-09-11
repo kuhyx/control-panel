@@ -38,7 +38,7 @@ export const STATUS: FleetStatus = {
       category: "enforcement",
       duration_ms: 3,
       error: null,
-      facts: { installer: "~/phone-focus-mode/systemd/install.sh" },
+      facts: { installer: "~/src/phone-focus-mode/systemd/install.sh" },
       id: "phone-focus-mode",
       logs: [],
       probes: [],

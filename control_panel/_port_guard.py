@@ -1,6 +1,6 @@
 """Decide what to do when the fixed port is already taken.
 
-This deliberately inverts ``~/todo/lib/desktop/port_guard.dart``. todo may reap
+This deliberately inverts ``~/src/todo/lib/desktop/port_guard.dart``. todo may reap
 the process holding its port because the port is immovable -- the browser keys
 ``localStorage`` and IndexedDB by origin, so a fallback port would present an
 empty, logged-out app. control-panel holds no origin-keyed state, so it has no

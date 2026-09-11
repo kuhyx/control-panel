@@ -19,7 +19,7 @@
   },
   "docs": [
     {
-      "path": "~/testsAndMisc/linux_configuration/docs/DOCS-pacman-security-layers.md",
+      "path": "~/src/testsAndMisc/linux_configuration/docs/DOCS-pacman-security-layers.md",
       "label": "pacman security layers"
     }
   ]

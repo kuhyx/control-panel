@@ -111,5 +111,5 @@ jobs:
       - run: pre-commit run --all-files --show-diff-on-failure
         env:
           SKIP: vitest-coverage,ci-mirror
-          # The shims resolve $HOME/utils; point that at the checkout.
+          # The shims resolve $HOME/src/utils; point that at the checkout.
           UTILS_ROOT: ${{ github.workspace }}/.utils

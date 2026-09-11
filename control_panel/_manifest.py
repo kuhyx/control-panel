@@ -2,7 +2,7 @@
 
 This exists because ``systemctl`` can only tell you about units that are
 installed. ``phone-auto-sync.timer`` is referenced by an installer in
-``~/phone-focus-mode`` but has no unit file on this machine, so enumerating
+``~/src/phone-focus-mode`` but has no unit file on this machine, so enumerating
 systemd finds nothing to report -- it is invisible, not unarmed. Comparing
 systemd against a declared manifest is the only way that surfaces.
 

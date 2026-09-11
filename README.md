@@ -16,7 +16,7 @@ looks exactly like enforcement that never needed to fire. Two examples, both
 found by this tool on its first run:
 
 - **`phone-auto-sync.timer` was never installed here.** An installer in
-  `~/phone-focus-mode` references it, but no unit file exists on this machine,
+  `~/src/phone-focus-mode` references it, but no unit file exists on this machine,
   so the phone policy has never been pushed.
 - **`kuhytrack-budget.timer` is disabled** while its preset is `enabled` —
   kuhytrack has been tracking without ever enforcing.
@@ -106,7 +106,7 @@ Related deliberate choices:
   every enforcement mechanism, which ones are off, and where each policy file
   lives. There is no authentication, so the bind address is the entire access
   control. Verified unreachable over LAN, WireGuard and Tailscale.
-- **The port guard refuses; it never reaps.** Unlike `~/todo`, which may reclaim
+- **The port guard refuses; it never reaps.** Unlike `~/src/todo`, which may reclaim
   its port because browser storage is origin-keyed, this holds no such state. It
   identifies the owner and exits. A test asserts no signal is ever sent.
 - **Logs are read bounded.** `/var/log/hosts-file-monitor.log` is 57 MB; nothing
@@ -131,7 +131,7 @@ pre-commit run --all-files
 
 The frontend consumes `@kuhyx/web-ui` tokens and introduces **no colour
 literals** — a pre-commit hook fails the commit if a hex appears, because the
-palette is CI-compared across four files in `~/utils`.
+palette is CI-compared across four files in `~/src/utils`.
 
 Two test seams, and only two: `CONTROL_PANEL_ROOT` for the filesystem (required,
 with no default, so a test that forgets it raises rather than reading the real

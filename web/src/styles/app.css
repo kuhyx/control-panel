@@ -1,6 +1,6 @@
 /* Every value here is a token from @kuhyx/web-ui/tokens.css. There is not one
    literal colour in this file, and a pre-commit hook fails the commit if one
-   appears — the palette is CI-compared across four files in ~/utils and this
+   appears — the palette is CI-compared across four files in ~/src/utils and this
    repo must never fork it. */
 
 main {

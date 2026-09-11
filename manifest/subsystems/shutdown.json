@@ -71,11 +71,11 @@
   ],
   "docs": [
     {
-      "path": "~/digital-wellbeing/DOCS-midnight-shutdown-reference.md",
+      "path": "~/src/digital-wellbeing/DOCS-midnight-shutdown-reference.md",
       "label": "midnight shutdown reference"
     },
     {
-      "path": "~/testsAndMisc/linux_configuration/docs/security-hardening/DOCS-01-current-state.md",
+      "path": "~/src/testsAndMisc/linux_configuration/docs/security-hardening/DOCS-01-current-state.md",
       "label": "security hardening: current state"
     }
   ],
