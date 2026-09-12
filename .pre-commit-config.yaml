@@ -19,6 +19,9 @@ repos:
         args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
       - id: check-yaml
+        # pnpm 12 writes its lockfile as two YAML documents (the package
+        # manager's own entry first); each still has to parse.
+        args: [--allow-multiple-documents]
       - id: check-json
         # tsconfig.json is JSONC by TypeScript convention: it carries
         # comments explaining each strictness flag, which strict JSON rejects.

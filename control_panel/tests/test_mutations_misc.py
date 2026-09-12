@@ -72,7 +72,7 @@ def test_non_object_entries_are_dropped(sysroot: Path) -> None:
 
 
 def test_repo_resolution_prefers_the_shared_resolver(sysroot: Path) -> None:
-    script = sysroot / "home/tester/testsAndMisc/linux_configuration/lib"
+    script = sysroot / "home/tester/src/testsAndMisc/linux_configuration/lib"
     script.mkdir(parents=True)
     (script / "extracted_repos.sh").write_text("#!/bin/bash\n")
     target = sysroot / "home/tester/elsewhere/screen-locker"
@@ -97,7 +97,7 @@ def test_repo_resolution_prefers_the_shared_resolver(sysroot: Path) -> None:
 
 
 def test_a_resolver_pointing_at_nothing_is_reported(sysroot: Path) -> None:
-    script = sysroot / "home/tester/testsAndMisc/linux_configuration/lib"
+    script = sysroot / "home/tester/src/testsAndMisc/linux_configuration/lib"
     script.mkdir(parents=True)
     (script / "extracted_repos.sh").write_text("#!/bin/bash\n")
     argv = (
@@ -126,7 +126,7 @@ def test_a_missing_repo_reports_where_it_looked(sysroot: Path) -> None:
 
 
 def test_a_failing_resolver_falls_back(sysroot: Path) -> None:
-    script = sysroot / "home/tester/testsAndMisc/linux_configuration/lib"
+    script = sysroot / "home/tester/src/testsAndMisc/linux_configuration/lib"
     script.mkdir(parents=True)
     (script / "extracted_repos.sh").write_text("#!/bin/bash\n")
     (sysroot / "home/tester/diet-guard").mkdir(parents=True)
