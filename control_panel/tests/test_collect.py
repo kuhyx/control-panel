@@ -102,7 +102,7 @@ def test_instance_without_a_unit_file_state_is_labelled_instance() -> None:
     units = ("g@x.path",)
     runner = runner_for([{"Id": "g@x.path", "LoadState": "loaded"}], units)
     record = _collect.collect_units(runner, entries, fleet.view())["s"][0]
-    assert record.unit_file_state == "instance"
+    assert record.state.unit_file_state == "instance"
 
 
 def test_never_installed_unit_stays_not_installed() -> None:
@@ -167,8 +167,8 @@ def test_exec_start_existence_is_checked(sysroot: object) -> None:
     )
     view = fleet.view(user_files={"gone.service": ("enabled", "enabled")})
     record = _collect.collect_units(runner, entries, view)["s"][0]
-    assert record.exec_start == "/usr/bin/vanished"
-    assert record.exec_start_exists is False
+    assert record.state.exec_start == "/usr/bin/vanished"
+    assert record.state.exec_start_exists is False
 
 
 def test_a_unit_declared_by_two_subsystems_is_only_asked_about_once() -> None:

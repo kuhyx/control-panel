@@ -106,7 +106,7 @@ class Handler(BaseHTTPRequestHandler):
 
     server: PanelServer
 
-    def log_message(self, fmt: str, *args: object) -> None:
+    def log_message(self, fmt: str, /, *args: object) -> None:
         """Route the default request log to logging at debug level."""
         logger.debug("%s - %s", self.address_string(), fmt % args)
 

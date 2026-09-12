@@ -56,8 +56,8 @@ def _unit_anomalies(subsystems: tuple[SubsystemStatus, ...]) -> list[Anomaly]:
                     detail="; ".join(record.arming_reason),
                     evidence=(
                         f"scope={record.scope}",
-                        f"UnitFileState={record.unit_file_state}",
-                        f"preset={record.preset}",
+                        f"UnitFileState={record.state.unit_file_state}",
+                        f"preset={record.state.preset}",
                     ),
                 )
             )

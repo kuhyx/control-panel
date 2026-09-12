@@ -14,23 +14,27 @@ export type Level = "danger" | "info" | "warn";
 
 export type Category = "enforcement" | "maintenance" | "server" | "telemetry";
 
-export interface UnitRecord {
+export interface UnitState {
   active_state: null | string;
-  arming: Arming;
-  arming_reason: string[];
-  declared_retired: boolean;
   exec_start: null | string;
   exec_start_exists: boolean | null;
-  installed: boolean;
   last_trigger: null | string;
-  login_oneshot: boolean;
-  name: string;
   next_elapse: null | string;
   preset: null | string;
   result: null | string;
-  scope: string;
   sub_state: null | string;
   unit_file_state: null | string;
+}
+
+export interface UnitRecord {
+  arming: Arming;
+  arming_reason: string[];
+  declared_retired: boolean;
+  installed: boolean;
+  login_oneshot: boolean;
+  name: string;
+  scope: string;
+  state: UnitState;
 }
 
 export interface ProbeRecord {
@@ -67,15 +71,11 @@ export interface AdapterError {
 
 export interface SubsystemStatus {
   category: Category;
-  duration_ms: number;
-  error: AdapterError | null;
   facts: Record<string, unknown>;
   id: string;
   logs: LogReference[];
-  probes: ProbeRecord[];
   read_at: string;
   reason: string;
-  signals: Signal[];
   source: string;
   state: Arming;
   title: string;

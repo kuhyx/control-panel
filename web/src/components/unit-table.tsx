@@ -40,12 +40,13 @@ export function UnitTable({
               <StateBadge state={unit.arming} />
             </td>
             <td>
-              {unit.installed ? (unit.unit_file_state ?? "—") : "not installed"}
-              {unit.preset !== null && unit.preset !== unit.unit_file_state && (
-                <span className="category">preset {unit.preset}</span>
-              )}
+              {unit.installed ? (unit.state.unit_file_state ?? "—") : "not installed"}
+              {unit.state.preset !== null &&
+                unit.state.preset !== unit.state.unit_file_state && (
+                  <span className="category">preset {unit.state.preset}</span>
+                )}
             </td>
-            <td>{formatEpochMicros(unit.next_elapse)}</td>
+            <td>{formatEpochMicros(unit.state.next_elapse)}</td>
             <td className="reason">{unit.arming_reason.join("; ")}</td>
           </tr>
           );

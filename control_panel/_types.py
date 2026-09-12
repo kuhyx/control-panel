@@ -109,6 +109,26 @@ class AdapterError:
 
 
 @dataclass(frozen=True, slots=True)
+class UnitState:
+    """What systemd itself reports about one unit, verbatim.
+
+    Kept apart from :class:`UnitRecord`'s verdict fields: these are the
+    observations, the record is what the manifest and the arming rules make
+    of them. All ``None`` for a unit systemd has never heard of.
+    """
+
+    unit_file_state: str | None = None
+    preset: str | None = None
+    active_state: str | None = None
+    sub_state: str | None = None
+    result: str | None = None
+    next_elapse: str | None = None
+    last_trigger: str | None = None
+    exec_start: str | None = None
+    exec_start_exists: bool | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class UnitRecord:
     """One systemd unit as the dashboard sees it.
 
@@ -123,15 +143,7 @@ class UnitRecord:
     arming: Arming
     expected: bool = True
     installed: bool = True
-    unit_file_state: str | None = None
-    preset: str | None = None
-    active_state: str | None = None
-    sub_state: str | None = None
-    result: str | None = None
-    next_elapse: str | None = None
-    last_trigger: str | None = None
-    exec_start: str | None = None
-    exec_start_exists: bool | None = None
+    state: UnitState = UnitState()
     declared_retired: bool = False
     login_oneshot: bool = False
     arming_reason: tuple[str, ...] = ()
@@ -179,13 +191,9 @@ class SubsystemStatus:
     reason: str = ""
     source: str = "systemd"
     read_at: str = ""
-    duration_ms: int = 0
-    error: AdapterError | None = None
     units: tuple[UnitRecord, ...] = ()
-    probes: tuple[ProbeRecord, ...] = ()
     facts: dict[str, Any] = field(default_factory=dict)
     logs: tuple[LogRef, ...] = ()
-    signals: tuple[Signal, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

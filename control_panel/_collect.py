@@ -138,6 +138,40 @@ def collect_units(
     runner: CommandRunner, entries: tuple[ManifestEntry, ...], view: SystemdView
 ) -> dict[str, tuple[UnitRecord, ...]]:
     """Evaluate every declared unit, resolving delegation in a second pass."""
+    resolved, delegating, direct = _resolve_declarations(runner, entries, view)
+
+    records: dict[str, list[UnitRecord]] = {}
+    # Keyed by (name, scope): a user unit and a system unit can share a name,
+    # and collapsing them would let one scope's arming answer for the other's.
+    armed: dict[UnitKey, bool] = {}
+    for entry_id, declarations in direct.items():
+        records[entry_id] = []
+        for declared in declarations:
+            record = _evaluate(declared, view, resolved, peers_armed=None)
+            records[entry_id].append(record)
+            armed[declared.name, declared.scope] = record.arming is Arming.ARMED
+
+    for entry_id, declared in delegating:
+        records[entry_id].append(
+            _evaluate(
+                declared,
+                view,
+                resolved,
+                peers_armed=_peers_armed(declared, resolved, armed),
+            )
+        )
+
+    return {entry.id: _in_declared_order(entry, records[entry.id]) for entry in entries}
+
+
+def _resolve_declarations(
+    runner: CommandRunner, entries: tuple[ManifestEntry, ...], view: SystemdView
+) -> tuple[
+    dict[UnitKey, _Resolved],
+    list[tuple[str, ManifestUnit]],
+    dict[str, list[ManifestUnit]],
+]:
+    """Read every unit once and sort the declarations into direct vs delegating."""
     raw = _show_all(runner, entries)
     edges = _activation_edges(entries, raw)
     resolved: dict[UnitKey, _Resolved] = {}
@@ -159,34 +193,24 @@ def collect_units(
                 delegating.append((entry.id, declared))
             else:
                 direct[entry.id].append(declared)
+    return resolved, delegating, direct
 
-    records: dict[str, list[UnitRecord]] = {}
-    # Keyed by (name, scope): a user unit and a system unit can share a name,
-    # and collapsing them would let one scope's arming answer for the other's.
-    armed: dict[UnitKey, bool] = {}
-    for entry_id, declarations in direct.items():
-        records[entry_id] = []
-        for declared in declarations:
-            record = _evaluate(declared, view, resolved, peers_armed=None)
-            records[entry_id].append(record)
-            armed[declared.name, declared.scope] = record.arming is Arming.ARMED
 
-    for entry_id, declared in delegating:
-        peers = resolved[declared.name, declared.scope].triggers
-        # None, not False, when no trigger is declared: an undeclared peer has
-        # unknown arming, and defaulting it to "unarmed" would invent failures.
-        known = [
-            armed[peer, declared.scope]
-            for peer in peers
-            if (peer, declared.scope) in armed
-        ]
-        records[entry_id].append(
-            _evaluate(
-                declared, view, resolved, peers_armed=any(known) if known else None
-            )
-        )
+def _peers_armed(
+    declared: ManifestUnit,
+    resolved: dict[UnitKey, _Resolved],
+    armed: dict[UnitKey, bool],
+) -> bool | None:
+    """Whether any declared trigger of a delegating unit is armed.
 
-    return {entry.id: _in_declared_order(entry, records[entry.id]) for entry in entries}
+    None, not False, when no trigger is declared: an undeclared peer has
+    unknown arming, and defaulting it to "unarmed" would invent failures.
+    """
+    peers = resolved[declared.name, declared.scope].triggers
+    known = [
+        armed[peer, declared.scope] for peer in peers if (peer, declared.scope) in armed
+    ]
+    return any(known) if known else None
 
 
 def _in_declared_order(

@@ -68,8 +68,8 @@ def test_enabled_scheduled_timer_is_armed() -> None:
         Observation(declared=unit("t.timer", "timer"), unit_file=uf(), timer=timer)
     )
     assert record.arming is Arming.ARMED
-    assert record.next_elapse == "99"
-    assert record.last_trigger == "1"
+    assert record.state.next_elapse == "99"
+    assert record.state.last_trigger == "1"
 
 
 def test_disabled_timer_is_unarmed() -> None:

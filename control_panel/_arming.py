@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from control_panel._types import Arming, UnitRecord
+from control_panel._types import Arming, UnitRecord, UnitState
 
 if TYPE_CHECKING:
     from control_panel._manifest import ManifestUnit
@@ -196,15 +196,19 @@ def evaluate(obs: Observation) -> UnitRecord:
         scope=obs.declared.scope,
         arming=state,
         installed=obs.unit_file is not None,
-        unit_file_state=obs.unit_file.state if obs.unit_file else None,
-        preset=obs.unit_file.preset if obs.unit_file else None,
-        active_state=obs.props.get("ActiveState") or None,
-        sub_state=obs.props.get("SubState") or None,
-        result=obs.props.get("Result") or None,
-        next_elapse=str(timer.next_elapse) if timer and timer.next_elapse else None,
-        last_trigger=str(timer.last_trigger) if timer and timer.last_trigger else None,
-        exec_start=exec_start_binary(obs.props),
-        exec_start_exists=obs.exec_start_exists,
+        state=UnitState(
+            unit_file_state=obs.unit_file.state if obs.unit_file else None,
+            preset=obs.unit_file.preset if obs.unit_file else None,
+            active_state=obs.props.get("ActiveState") or None,
+            sub_state=obs.props.get("SubState") or None,
+            result=obs.props.get("Result") or None,
+            next_elapse=str(timer.next_elapse) if timer and timer.next_elapse else None,
+            last_trigger=(
+                str(timer.last_trigger) if timer and timer.last_trigger else None
+            ),
+            exec_start=exec_start_binary(obs.props),
+            exec_start_exists=obs.exec_start_exists,
+        ),
         declared_retired=obs.declared.retired is not None,
         login_oneshot=obs.declared.login_oneshot,
         arming_reason=tuple(reasons),

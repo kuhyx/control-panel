@@ -34,7 +34,12 @@ describe("UnitTable", () => {
 it("renders a dash when an installed unit reports no unit-file state", () => {
   render(
     <UnitTable
-      units={[{ ...hosts!.units[0]!, preset: null, unit_file_state: null }]}
+      units={[
+        {
+          ...hosts!.units[0]!,
+          state: { ...hosts!.units[0]!.state, preset: null, unit_file_state: null },
+        },
+      ]}
     />,
   );
   expect(screen.getByText("—")).toBeInTheDocument();

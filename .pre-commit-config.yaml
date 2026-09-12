@@ -153,13 +153,13 @@ repos:
   # PYLINT
   # ===========================================================================
   - repo: https://github.com/pylint-dev/pylint
-    rev: v3.3.2
+    rev: v4.0.8
     hooks:
       - id: pylint
         exclude: ^scripts/file_length/
         args:
           - --rcfile=pyproject.toml
-          - --fail-under=8.0
+          - --fail-under=10
           - --jobs=4
         # pylint resolves imports in its OWN isolated env, so anything the
         # package imports has to be listed here or it reports import-error and

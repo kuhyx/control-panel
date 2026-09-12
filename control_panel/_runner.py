@@ -48,7 +48,6 @@ class CommandRunner(Protocol):
         self, argv: tuple[str, ...], timeout: float = DEFAULT_TIMEOUT
     ) -> CommandResult:
         """Execute ``argv`` and return its outcome, never raising."""
-        ...  # pragma: no cover
 
 
 class SubprocessRunner:
