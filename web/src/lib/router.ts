@@ -11,8 +11,9 @@ export function parseHash(hash: string): Route {
   const clean = hash.replace(/^#\/?/, "");
   const [head = "", tail = ""] = clean.split("/", 2);
   if (head === "s" && tail !== "") return { id: tail, name: "detail" };
-  if (head === "logs" && tail !== "") return { id: tail, name: "logs" };
-  return { id: "", name: "overview" };
+  return head === "logs" && tail !== ""
+    ? { id: tail, name: "logs" }
+    : { id: "", name: "overview" };
 }
 
 export function useRoute(): Route {

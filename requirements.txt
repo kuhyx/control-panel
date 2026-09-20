@@ -7,7 +7,7 @@
 
 bandit==1.9.4
 codespell==2.4.3
-coverage==7.16.0
+coverage==7.16.1
 mypy==2.3.1
 pre-commit==4.6.2
 pylint==4.0.8
@@ -17,4 +17,4 @@ pytest-randomly==5.0.0
 pytest-sugar==1.1.1
 pytest-timeout==2.4.0
 pytest-xdist==3.8.0
-ruff==0.16.7
+ruff==0.16.8

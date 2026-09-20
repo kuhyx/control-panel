@@ -39,6 +39,5 @@ export function requiresAttention(state: Arming): boolean {
 
 export function levelTone(level: Level): string {
   if (level === "danger") return "var(--danger)";
-  if (level === "warn") return "var(--warning)";
-  return "var(--accent)";
+  return level === "warn" ? "var(--warning)" : "var(--accent)";
 }
