@@ -10,6 +10,7 @@ describe("arming helpers", () => {
       "ARMED",
       "BAD",
       "DEGRADED",
+      "DISARMED",
       "NOT_INSTALLED",
       "RETIRED",
       "UNARMED",
@@ -23,10 +24,12 @@ describe("arming helpers", () => {
   it("ranks worst first, mirroring the Python severity order", () => {
     expect(severityRank("BAD")).toBeLessThan(severityRank("UNARMED"));
     expect(severityRank("UNARMED")).toBeLessThan(severityRank("ARMED"));
+    expect(severityRank("DISARMED")).toBeLessThan(severityRank("ARMED"));
   });
 
   it("treats retired as a decision, not a fault", () => {
     expect(requiresAttention("RETIRED")).toBe(false);
+    expect(requiresAttention("DISARMED")).toBe(false);
     expect(requiresAttention("ARMED")).toBe(false);
     expect(requiresAttention("UNARMED")).toBe(true);
     expect(requiresAttention("NOT_INSTALLED")).toBe(true);

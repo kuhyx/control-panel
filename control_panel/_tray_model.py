@@ -19,7 +19,7 @@ from typing import Any
 from control_panel._types import Arming
 
 RED_STATES = frozenset({Arming.BAD, Arming.NOT_INSTALLED, Arming.UNARMED})
-HEALTHY_STATES = frozenset({Arming.ARMED, Arming.RETIRED})
+HEALTHY_STATES = frozenset({Arming.ARMED, Arming.RETIRED, Arming.DISARMED})
 LEVEL_RED = "red"
 LEVEL_AMBER = "amber"
 LEVEL_OK = "ok"

@@ -63,6 +63,7 @@ class ManifestUnit:
     arming_lives_on: tuple[str, ...] = ()
     why_it_matters: str = ""
     restartable: bool = False
+    on_demand: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -128,6 +129,7 @@ def _parse_unit(raw: object, where: str) -> ManifestUnit:
         arming_lives_on=tuple(str(x) for x in raw.get("arming_lives_on", ())),
         why_it_matters=str(raw.get("why_it_matters", "")),
         restartable=bool(raw.get("restartable", False)),
+        on_demand=bool(raw.get("on_demand", False)),
     )
 
 

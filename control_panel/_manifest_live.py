@@ -80,6 +80,8 @@ class ManifestLive:
     dashboards: tuple[ManifestDashboard, ...] = ()
     containers: tuple[ManifestContainer, ...] = ()
     important: bool = True
+    # A file whose existence means "disarmed on purpose"; its text is the why.
+    disarm_marker: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -112,6 +114,7 @@ def parse_live(raw: dict[str, Any], where: str) -> ManifestLive:
         dashboards=parse_dashboards(raw.get("dashboards"), where),
         containers=parse_containers(raw.get("containers"), where),
         important=bool(raw.get("important", True)),
+        disarm_marker=str(raw.get("disarm_marker", "")),
     )
 
 

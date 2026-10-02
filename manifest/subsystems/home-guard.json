@@ -21,5 +21,6 @@
       "unit": "home-guard-gate.service",
       "scope": "user"
     }
-  ]
+  ],
+  "disarm_marker": "~/.local/share/home_guard/DISARMED"
 }

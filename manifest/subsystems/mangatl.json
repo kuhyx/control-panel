@@ -8,24 +8,30 @@
       "name": "mangatl.service",
       "scope": "user",
       "kind": "service",
-      "restartable": true
+      "restartable": true,
+      "on_demand": true
     },
     {
       "name": "mangatl-llm.service",
       "scope": "user",
       "kind": "service",
-      "restartable": true
+      "restartable": true,
+      "on_demand": true
     }
   ],
-  "facts": {
-    "port_conflict": "mangatl serves on 127.0.0.1:8000, which steam-backlog-enforcer-web.service already holds, so it has no dashboard link here until one of them moves."
-  },
   "logs": [
     {
       "id": "mangatl",
       "kind": "journal",
       "unit": "mangatl.service",
       "scope": "user"
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "mangatl",
+      "url": "http://127.0.0.1:8780/",
+      "on_demand": true
     }
   ]
 }

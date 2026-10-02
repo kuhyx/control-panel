@@ -7,7 +7,7 @@ import socket
 import time
 from typing import TYPE_CHECKING
 
-from control_panel import _anomalies, _collect, _live, _manifest, _tail
+from control_panel import _anomalies, _collect, _disarm, _live, _manifest, _tail
 from control_panel._types import (
     Arming,
     Collector,
@@ -103,16 +103,22 @@ def _subsystem(
     running: _live.LiveView,
 ) -> SubsystemStatus:
     """Roll one subsystem's units and running state into its status row."""
+    why = _disarm.reason(entry.live.disarm_marker)
+    if why is not None:
+        records = _disarm.apply(records, why)
     state = worst_arming(
         tuple(record.arming for record in records)
         + _live.states(entry.category, running)
     )
+    reason = _live.reason(running) or _reason_for(state, records, running)
+    if why is not None and state is Arming.DISARMED:
+        reason = f"disarmed on purpose: {why}"
     return SubsystemStatus(
         id=entry.id,
         title=entry.title,
         category=entry.category,
         state=state,
-        reason=_live.reason(running) or _reason_for(state, records, running),
+        reason=reason,
         source="systemd",
         read_at=_now(),
         units=records,

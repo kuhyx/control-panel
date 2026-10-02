@@ -5,6 +5,7 @@ export type Arming =
   | "ARMED"
   | "BAD"
   | "DEGRADED"
+  | "DISARMED"
   | "NOT_INSTALLED"
   | "RETIRED"
   | "UNARMED"

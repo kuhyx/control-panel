@@ -130,6 +130,20 @@ def _decide_timer(obs: Observation, unit_file: UnitFile) -> tuple[Arming, list[s
     return Arming.ARMED, [f"{unit_file.state}, next elapse scheduled"]
 
 
+def _declared_rest(obs: Observation) -> list[str] | None:
+    """Reasons a disabled service is armed by declaration, or None.
+
+    A login one-shot is started by its target at session start; an on-demand
+    service (mangatl holds a multi-GB model in VRAM) is started by hand. In
+    both, "disabled" is the correct resting state, not an unarmed guard.
+    """
+    if obs.declared.login_oneshot:
+        return ["login one-shot, started by its target at session start"]
+    if obs.declared.on_demand:
+        return [obs.state_note, "on demand: started by hand, never at boot"]
+    return None
+
+
 def _decide_service(obs: Observation, unit_file: UnitFile) -> tuple[Arming, list[str]]:
     """Decide a service's arming, delegating when something else activates it.
 
@@ -148,8 +162,9 @@ def _decide_service(obs: Observation, unit_file: UnitFile) -> tuple[Arming, list
         if obs.peers_armed:
             return Arming.ARMED, [f"activated by {named}"]
         return Arming.UNARMED, [f"nothing that activates it is armed: {named}"]
-    if obs.declared.login_oneshot:
-        return Arming.ARMED, ["login one-shot, started by its target at session start"]
+    rest = _declared_rest(obs)
+    if rest is not None:
+        return Arming.ARMED, rest
     if unit_file.state in ARMED_SERVICE_STATES:
         return Arming.ARMED, [unit_file.state]
     return Arming.UNARMED, [obs.state_note]

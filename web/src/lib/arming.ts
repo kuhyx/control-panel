@@ -6,6 +6,7 @@ const TONE: Record<Arming, string> = {
   ARMED: "var(--success)",
   BAD: "var(--danger)",
   DEGRADED: "var(--warning)",
+  DISARMED: "var(--text-muted)",
   NOT_INSTALLED: "var(--danger)",
   RETIRED: "var(--text-muted)",
   UNARMED: "var(--warning)",
@@ -20,6 +21,7 @@ const SEVERITY: Arming[] = [
   "UNARMED",
   "DEGRADED",
   "UNKNOWN",
+  "DISARMED",
   "RETIRED",
   "ARMED",
 ];
@@ -32,9 +34,12 @@ export function severityRank(state: Arming): number {
   return SEVERITY.indexOf(state);
 }
 
-// RETIRED is a deliberate decision, not a fault, so it is not "needs attention".
+// RETIRED and DISARMED are deliberate decisions, not faults, so neither is
+// "needs attention".
+const SETTLED = new Set<Arming>(["ARMED", "DISARMED", "RETIRED"]);
+
 export function requiresAttention(state: Arming): boolean {
-  return state !== "ARMED" && state !== "RETIRED";
+  return !SETTLED.has(state);
 }
 
 export function levelTone(level: Level): string {

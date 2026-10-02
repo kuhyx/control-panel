@@ -31,6 +31,9 @@ class Arming(StrEnum):
     NOT_INSTALLED = "NOT_INSTALLED"
     RETIRED = "RETIRED"
     UNKNOWN = "UNKNOWN"
+    # Declared, like RETIRED: the owner switched the guard off on purpose and
+    # left a marker saying why (home-guard's DISARMED file). Not a fault.
+    DISARMED = "DISARMED"
 
 
 # Worst-first severity order. A subsystem reports the worst state among its
@@ -41,6 +44,7 @@ ARMING_SEVERITY: tuple[Arming, ...] = (
     Arming.UNARMED,
     Arming.DEGRADED,
     Arming.UNKNOWN,
+    Arming.DISARMED,
     Arming.RETIRED,
     Arming.ARMED,
 )
