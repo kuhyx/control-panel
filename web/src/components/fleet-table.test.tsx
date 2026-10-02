@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { STATUS } from "../test/fixture.ts";
+import { SERVER, STATUS } from "../test/fixture.ts";
 import { FleetTable } from "./fleet-table.tsx";
 
 describe("FleetTable", () => {
@@ -26,4 +26,12 @@ describe("FleetTable", () => {
     expect(rows[0]).toHaveClass("row-attention");
     expect(rows[1]).not.toHaveClass("row-attention");
   });
+});
+
+it("links straight to each subsystem's dashboards", () => {
+  render(<FleetTable subsystems={[SERVER, ...STATUS.subsystems]} />);
+  expect(screen.getByRole("link", { name: "Manage UI" })).toHaveAttribute(
+    "href",
+    "http://127.0.0.1:8140/",
+  );
 });

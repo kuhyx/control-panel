@@ -8,7 +8,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
-readonly PORT="${CONTROL_PANEL_PORT:-8770}"
+readonly PORT="${CONTROL_PANEL_PORT:-8760}"
 
 usage() {
     echo "Usage: $(basename "$0") [--doctor] [--rebuild]"
@@ -37,8 +37,8 @@ fi
 
 if [[ $REBUILD -eq 1 || ! -d "$SCRIPT_DIR/web/dist" ]]; then
     echo "Building the frontend (pnpm: npm cannot install @kuhyx/web-ui)..."
-    corepack pnpm --dir "$SCRIPT_DIR/web" install --frozen-lockfile
-    corepack pnpm --dir "$SCRIPT_DIR/web" run build
+    pnpm --dir "$SCRIPT_DIR/web" install --frozen-lockfile
+    pnpm --dir "$SCRIPT_DIR/web" run build
 fi
 
 exec python3 -m control_panel serve --port "$PORT"

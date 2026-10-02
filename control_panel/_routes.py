@@ -7,15 +7,25 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 from urllib.parse import parse_qs, urlsplit
 
-from control_panel import _aggregate, _manifest, _rationale, _tail
+from control_panel import (
+    _aggregate,
+    _journal,
+    _manifest,
+    _rationale,
+    _tail,
+    _tray_model,
+    _unknown,
+)
 from control_panel._types import to_payload
-from control_panel.mutations import _hosts_add, _shutdown_hours, _steam_view
+from control_panel.mutations import _hosts_add, _restart, _shutdown_hours, _steam_view
 from control_panel.mutations import _types as _mutation_types
 
 if TYPE_CHECKING:
     from control_panel._runner import CommandRunner
 
 API_PREFIX = "/api/"
+# /api/journal/<source>/<name>: a scope or "docker", then a unit or container.
+_JOURNAL_SEGMENTS = 2
 
 
 class Router:
@@ -48,6 +58,9 @@ class Router:
             "why": self._why_route,
             "mutate": self._mutate_get,
             "logs": lambda name: self._logs_route(name, parts.query),
+            "journal": lambda _: self._journal_route(segments[1:], parts.query),
+            "unknown": lambda _: self._unknown_route(),
+            "tray": lambda _: self._tray_route(),
         }
         handler = routes.get(head)
         if handler is None:
@@ -71,6 +84,7 @@ class Router:
         handlers = {
             "shutdown-hours": _shutdown_hours.apply,
             "hosts-add": _hosts_add.apply,
+            "restart": _restart.apply,
         }
         handler = handlers.get(name)
         if handler is None:
@@ -106,19 +120,47 @@ class Router:
                 if ref["id"] != log_id:
                     continue
                 if ref["kind"] != "file":
-                    return HTTPStatus.OK, {
-                        "id": log_id,
-                        "kind": "journal",
-                        "unit": ref["unit"],
-                        "lines": [],
-                        "truncated": False,
-                        "note": "journal reads are not implemented yet",
-                    }
+                    return self._journal_route(
+                        [ref["scope"] or "system", ref["unit"]], query
+                    )
                 result = _tail.tail(ref["path"], lines)
                 return HTTPStatus.OK, {"id": log_id, "path": ref["path"]} | asdict(
                     result
                 )
         return HTTPStatus.NOT_FOUND, {"error": f"no such log: {log_id}"}
+
+    def _journal_route(
+        self, segments: list[str], query: str
+    ) -> tuple[HTTPStatus, dict[str, Any]]:
+        """Tail a declared unit's journal or a declared container's log."""
+        if len(segments) != _JOURNAL_SEGMENTS:
+            return HTTPStatus.NOT_FOUND, {
+                "error": "expected /api/journal/<source>/<name>"
+            }
+        source, name = segments
+        lines = _int_param(query, "lines", _journal.DEFAULT_LINES)
+        read = _journal.read(
+            self._runner, _manifest.load_manifest(), source, name, lines
+        )
+        if read is None:
+            return HTTPStatus.NOT_FOUND, {"error": f"{source}/{name} is not declared"}
+        return HTTPStatus.OK, read
+
+    def _unknown_route(self) -> tuple[HTTPStatus, dict[str, Any]]:
+        """List listeners and user units that no manifest entry declares."""
+        entries = _manifest.load_manifest()
+        listeners = _unknown.unknown_listeners(
+            self._runner, entries, _manifest.load_ignored_listeners(), self._port
+        )
+        return HTTPStatus.OK, {
+            "listeners": [asdict(item) for item in listeners],
+            "units": [asdict(item) for item in _unknown.undeclared_units(entries)],
+        }
+
+    def _tray_route(self) -> tuple[HTTPStatus, dict[str, Any]]:
+        """Serve the tray icon's whole view, decided server-side."""
+        panel_url = f"http://127.0.0.1:{self._port}/"
+        return HTTPStatus.OK, _tray_model.build(self._status(), panel_url)
 
 
 def _int_param(query: str, name: str, default: int) -> int:

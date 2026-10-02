@@ -94,7 +94,10 @@ def test_an_oversized_body_is_not_read(
         "POST",
         "/api/mutate/hosts-add",
         body=b"{}",
-        headers={"Content-Length": str(_web_server.MAX_BODY_BYTES + 1)},
+        headers={
+            "Content-Length": str(_web_server.MAX_BODY_BYTES + 1),
+            "Content-Type": "application/json",
+        },
     )
     conn.getresponse().read()
     conn.close()
@@ -143,3 +146,19 @@ def test_read_json_body_survives_a_stream_that_errors() -> None:
             raise OSError(msg)
 
     assert _web_server.read_json_body({"Content-Length": "2"}, Broken()) is None
+
+
+def test_a_non_json_post_is_refused_as_cross_origin(served: int) -> None:
+    # A cross-site <form> can only send simple content types; refusing them is
+    # what forces the browser into a CORS preflight this server never answers.
+    status, data = post(served, "/api/mutate/restart", b"{}", ctype="text/plain")
+    assert status == 403
+    assert json.loads(data)["error"] == "cross-origin request"
+
+
+def test_a_foreign_host_header_is_refused() -> None:
+    headers = {"Host": "rebind.example:8760", "Content-Type": "application/json"}
+    assert not _web_server.same_origin(headers, 8760)
+    ok = {"Host": "localhost:8760", "Content-Type": "application/json; charset=utf-8"}
+    assert _web_server.same_origin(ok, 8760)
+    assert not _web_server.same_origin({}, 8760)

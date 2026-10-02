@@ -21,6 +21,7 @@ STATUS: dict[str, Any] = {
                     "kind": "journal",
                     "path": None,
                     "unit": "a.service",
+                    "scope": "user",
                 },
             ],
         }
@@ -80,15 +81,6 @@ def test_log_tail(router: _routes.Router, sysroot: Path) -> None:
     # asdict keeps tuples; json.dumps renders them as arrays on the wire.
     assert payload["lines"] == ("two", "three")
     assert payload["path"] == "/var/log/a.log"
-
-
-def test_journal_logs_report_that_they_are_not_implemented(
-    router: _routes.Router,
-) -> None:
-    status, payload = router.resolve("/api/logs/ajournal")
-    assert status is HTTPStatus.OK
-    assert payload["kind"] == "journal"
-    assert "not implemented" in payload["note"]
 
 
 def test_missing_log_id_is_404(router: _routes.Router) -> None:

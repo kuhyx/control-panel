@@ -1,0 +1,61 @@
+/* Styles for the running half of the fleet: dashboards, probes, containers,
+   restart and per-row logs. Split from app.css, which already holds the
+   enforcement view; same tokens, no new values. */
+
+.dashboards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* No wrap between dot and label: a long label ("Personal website
+   (public)") wraps inside itself instead of dropping below its dot. */
+.dashboards li {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-2);
+}
+
+.probe-dot {
+  align-self: center;
+  margin-top: 0;
+}
+
+.actions {
+  white-space: nowrap;
+}
+
+.actions,
+.restart {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+button.quiet {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.log-row td {
+  background: var(--surface-2);
+}
+
+.unknown {
+  margin-top: var(--space-4);
+}
+
+/* Collapsed findings card: the heading stays on the disclosure marker's line. */
+details.card > summary {
+  cursor: pointer;
+}
+
+details.card > summary h2 {
+  display: inline;
+}

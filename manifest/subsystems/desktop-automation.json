@@ -1,0 +1,88 @@
+{
+  "id": "desktop-automation",
+  "title": "Desktop automation and helpers",
+  "category": "maintenance",
+  "important": false,
+  "units": [
+    {
+      "name": "byox-sync.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "byox-sync.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "claude-remote-control.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "claude-workout-autoscan.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "claude-workout-autoscan.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "control-from-mobile.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "freedays-sync.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "freedays-sync.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "home-tidy.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "home-tidy.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "line-speed-probe.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "line-speed-probe.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "morning-routine.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "music-parallelism.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "usage-report-catchup.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "usage-report-catchup.service",
+      "scope": "user",
+      "kind": "service"
+    }
+  ]
+}

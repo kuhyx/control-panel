@@ -3,16 +3,22 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import TYPE_CHECKING
 
 from control_panel import _systemctl
 from control_panel._collect import SystemdView
 from control_panel._manifest import (
     ManifestEntry,
+    ManifestLive,
     ManifestLog,
+    ManifestProbe,
     ManifestUnit,
     Retired,
 )
 from control_panel._types import Category, Scope
+
+if TYPE_CHECKING:
+    from control_panel._manifest_live import ManifestContainer, ManifestDashboard
 
 _BASE_ENTRY = ManifestEntry(id="s", title="S", category=Category.ENFORCEMENT)
 _BASE_UNIT = ManifestUnit(name="x", scope=Scope.USER, kind="service")
@@ -25,6 +31,24 @@ def entry(**changes: object) -> ManifestEntry:
     adding a field to ManifestEntry does not mean editing every test helper.
     """
     return replace(_BASE_ENTRY, **changes)
+
+
+def live_entry(
+    *,
+    probes: tuple[ManifestProbe, ...] = (),
+    dashboards: tuple[ManifestDashboard, ...] = (),
+    containers: tuple[ManifestContainer, ...] = (),
+    important: bool = True,
+    **changes: object,
+) -> ManifestEntry:
+    """Return the base subsystem with its running-state block filled in."""
+    live = ManifestLive(
+        probes=probes,
+        dashboards=dashboards,
+        containers=containers,
+        important=important,
+    )
+    return entry(live=live, **changes)
 
 
 def timer(name: str, scope: Scope = Scope.USER, **changes: object) -> ManifestUnit:

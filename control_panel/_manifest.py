@@ -25,17 +25,21 @@ import json
 from pathlib import Path
 from typing import Any
 
+from control_panel._manifest_live import (
+    IgnoredListener,
+    ManifestError,
+    ManifestLive,
+    ManifestProbe,
+    check_restartable,
+    parse_ignored,
+    parse_live,
+    require,
+)
 from control_panel._types import Category, Scope
 
+__all__ = ["IgnoredListener", "ManifestError", "ManifestLive", "ManifestProbe"]
+
 MANIFEST_DIR = Path(__file__).resolve().parent.parent / "manifest"
-
-
-class ManifestError(RuntimeError):
-    """Raised when the manifest is missing or structurally invalid.
-
-    Fatal by design: a dashboard running against a half-read manifest would
-    under-report exactly the missing units it exists to find.
-    """
 
 
 @dataclass(frozen=True, slots=True)
@@ -58,14 +62,7 @@ class ManifestUnit:
     login_oneshot: bool = False
     arming_lives_on: tuple[str, ...] = ()
     why_it_matters: str = ""
-
-
-@dataclass(frozen=True, slots=True)
-class ManifestProbe:
-    """A declared liveness probe for a subsystem."""
-
-    kind: str
-    target: str
+    restartable: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -95,25 +92,12 @@ class ManifestEntry:
     title: str
     category: Category
     units: tuple[ManifestUnit, ...] = ()
-    probes: tuple[ManifestProbe, ...] = ()
     logs: tuple[ManifestLog, ...] = ()
     snapshot_dirs: tuple[str, ...] = ()
     docs: tuple[ManifestSource, ...] = ()
     audits: tuple[ManifestSource, ...] = ()
     facts: dict[str, Any] = field(default_factory=dict)
-
-
-def _require(mapping: dict[str, Any], key: str, where: str) -> str:
-    """Fetch a required key as a string, naming the file that lacked it.
-
-    Every required field in the manifest is a string or a string-backed enum,
-    so coercing here keeps the parse sites free of ``Any`` and lets mypy check
-    them properly.
-    """
-    if key not in mapping:
-        msg = f"{where}: missing required key {key!r}"
-        raise ManifestError(msg)
-    return str(mapping[key])
+    live: ManifestLive = field(default_factory=ManifestLive)
 
 
 def _parse_retired(raw: object, where: str) -> Retired | None:
@@ -124,8 +108,8 @@ def _parse_retired(raw: object, where: str) -> Retired | None:
         msg = f"{where}: 'retired' must be an object"
         raise ManifestError(msg)
     return Retired(
-        since=str(_require(raw, "since", where)),
-        superseded_by=str(_require(raw, "superseded_by", where)),
+        since=str(require(raw, "since", where)),
+        superseded_by=str(require(raw, "superseded_by", where)),
         note=str(raw.get("note", "")),
     )
 
@@ -136,13 +120,14 @@ def _parse_unit(raw: object, where: str) -> ManifestUnit:
         msg = f"{where}: each unit must be an object"
         raise ManifestError(msg)
     return ManifestUnit(
-        name=str(_require(raw, "name", where)),
-        scope=Scope(_require(raw, "scope", where)),
-        kind=str(_require(raw, "kind", where)),
+        name=str(require(raw, "name", where)),
+        scope=Scope(require(raw, "scope", where)),
+        kind=str(require(raw, "kind", where)),
         retired=_parse_retired(raw.get("retired"), where),
         login_oneshot=bool(raw.get("login_oneshot", False)),
         arming_lives_on=tuple(str(x) for x in raw.get("arming_lives_on", ())),
         why_it_matters=str(raw.get("why_it_matters", "")),
+        restartable=bool(raw.get("restartable", False)),
     )
 
 
@@ -153,7 +138,7 @@ def _parse_sources(raw: object, where: str) -> tuple[ManifestSource, ...]:
         raise ManifestError(msg)
     return tuple(
         ManifestSource(
-            path=_require(item, "path", where), label=_require(item, "label", where)
+            path=require(item, "path", where), label=require(item, "label", where)
         )
         for item in raw
         if isinstance(item, dict)
@@ -162,22 +147,27 @@ def _parse_sources(raw: object, where: str) -> tuple[ManifestSource, ...]:
 
 def _parse_entry(raw: dict[str, Any], where: str) -> ManifestEntry:
     """Parse one ``manifest/subsystems/<id>.json`` document."""
+    entry = _parse_fields(raw, where)
+    check_restartable(
+        entry.category,
+        tuple((u.name, u.scope, u.restartable) for u in entry.units),
+        entry.live.containers,
+        where,
+    )
+    return entry
+
+
+def _parse_fields(raw: dict[str, Any], where: str) -> ManifestEntry:
+    """Parse every field of one subsystem, before cross-field checks."""
     return ManifestEntry(
-        id=str(_require(raw, "id", where)),
-        title=str(_require(raw, "title", where)),
-        category=Category(_require(raw, "category", where)),
+        id=str(require(raw, "id", where)),
+        title=str(require(raw, "title", where)),
+        category=Category(require(raw, "category", where)),
         units=tuple(_parse_unit(u, where) for u in raw.get("units", ())),
-        probes=tuple(
-            ManifestProbe(
-                kind=str(_require(p, "kind", where)),
-                target=str(_require(p, "target", where)),
-            )
-            for p in raw.get("probes", ())
-        ),
         logs=tuple(
             ManifestLog(
-                id=str(_require(lg, "id", where)),
-                kind=str(_require(lg, "kind", where)),
+                id=str(require(lg, "id", where)),
+                kind=str(require(lg, "kind", where)),
                 path=str(lg.get("path", "")),
                 unit=str(lg.get("unit", "")),
                 scope=Scope(lg.get("scope", Scope.SYSTEM)),
@@ -188,6 +178,7 @@ def _parse_entry(raw: dict[str, Any], where: str) -> ManifestEntry:
         docs=_parse_sources(raw.get("docs", []), where),
         audits=_parse_sources(raw.get("audits", []), where),
         facts=dict(raw.get("facts", {})),
+        live=parse_live(raw, where),
     )
 
 
@@ -227,3 +218,12 @@ def load_manifest(directory: Path | None = None) -> tuple[ManifestEntry, ...]:
     ordered = [entries.pop(name) for name in order if name in entries]
     ordered.extend(entries[name] for name in sorted(entries))
     return tuple(ordered)
+
+
+def load_ignored_listeners(
+    directory: Path | None = None,
+) -> tuple[IgnoredListener, ...]:
+    """Load the ports ``fleet.json`` deliberately leaves out of "unknown"."""
+    base = directory or MANIFEST_DIR
+    path = base / "fleet.json"
+    return parse_ignored(_read_json(path).get("ignored_listeners"), str(path))

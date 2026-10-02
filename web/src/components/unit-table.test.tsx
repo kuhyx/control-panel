@@ -1,7 +1,9 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 
-import { STATUS } from "../test/fixture.ts";
+import * as api from "../lib/api.ts";
+import { SERVER, STATUS } from "../test/fixture.ts";
 import { UnitTable } from "./unit-table.tsx";
 
 const [phone, hosts] = STATUS.subsystems;
@@ -43,4 +45,45 @@ it("renders a dash when an installed unit reports no unit-file state", () => {
     />,
   );
   expect(screen.getByText("—")).toBeInTheDocument();
+});
+
+it("offers a restart only for a restartable unit", () => {
+  render(<UnitTable units={[...SERVER.units, ...hosts!.units]} />);
+  expect(
+    screen.getByRole("button", { name: "Restart signal-bot.service" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Restart dns-blocklist-refresh.timer" }),
+  ).not.toBeInTheDocument();
+});
+
+it("has no log toggle for a unit that is not installed", () => {
+  render(<UnitTable units={phone!.units} />);
+  expect(screen.queryByRole("button", { name: /logs for/ })).not.toBeInTheDocument();
+});
+
+it("reads a unit's journal in its own scope", async () => {
+  const spy = vi.spyOn(api, "fetchJournal").mockResolvedValue({
+    error: "",
+    lines: ["refreshed"],
+    name: "dns-blocklist-refresh.timer",
+    ok: true,
+    source: "system",
+  });
+  const user = userEvent.setup();
+  render(<UnitTable units={hosts!.units} />);
+  await user.click(
+    screen.getByRole("button", { name: "Show logs for dns-blocklist-refresh.timer" }),
+  );
+  expect(spy).toHaveBeenCalledWith(
+    "system",
+    "dns-blocklist-refresh.timer",
+    100,
+    expect.any(AbortSignal),
+  );
+  expect(await screen.findByText("refreshed")).toBeInTheDocument();
+  await user.click(
+    screen.getByRole("button", { name: "Hide logs for dns-blocklist-refresh.timer" }),
+  );
+  expect(screen.queryByText("refreshed")).not.toBeInTheDocument();
 });

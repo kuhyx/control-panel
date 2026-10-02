@@ -10,7 +10,10 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from enum import StrEnum
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from control_panel._live import LiveView
 
 
 class Arming(StrEnum):
@@ -147,23 +150,7 @@ class UnitRecord:
     declared_retired: bool = False
     login_oneshot: bool = False
     arming_reason: tuple[str, ...] = ()
-
-
-@dataclass(frozen=True, slots=True)
-class ProbeRecord:
-    """The result of a liveness probe against a loopback endpoint.
-
-    Unit state is not liveness: ``stunnel-dot.service`` is ``enabled`` with
-    nothing listening on :853, and ``steam-backlog-enforcer.service`` is
-    ``active`` with nothing on :8000 because it runs the daemon, not ``serve``.
-    """
-
-    kind: str
-    target: str
-    up: bool
-    status: int | None = None
-    latency_ms: float | None = None
-    detail: str | None = None
+    restartable: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -230,6 +217,10 @@ class FleetStatus:
     rollup: dict[str, int]
     subsystems: tuple[SubsystemStatus, ...]
     anomalies: tuple[Anomaly, ...]
+    # Keyed by subsystem id and merged into each subsystem by to_payload, so
+    # SubsystemStatus stays within pylint's ten-attribute limit while the API
+    # still serves one flat object per subsystem.
+    live: dict[str, LiveView] = field(default_factory=dict)
 
 
 def to_payload(status: FleetStatus) -> dict[str, Any]:
@@ -239,4 +230,8 @@ def to_payload(status: FleetStatus) -> dict[str, Any]:
     here subclasses ``str``, so ``json.dumps`` emits them as plain strings
     without a custom encoder.
     """
-    return asdict(status)
+    payload = asdict(status)
+    live = payload.pop("live")
+    for subsystem in payload["subsystems"]:
+        subsystem.update(live.get(subsystem["id"], {}))
+    return payload

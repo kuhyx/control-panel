@@ -1,0 +1,38 @@
+{
+  "id": "local-llm",
+  "title": "Local LLM (Ollama + Open WebUI)",
+  "category": "server",
+  "units": [
+    {
+      "name": "ollama.service",
+      "scope": "system",
+      "kind": "service"
+    }
+  ],
+  "containers": [
+    {
+      "name": "open-webui",
+      "restartable": true
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "Open WebUI",
+      "url": "http://127.0.0.1:8080/"
+    }
+  ],
+  "probes": [
+    {
+      "kind": "http",
+      "target": "http://127.0.0.1:11434/"
+    }
+  ],
+  "logs": [
+    {
+      "id": "ollama",
+      "kind": "journal",
+      "unit": "ollama.service",
+      "scope": "system"
+    }
+  ]
+}

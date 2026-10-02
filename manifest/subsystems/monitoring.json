@@ -1,0 +1,32 @@
+{
+  "id": "monitoring",
+  "title": "System monitoring",
+  "category": "telemetry",
+  "units": [
+    {
+      "name": "netdata.service",
+      "scope": "system",
+      "kind": "service"
+    },
+    {
+      "name": "coolercontrold.service",
+      "scope": "system",
+      "kind": "service"
+    },
+    {
+      "name": "nvidia-pmon.service",
+      "scope": "user",
+      "kind": "service"
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "Netdata",
+      "url": "http://127.0.0.1:19999/"
+    },
+    {
+      "label": "CoolerControl",
+      "url": "http://127.0.0.1:11987/"
+    }
+  ]
+}

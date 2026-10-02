@@ -1,0 +1,39 @@
+{
+  "id": "endurain",
+  "title": "Endurain (workouts)",
+  "category": "server",
+  "units": [
+    {
+      "name": "endurain-import.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "endurain-import.service",
+      "scope": "user",
+      "kind": "service"
+    }
+  ],
+  "containers": [
+    {
+      "name": "endurain-app",
+      "restartable": true
+    },
+    {
+      "name": "endurain-postgres"
+    },
+    {
+      "name": "endurain-redis"
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "Endurain",
+      "url": "http://127.0.0.1:8085/"
+    },
+    {
+      "label": "Endurain (public)",
+      "url": "https://endurain.kuhy.duckdns.org/"
+    }
+  ]
+}

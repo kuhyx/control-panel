@@ -3,12 +3,49 @@
   "title": "kuhytrack activity tracking",
   "category": "telemetry",
   "units": [
-    { "name": "kuhytrack.service", "scope": "user", "kind": "service" },
-    { "name": "kuhytrack-watcher.service", "scope": "user", "kind": "service" },
-    { "name": "kuhytrack-budget.timer", "scope": "user", "kind": "timer",
-      "why_it_matters": "the budget hook is the only thing that turns tracking into enforcement; without it kuhytrack observes but never acts" },
-    { "name": "kuhytrack-budget.service", "scope": "user", "kind": "service" }
+    {
+      "name": "kuhytrack.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "kuhytrack-watcher.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "kuhytrack-budget.timer",
+      "scope": "user",
+      "kind": "timer",
+      "why_it_matters": "the budget hook is the only thing that turns tracking into enforcement; without it kuhytrack observes but never acts"
+    },
+    {
+      "name": "kuhytrack-budget.service",
+      "scope": "user",
+      "kind": "service"
+    }
   ],
-  "probes": [ { "kind": "http", "target": "http://127.0.0.1:5600/api/0/info" } ],
-  "logs": [ { "id": "kuhytrack", "kind": "journal", "unit": "kuhytrack.service", "scope": "user" } ]
+  "probes": [
+    {
+      "kind": "http",
+      "target": "http://100.109.64.41:5600/api/0/info"
+    }
+  ],
+  "logs": [
+    {
+      "id": "kuhytrack",
+      "kind": "journal",
+      "unit": "kuhytrack.service",
+      "scope": "user"
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "kuhytrack",
+      "url": "http://100.109.64.41:5600/"
+    }
+  ],
+  "facts": {
+    "bind": "kt_server binds the tailscale address only, not loopback, so the probe targets 100.109.64.41."
+  }
 }

@@ -70,3 +70,20 @@ it("does not set state after unmount when the read is aborted", async () => {
   await new Promise((resolve) => setTimeout(resolve, 0));
   expect(screen.queryByText(/aborted/)).not.toBeInTheDocument();
 });
+
+it("renders a journal-kind log through the journal reader", async () => {
+  vi.spyOn(api, "fetchLog").mockResolvedValue({
+    error: "",
+    lines: ["started"],
+    name: "steam-backlog-enforcer.service",
+    ok: true,
+    source: "system",
+  });
+  render(<LogViewer id="steam-enforcer" />);
+  await waitFor(() => {
+    expect(
+      screen.getByRole("heading", { name: "steam-backlog-enforcer.service" }),
+    ).toBeInTheDocument();
+  });
+  expect(screen.getByText("started")).toBeInTheDocument();
+});

@@ -68,7 +68,7 @@ def test_full_entry_parses(tmp_path: Path) -> None:
     assert entry.units[0].retired is not None
     assert entry.units[0].retired.superseded_by == "z.timer"
     assert entry.units[0].arming_lives_on == ("y.timer",)
-    assert entry.probes[0].target == "127.0.0.1:1"
+    assert entry.live.probes[0].target == "127.0.0.1:1"
     assert entry.logs[0].scope is Scope.SYSTEM
     assert entry.snapshot_dirs == ("~/snap-*",)
     assert entry.facts == {"k": "v"}

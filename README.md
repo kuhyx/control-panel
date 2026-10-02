@@ -1,12 +1,37 @@
 # control-panel
 
-A loopback-only, **read-only** dashboard for every enforcement subsystem, server
-and timer on this machine — and for *why* each rule exists.
+A loopback-only dashboard for every enforcement subsystem, server, container
+and timer on this machine — with a link to each one's own web UI, its logs, and
+*why* each rule exists. It lives in the i3 bar as a tray icon.
 
 ```
+./install.sh                            # build, run as a user service, add the tray
 python -m control_panel doctor          # the arming table, no server
-python -m control_panel serve           # http://127.0.0.1:8770
+python -m control_panel dashboards      # probe every dashboard link; exit 1 on a dead one
+python -m control_panel serve           # http://127.0.0.1:8760
 ```
+
+## The tray icon
+
+`scripts/control_panel_tray.py` (installed to `~/.config/i3/scripts`, started by
+an `exec` line in the i3 config) is a 2x2 grid in the bar. **Left-click** opens
+the panel. **Right-click** lists every subsystem with a coloured dot; each opens
+a submenu of that subsystem's dashboards. The icon is **red** when an
+`important` subsystem is BAD, NOT_INSTALLED or UNARMED, **amber** when anything
+else is unhealthy, neutral when all is well, and grey when the panel does not
+answer. The script decides none of that: it renders `GET /api/tray`, which is
+computed and tested server-side.
+
+## Servers, containers and dashboards
+
+A manifest entry may declare `dashboards` (`{label, url, on_demand?}`),
+`containers` (Docker, read with one `docker ps`), `probes` and `important`.
+Loopback and tailnet URLs are probed concurrently every collection; public
+`*.duckdns.org` URLs are links only, because probing them goes through the
+router's flaky DNS. On a `server` subsystem a dead probe is BAD; elsewhere the
+UI is a convenience and a dead one is DEGRADED. `GET /api/unknown` lists TCP
+listeners and user unit files that **no** entry declares, so a server started
+last week cannot hide.
 
 ## Why it exists
 
@@ -82,7 +107,7 @@ mistake Phase 2 would otherwise make.
 
 ## Stricter only, and enforced as such
 
-Eleven of the thirteen subsystems have no writable surface at all. The two that
+Most subsystems have no writable surface at all. The two enforcement ones that
 do can only be tightened, and **this repo contains no comparator** — "is that
 stricter?" is answered by the scripts that already guard those files, so the
 dashboard is structurally incapable of permitting something they would refuse.
@@ -91,12 +116,16 @@ dashboard is structurally incapable of permitting something they would refuse.
 |---|---|---|
 | `POST /api/mutate/shutdown-hours` | `screen-locker`'s `adjust_shutdown_schedule.sh`, **never with `--restore`** | the script rejects any value that is not stricter, and its stderr is relayed verbatim |
 | `POST /api/mutate/hosts-add` | append, then `hosts-blocker/install.sh` | the installer aborts if any entry disappeared, so appending is the only edit that survives |
+| `POST /api/mutate/restart` | `systemctl --user restart` / `docker restart` | allowlisted in the manifest, and the loader **refuses** `restartable` on anything but a user unit or container in a `server` subsystem. A restart leaves a unit exactly as armed as it was, so it cannot switch a guard off. |
 | `GET /api/mutate/steam-exceptions` | nothing — view only | the enforcer loads `config.json` once and re-`chattr +i`s it every 3s tick, so a write here would be silently reverted. The panel says so instead of offering a dead control. |
 
 Two pre-commit hooks state the boundary rather than leaving it to discipline.
 `no-writes-outside-mutations` keeps every other module a reader.
 `never-change-unit-state` applies **everywhere, mutations included**: nothing may
-start, stop, enable, disable or mask a unit. This tool reports that a timer is
+start, stop, enable, disable or mask a unit. Restart is the one allowed unit
+operation, and `restart-only-in-restart-module` confines it to
+`mutations/_restart.py`. Every POST must be `application/json` with a `Host` of
+this listener, which stops cross-site forms and DNS rebinding. This tool reports that a timer is
 unarmed and lets you go and arm it yourself — a button that runs `systemctl
 enable` is how a monitoring tool quietly becomes a control plane.
 
@@ -119,12 +148,12 @@ Related deliberate choices:
 
 ```bash
 python -m venv .venv && .venv/bin/pip install -e .
-.venv/bin/pytest                       # 272 tests, 100% branch coverage
+.venv/bin/pytest                       # 367 tests, 100% branch coverage
 
-corepack pnpm --dir web install        # pnpm only: npm cannot install
-corepack pnpm --dir web run lint       #   @kuhyx/web-ui from a git subdirectory
-corepack pnpm --dir web run coverage   # 78 tests, 100% branch coverage
-corepack pnpm --dir web run build      # -> web/dist, served by the Python process
+pnpm --dir web install                 # pnpm only: npm cannot install
+pnpm --dir web run lint                #   @kuhyx/web-ui from a git subdirectory
+pnpm --dir web run coverage            # 117 tests, 100% branch coverage
+pnpm --dir web run build               # -> web/dist, served by the Python process
 
 pre-commit run --all-files
 ```

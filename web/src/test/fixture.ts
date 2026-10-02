@@ -1,6 +1,6 @@
-import type { FleetStatus } from "../lib/types.ts";
+import type { FleetStatus, SubsystemStatus } from "../lib/types.ts";
 
-// Shaped from the real `curl localhost:8770/api/status` output on the machine
+// Shaped from the real `curl localhost:8760/api/status` output on the machine
 // this was built for, so the component tests assert on the genuine anomalies
 // rather than invented ones.
 export const STATUS: FleetStatus = {
@@ -30,15 +30,19 @@ export const STATUS: FleetStatus = {
   },
   generated_at: "2026-08-28T16:40:00+00:00",
   host: "archlinux",
-  port: 8770,
+  port: 8760,
   rollup: { ARMED: 38, NOT_INSTALLED: 2, UNARMED: 3 },
   schema_version: 1,
   subsystems: [
     {
       category: "enforcement",
+      containers: [],
+      dashboards: [],
       facts: { installer: "~/src/phone-focus-mode/systemd/install.sh" },
       id: "phone-focus-mode",
+      important: true,
       logs: [],
+      probes: [],
       read_at: "2026-08-28T16:40:00+00:00",
       reason: "NOT_INSTALLED: phone-auto-sync.timer",
       source: "systemd",
@@ -52,6 +56,7 @@ export const STATUS: FleetStatus = {
           installed: false,
           login_oneshot: false,
           name: "phone-auto-sync.timer",
+          restartable: false,
           scope: "user",
           state: {
             active_state: null,
@@ -69,8 +74,11 @@ export const STATUS: FleetStatus = {
     },
     {
       category: "enforcement",
+      containers: [],
+      dashboards: [],
       facts: {},
       id: "hosts",
+      important: true,
       logs: [
         {
           bytes: 57_282_668,
@@ -83,6 +91,7 @@ export const STATUS: FleetStatus = {
           unit: null,
         },
       ],
+      probes: [],
       read_at: "2026-08-28T16:40:00+00:00",
       reason: "all 3 declared unit(s) armed",
       source: "systemd",
@@ -96,6 +105,7 @@ export const STATUS: FleetStatus = {
           installed: true,
           login_oneshot: false,
           name: "dns-blocklist-refresh.timer",
+          restartable: false,
           scope: "system",
           state: {
             active_state: "active",
@@ -110,6 +120,99 @@ export const STATUS: FleetStatus = {
           },
         },
       ],
+    },
+  ],
+};
+
+// A server subsystem, shaped from `curl localhost:8762/api/status/signal-bot`
+// on 2026-10-02: one restartable user unit, one restartable container, a
+// probed local dashboard, an unprobed public one and a dead probe.
+export const SERVER: SubsystemStatus = {
+  category: "server",
+  containers: [
+    {
+      arming: "ARMED",
+      name: "signal-api",
+      restartable: true,
+      state: "running",
+      status: "Up 4 days (healthy)",
+    },
+    {
+      arming: "NOT_INSTALLED",
+      name: "ghost",
+      restartable: false,
+      state: "",
+      status: "no such container",
+    },
+  ],
+  dashboards: [
+    {
+      label: "Manage UI",
+      on_demand: false,
+      probe: {
+        detail: null,
+        kind: "http",
+        latency_ms: 30.2,
+        status: 200,
+        target: "http://127.0.0.1:8140/",
+        up: true,
+      },
+      url: "http://127.0.0.1:8140/",
+    },
+    {
+      label: "Popes site (public)",
+      on_demand: false,
+      probe: {
+        detail: "not probed: public",
+        kind: "http",
+        latency_ms: null,
+        status: null,
+        target: "https://popes.kuhy.duckdns.org/",
+        up: null,
+      },
+      url: "https://popes.kuhy.duckdns.org/",
+    },
+  ],
+  facts: {},
+  id: "signal-bot",
+  important: true,
+  logs: [],
+  probes: [
+    {
+      detail: "[Errno 111] Connection refused",
+      kind: "tcp",
+      latency_ms: 0.4,
+      status: null,
+      target: "127.0.0.1:8137",
+      up: false,
+    },
+  ],
+  read_at: "2026-10-02T15:00:00+00:00",
+  reason: "down: 127.0.0.1:8137",
+  source: "systemd",
+  state: "BAD",
+  title: "Signal bot",
+  units: [
+    {
+      arming: "ARMED",
+      arming_reason: ["enabled"],
+      declared_retired: false,
+      installed: true,
+      login_oneshot: false,
+      name: "signal-bot.service",
+      restartable: true,
+      scope: "user",
+      state: {
+        active_state: "active",
+        exec_start: "/home/kuhy/src/signal-bot/run.sh",
+        exec_start_exists: true,
+        last_trigger: null,
+        next_elapse: null,
+        preset: "enabled",
+        result: "success",
+        sub_state: "running",
+        unit_file_state: "enabled",
+      },
     },
   ],
 };

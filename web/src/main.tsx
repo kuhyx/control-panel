@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import "@kuhyx/web-ui/tokens.css";
 
 import "./styles/app.css";
+import "./styles/live.css";
 import { App } from "./app.tsx";
 
 const root = document.querySelector("#root");

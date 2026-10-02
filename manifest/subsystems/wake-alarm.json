@@ -1,0 +1,65 @@
+{
+  "id": "wake-alarm",
+  "title": "wake-alarm",
+  "category": "enforcement",
+  "units": [
+    {
+      "name": "wake-alarm-audit.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "wake-alarm-audit.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "wake-alarm-fallback.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "wake-alarm-fallback.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "wake-alarm-rtc.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "wake-alarm-rtc.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "wake-alarm-session.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "wake-alarm-session.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "wake-alarm-trigger.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "wake-alarm-trigger.service",
+      "scope": "user",
+      "kind": "service"
+    }
+  ],
+  "logs": [
+    {
+      "id": "wake-alarm-trigger",
+      "kind": "journal",
+      "unit": "wake-alarm-trigger.service",
+      "scope": "user"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "id": "dufs-cloud",
+  "title": "dufs cloud",
+  "category": "server",
+  "units": [
+    {
+      "name": "dufs.service",
+      "scope": "system",
+      "kind": "service",
+      "why_it_matters": "system unit: restart it from a terminal, the dashboard cannot"
+    },
+    {
+      "name": "firebase-backup.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "firebase-backup.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "firebase-backup-failure.service",
+      "scope": "user",
+      "kind": "service"
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "Cloud (local)",
+      "url": "http://127.0.0.1:5000/"
+    },
+    {
+      "label": "Cloud (public)",
+      "url": "https://kuhy-cloud.duckdns.org/"
+    }
+  ],
+  "logs": [
+    {
+      "id": "dufs",
+      "kind": "journal",
+      "unit": "dufs.service",
+      "scope": "system"
+    }
+  ]
+}

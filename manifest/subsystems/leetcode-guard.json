@@ -13,6 +13,11 @@
       "name": "leetcode-guard.service",
       "scope": "user",
       "kind": "service"
+    },
+    {
+      "name": "leetcode-guard-web.service",
+      "scope": "user",
+      "kind": "service"
     }
   ],
   "logs": [
@@ -27,6 +32,12 @@
     {
       "path": "~/src/leetcode-guard/DOCS-incident-2026-08-05.md",
       "label": "incident 2026-08-05"
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "Status API",
+      "url": "http://127.0.0.1:8771/api/status"
     }
   ]
 }

@@ -1,0 +1,84 @@
+{
+  "id": "signal-bot",
+  "title": "Signal bot",
+  "category": "server",
+  "units": [
+    {
+      "name": "signal-bot.service",
+      "scope": "user",
+      "kind": "service",
+      "restartable": true
+    },
+    {
+      "name": "signal-bot-manage.service",
+      "scope": "user",
+      "kind": "service",
+      "restartable": true
+    },
+    {
+      "name": "signal-bot-popes-site.service",
+      "scope": "user",
+      "kind": "service",
+      "restartable": true
+    },
+    {
+      "name": "signal-jsonrpc-rebind.service",
+      "scope": "user",
+      "kind": "service",
+      "restartable": true
+    },
+    {
+      "name": "signal-api-watchdog.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "signal-bot-popes-site.socket",
+      "scope": "user",
+      "kind": "socket"
+    },
+    {
+      "name": "signal-api-watchdog.service",
+      "scope": "user",
+      "kind": "service"
+    }
+  ],
+  "containers": [
+    {
+      "name": "signal-api",
+      "restartable": true
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "Manage UI",
+      "url": "http://127.0.0.1:8140/"
+    },
+    {
+      "label": "Popes site",
+      "url": "http://127.0.0.1:8141/"
+    },
+    {
+      "label": "Popes site (public)",
+      "url": "https://popes.kuhy.duckdns.org/"
+    }
+  ],
+  "probes": [
+    {
+      "kind": "tcp",
+      "target": "127.0.0.1:8137"
+    },
+    {
+      "kind": "http",
+      "target": "http://127.0.0.1:9922/v1/about"
+    }
+  ],
+  "logs": [
+    {
+      "id": "signal-bot",
+      "kind": "journal",
+      "unit": "signal-bot.service",
+      "scope": "user"
+    }
+  ]
+}

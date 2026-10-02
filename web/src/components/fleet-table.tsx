@@ -1,6 +1,7 @@
 import type { SubsystemStatus } from "../lib/types.ts";
 
 import { requiresAttention, severityRank } from "../lib/arming.ts";
+import { DashboardLinks } from "./dashboard-links.tsx";
 import { StateBadge } from "./state-badge.tsx";
 
 export function FleetTable({
@@ -19,6 +20,7 @@ export function FleetTable({
           <th scope="col">Subsystem</th>
           <th scope="col">State</th>
           <th scope="col">Units</th>
+          <th scope="col">Dashboards</th>
           <th scope="col">Why</th>
         </tr>
       </thead>
@@ -37,6 +39,9 @@ export function FleetTable({
               <StateBadge state={subsystem.state} />
             </td>
             <td className="numeric">{subsystem.units.length}</td>
+            <td>
+              <DashboardLinks dashboards={subsystem.dashboards} />
+            </td>
             <td className="reason">{subsystem.reason}</td>
           </tr>
           );

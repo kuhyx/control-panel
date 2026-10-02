@@ -115,12 +115,21 @@ def test_reason_names_the_failing_units(tiny_manifest: None) -> None:
 
 
 def test_all_armed_reason_counts_units() -> None:
+    from control_panel._live import LiveView
     from control_panel._types import Scope, UnitRecord
 
     records = (UnitRecord(name="x", scope=Scope.USER, arming=Arming.ARMED),)
-    assert (
-        _aggregate._reason_for(Arming.ARMED, records) == "all 1 declared unit(s) armed"
-    )
+    reason = _aggregate._reason_for(Arming.ARMED, records, LiveView())
+    assert reason == "all 1 declared unit(s) armed"
+
+
+def test_running_only_subsystem_reason() -> None:
+    from control_panel._live import LiveView
+    from control_panel._live_types import ContainerRecord
+
+    running = LiveView(containers=(ContainerRecord(name="c", arming=Arming.ARMED),))
+    reason = _aggregate._reason_for(Arming.ARMED, (), running)
+    assert "every container and dashboard answers" in reason
 
 
 def test_degraded_collector_when_systemd_returns_nothing(tiny_manifest: None) -> None:

@@ -1,0 +1,51 @@
+{
+  "id": "book-guard",
+  "title": "book-guard reading gate",
+  "category": "enforcement",
+  "units": [
+    {
+      "name": "book-guard.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "book-guard.service",
+      "scope": "user",
+      "kind": "service",
+      "login_oneshot": true,
+      "arming_lives_on": [
+        "book-guard.timer"
+      ]
+    },
+    {
+      "name": "book-guard-inbox.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "book-guard-inbox.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "book-guard-inbox.path",
+      "scope": "user",
+      "kind": "path"
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "Desktop app",
+      "url": "http://127.0.0.1:8773/",
+      "on_demand": true
+    }
+  ],
+  "logs": [
+    {
+      "id": "book-guard",
+      "kind": "journal",
+      "unit": "book-guard.service",
+      "scope": "user"
+    }
+  ]
+}

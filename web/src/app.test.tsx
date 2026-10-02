@@ -14,6 +14,7 @@ describe("App", () => {
   beforeEach(() => {
     globalThis.location.hash = "";
     vi.spyOn(api, "fetchStatus").mockResolvedValue(STATUS);
+    vi.spyOn(api, "fetchUnknown").mockResolvedValue({ listeners: [], units: [] });
   });
 
   afterEach(() => {
@@ -100,4 +101,19 @@ it("does not report an error for a read aborted by unmounting", async () => {
   pending.reject(new Error("aborted"));
   await new Promise((resolve) => setTimeout(resolve, 0));
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});
+
+it("lists what the manifest does not cover below the overview", async () => {
+  globalThis.location.hash = "";
+  vi.spyOn(api, "fetchStatus").mockResolvedValue(STATUS);
+  vi.spyOn(api, "fetchUnknown").mockResolvedValue({
+    listeners: [{ address: "0.0.0.0", port: 52_736, process: "" }],
+    units: [],
+  });
+  render(<App />);
+  expect(
+    await screen.findByRole("heading", { name: "Not in the manifest" }),
+  ).toBeInTheDocument();
+  expect(await screen.findByText("0.0.0.0:52736")).toBeInTheDocument();
+  vi.restoreAllMocks();
 });

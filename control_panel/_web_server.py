@@ -1,4 +1,4 @@
-"""Loopback-only HTTP server: GET to read, POST to change one of three knobs.
+"""Loopback-only HTTP server: GET to read, POST for the approved mutations.
 
 Shape copied from ``steam_backlog_enforcer/_web_server.py``, which is the
 in-house precedent for serving a JSON API plus a built Vite bundle from one
@@ -41,15 +41,15 @@ logger = logging.getLogger(__name__)
 WEB_DIST = (Path(__file__).resolve().parent.parent / "web" / "dist").resolve()
 
 HOST = "127.0.0.1"
-DEFAULT_PORT = 8770
+# 8770 was the original; screen-locker-web took it, so this never started.
+DEFAULT_PORT = 8760
 # A mutation body is three integers or a hostname and a sentence.
 MAX_BODY_BYTES = 64 * 1024
 _EXTRA_TEXT_TYPES = frozenset(
     {"application/javascript", "application/json", "image/svg+xml"}
 )
 _NOT_BUILT = (
-    b"Frontend not built. Run: corepack pnpm --dir web install && "
-    b"corepack pnpm --dir web run build"
+    b"Frontend not built. Run: pnpm --dir web install && pnpm --dir web run build"
 )
 
 
@@ -71,6 +71,23 @@ def read_json_body(headers: Mapping[str, str], stream: IO[bytes]) -> object:
         return json.loads(stream.read(length))
     except OSError, json.JSONDecodeError, ValueError:
         return None
+
+
+def same_origin(headers: Mapping[str, str], port: int) -> bool:
+    """Accept a POST only from this server's own page.
+
+    Restart made this the first write that is not "stricter only", so the
+    loopback bind is no longer enough on its own. Two checks:
+
+    * ``Host`` must name this listener. A DNS-rebinding page reaches
+      127.0.0.1 under its *own* hostname, and is refused here.
+    * ``Content-Type`` must be JSON. A cross-site form can only send simple
+      content types; JSON forces a CORS preflight, and this server answers
+      no ``OPTIONS``, so the browser never sends the POST.
+    """
+    allowed = {f"127.0.0.1:{port}", f"localhost:{port}"}
+    ctype = headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
+    return headers.get("Host", "") in allowed and ctype == "application/json"
 
 
 def resolve_static(raw_path: str) -> tuple[HTTPStatus, bytes, str]:
@@ -129,6 +146,9 @@ class Handler(BaseHTTPRequestHandler):
         prefix = f"{_routes.API_PREFIX}mutate/"
         if not path.startswith(prefix):
             self._send_json(HTTPStatus.NOT_FOUND, {"error": "not a mutation"})
+            return
+        if not same_origin(self.headers, self.server.server_port):
+            self._send_json(HTTPStatus.FORBIDDEN, {"error": "cross-origin request"})
             return
         body = read_json_body(self.headers, self.rfile)
         status, payload = self.server.router.mutate(path[len(prefix) :], body)

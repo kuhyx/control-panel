@@ -1,0 +1,33 @@
+{
+  "id": "syncyomi",
+  "title": "SyncYomi",
+  "category": "server",
+  "units": [
+    {
+      "name": "syncyomi-guard.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "syncyomi-guard.service",
+      "scope": "user",
+      "kind": "service"
+    }
+  ],
+  "containers": [
+    {
+      "name": "syncyomi",
+      "restartable": true
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "SyncYomi",
+      "url": "http://127.0.0.1:8282/"
+    },
+    {
+      "label": "SyncYomi (public)",
+      "url": "https://kuhy-sync.duckdns.org/"
+    }
+  ]
+}

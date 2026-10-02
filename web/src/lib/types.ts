@@ -33,7 +33,8 @@ export interface UnitRecord {
   installed: boolean;
   login_oneshot: boolean;
   name: string;
-  scope: string;
+  restartable: boolean;
+  scope: "system" | "user";
   state: UnitState;
 }
 
@@ -43,7 +44,23 @@ export interface ProbeRecord {
   latency_ms: null | number;
   status: null | number;
   target: string;
-  up: boolean;
+  // null: deliberately not probed (a public URL, or an on-demand UI).
+  up: boolean | null;
+}
+
+export interface DashboardRecord {
+  label: string;
+  on_demand: boolean;
+  probe: ProbeRecord;
+  url: string;
+}
+
+export interface ContainerRecord {
+  arming: Arming;
+  name: string;
+  restartable: boolean;
+  state: string;
+  status: string;
 }
 
 export interface LogReference {
@@ -71,9 +88,13 @@ export interface AdapterError {
 
 export interface SubsystemStatus {
   category: Category;
+  containers: ContainerRecord[];
+  dashboards: DashboardRecord[];
   facts: Record<string, unknown>;
   id: string;
+  important: boolean;
   logs: LogReference[];
+  probes: ProbeRecord[];
   read_at: string;
   reason: string;
   source: string;
@@ -117,6 +138,34 @@ export interface LogTail {
   path?: string;
   total_bytes: null | number;
   truncated: boolean;
+}
+
+export type JournalSource = "docker" | "system" | "user";
+
+// What /api/journal/<source>/<name> answers, and what /api/logs/<id> answers
+// for a journal-kind log.
+export interface JournalTail {
+  error: string;
+  lines: string[];
+  name: string;
+  ok: boolean;
+  source: JournalSource;
+}
+
+export interface Listener {
+  address: string;
+  port: number;
+  process: string;
+}
+
+export interface UndeclaredUnit {
+  name: string;
+  scope: string;
+}
+
+export interface UnknownReport {
+  listeners: Listener[];
+  units: UndeclaredUnit[];
 }
 
 export interface Artifact {

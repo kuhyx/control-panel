@@ -1,0 +1,21 @@
+[Unit]
+Description=control-panel fleet dashboard (loopback :8760)
+Documentation=https://github.com/kuhyx/control-panel
+
+[Service]
+Type=simple
+# Runs from the working tree, unlike leetcode-guard-web: the package finds
+# manifest/ and web/dist relative to its own source, so a site-packages
+# install would serve neither. The consequence is that every saved edit here
+# is live after the next restart -- the backend is read-only apart from the
+# restart allowlist, which is what makes that tolerable.
+WorkingDirectory=%h/src/control-panel
+# Empty means the real filesystem; the library refuses to guess (see _sysroot).
+Environment=CONTROL_PANEL_ROOT=
+ExecStart=/usr/bin/python3 -m control_panel serve
+Restart=always
+RestartSec=2s
+
+[Install]
+# The tray icon polls this every 30 s from login on.
+WantedBy=default.target

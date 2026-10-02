@@ -1,0 +1,21 @@
+{
+  "id": "gitea",
+  "title": "Gitea",
+  "category": "server",
+  "containers": [
+    {
+      "name": "gitea",
+      "restartable": true
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "Gitea",
+      "url": "http://127.0.0.1:3000/"
+    },
+    {
+      "label": "Gitea (public)",
+      "url": "https://gitea.kuhy.duckdns.org/"
+    }
+  ]
+}

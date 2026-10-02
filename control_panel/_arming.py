@@ -212,4 +212,5 @@ def evaluate(obs: Observation) -> UnitRecord:
         declared_retired=obs.declared.retired is not None,
         login_oneshot=obs.declared.login_oneshot,
         arming_reason=tuple(reasons),
+        restartable=obs.declared.restartable,
     )

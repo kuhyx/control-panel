@@ -7,6 +7,7 @@ import { FleetTable } from "./components/fleet-table.tsx";
 import { LogViewer } from "./components/log-viewer.tsx";
 import { RollupTiles } from "./components/rollup-tiles.tsx";
 import { SubsystemDetail } from "./components/subsystem-detail.tsx";
+import { UnknownSection } from "./components/unknown-section.tsx";
 import { fetchStatus } from "./lib/api.ts";
 import { formatTimestamp } from "./lib/format.ts";
 import { useRoute } from "./lib/router.ts";
@@ -90,8 +91,11 @@ function Body({
   return (
     <>
       <RollupTiles rollup={status.rollup} />
-      <AnomalyBanner anomalies={status.anomalies} />
+      {/* Services first: the table is how you reach every dashboard, and a
+          long findings list above it pushed it off the first screen. */}
       <FleetTable subsystems={status.subsystems} />
+      <UnknownSection />
+      <AnomalyBanner anomalies={status.anomalies} />
     </>
   );
 }

@@ -2,6 +2,9 @@ import type { LogReference, SubsystemStatus } from "../lib/types.ts";
 
 import { formatBytes } from "../lib/format.ts";
 import { BlockDomain } from "./block-domain.tsx";
+import { ContainerTable } from "./container-table.tsx";
+import { DashboardLinks } from "./dashboard-links.tsx";
+import { ProbeList } from "./probe-list.tsx";
 import { StateBadge } from "./state-badge.tsx";
 import { TightenCurfew } from "./tighten-curfew.tsx";
 import { UnitTable } from "./unit-table.tsx";
@@ -26,6 +29,27 @@ export function SubsystemDetail({
         <StateBadge state={subsystem.state} />
       </header>
       <p className="reason">{subsystem.reason}</p>
+
+      {subsystem.dashboards.length > 0 && (
+        <>
+          <h3>Dashboards</h3>
+          <DashboardLinks dashboards={subsystem.dashboards} detailed />
+        </>
+      )}
+
+      {subsystem.containers.length > 0 && (
+        <>
+          <h3>Containers</h3>
+          <ContainerTable containers={subsystem.containers} />
+        </>
+      )}
+
+      {subsystem.probes.length > 0 && (
+        <>
+          <h3>Probes</h3>
+          <ProbeList probes={subsystem.probes} />
+        </>
+      )}
 
       <h3>Units</h3>
       <UnitTable units={subsystem.units} />

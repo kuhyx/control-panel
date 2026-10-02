@@ -1,0 +1,31 @@
+{
+  "id": "searxng",
+  "title": "SearXNG",
+  "category": "server",
+  "containers": [
+    {
+      "name": "searxng",
+      "restartable": true
+    },
+    {
+      "name": "searxng-valkey",
+      "restartable": true
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "SearXNG",
+      "url": "http://127.0.0.1:8090/"
+    },
+    {
+      "label": "SearXNG (public)",
+      "url": "https://searx.kuhy.duckdns.org/"
+    }
+  ],
+  "probes": [
+    {
+      "kind": "tcp",
+      "target": "127.0.0.1:6379"
+    }
+  ]
+}

@@ -16,8 +16,12 @@ export function AnomalyBanner({
     );
   }
   return (
-    <section aria-label="Anomalies" className="card">
-      <h2>{anomalies.length} finding(s)</h2>
+    // Collapsed: the findings are standing ones, and open by default they
+    // buried the service table under 20+ rows on every visit.
+    <details aria-label="Anomalies" className="card">
+      <summary>
+        <h2>{anomalies.length} finding(s)</h2>
+      </summary>
       <ul className="anomaly-list">
         {anomalies.map((anomaly) => {
           return (
@@ -39,6 +43,6 @@ export function AnomalyBanner({
           );
         })}
       </ul>
-    </section>
+    </details>
   );
 }

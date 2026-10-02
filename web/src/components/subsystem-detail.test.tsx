@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import type { SubsystemStatus } from "../lib/types.ts";
 
-import { STATUS } from "../test/fixture.ts";
+import { SERVER, STATUS } from "../test/fixture.ts";
 import { SubsystemDetail } from "./subsystem-detail.tsx";
 
 const [phone, hosts] = STATUS.subsystems as [SubsystemStatus, SubsystemStatus];
@@ -88,4 +88,21 @@ describe("writable knobs", () => {
     render(<SubsystemDetail subsystem={phone} />);
     expect(screen.queryByRole("region", { name: /Tighten|Block/ })).toBeNull();
   });
+});
+
+it("shows a server's dashboards, containers and probes", () => {
+  render(<SubsystemDetail subsystem={SERVER} />);
+  expect(screen.getByRole("heading", { name: "Dashboards" })).toBeInTheDocument();
+  expect(screen.getByText(/up 200 · 30.2 ms/)).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "Containers" })).toBeInTheDocument();
+  expect(screen.getByText("signal-api")).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "Probes" })).toBeInTheDocument();
+  expect(screen.getByText("127.0.0.1:8137")).toBeInTheDocument();
+});
+
+it("omits the running sections for a subsystem that has none", () => {
+  render(<SubsystemDetail subsystem={phone} />);
+  expect(screen.queryByRole("heading", { name: "Dashboards" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("heading", { name: "Containers" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("heading", { name: "Probes" })).not.toBeInTheDocument();
 });

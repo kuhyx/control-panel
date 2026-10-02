@@ -7,7 +7,7 @@ import socket
 import time
 from typing import TYPE_CHECKING
 
-from control_panel import _anomalies, _collect, _manifest, _tail
+from control_panel import _anomalies, _collect, _live, _manifest, _tail
 from control_panel._types import (
     Arming,
     Collector,
@@ -68,25 +68,11 @@ def build_status(runner: CommandRunner, port: int) -> FleetStatus:
     entries = _manifest.load_manifest()
     view = _collect.read_systemd(runner)
     units = _collect.collect_units(runner, entries, view)
+    live = _live.collect(runner, entries)
 
-    subsystems: list[SubsystemStatus] = []
-    for entry in entries:
-        records = units[entry.id]
-        state = worst_arming(tuple(record.arming for record in records))
-        subsystems.append(
-            SubsystemStatus(
-                id=entry.id,
-                title=entry.title,
-                category=entry.category,
-                state=state,
-                reason=_reason_for(state, records),
-                source="systemd",
-                read_at=_now(),
-                units=records,
-                facts=dict(entry.facts),
-                logs=_log_refs(entry),
-            )
-        )
+    subsystems = [
+        _subsystem(entry, units[entry.id], live[entry.id]) for entry in entries
+    ]
 
     found = _anomalies.detect(entries, subsystems, view)
     rollup: dict[str, int] = {}
@@ -107,11 +93,40 @@ def build_status(runner: CommandRunner, port: int) -> FleetStatus:
         rollup=rollup,
         subsystems=tuple(subsystems),
         anomalies=found,
+        live=live,
     )
 
 
-def _reason_for(state: Arming, records: tuple[UnitRecord, ...]) -> str:
+def _subsystem(
+    entry: _manifest.ManifestEntry,
+    records: tuple[UnitRecord, ...],
+    running: _live.LiveView,
+) -> SubsystemStatus:
+    """Roll one subsystem's units and running state into its status row."""
+    state = worst_arming(
+        tuple(record.arming for record in records)
+        + _live.states(entry.category, running)
+    )
+    return SubsystemStatus(
+        id=entry.id,
+        title=entry.title,
+        category=entry.category,
+        state=state,
+        reason=_live.reason(running) or _reason_for(state, records, running),
+        source="systemd",
+        read_at=_now(),
+        units=records,
+        facts=dict(entry.facts),
+        logs=_log_refs(entry),
+    )
+
+
+def _reason_for(
+    state: Arming, records: tuple[UnitRecord, ...], running: _live.LiveView
+) -> str:
     """Summarise why a subsystem is in its state, for the collapsed row."""
+    if not records and (running.containers or running.dashboards):
+        return "no systemd units; every container and dashboard answers"
     if not records:
         return "no systemd units; enforced by another mechanism"
     if state is Arming.ARMED:

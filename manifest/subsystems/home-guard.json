@@ -1,0 +1,25 @@
+{
+  "id": "home-guard",
+  "title": "home-guard",
+  "category": "enforcement",
+  "units": [
+    {
+      "name": "home-guard-gate.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "home-guard-gate.service",
+      "scope": "user",
+      "kind": "service"
+    }
+  ],
+  "logs": [
+    {
+      "id": "home-guard-gate",
+      "kind": "journal",
+      "unit": "home-guard-gate.service",
+      "scope": "user"
+    }
+  ]
+}

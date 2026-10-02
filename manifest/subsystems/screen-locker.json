@@ -3,18 +3,64 @@
   "title": "screen-locker workout gate",
   "category": "enforcement",
   "units": [
-    { "name": "workout-locker.timer", "scope": "user", "kind": "timer",
-      "why_it_matters": "half-hourly gate check; the 2026-08-04 outage was this timer silently not firing" },
-    { "name": "early-bird-workout-check.timer", "scope": "user", "kind": "timer" },
-    { "name": "workout-locker.service", "scope": "user", "kind": "service", "login_oneshot": true,
-      "arming_lives_on": ["workout-locker.timer", "early-bird-workout-check.timer"],
-      "why_it_matters": "disabled by design: it is activated by its timers, not by an [Install] section" },
-    { "name": "workout-sync.timer", "scope": "user", "kind": "timer" },
-    { "name": "workout-sync.service", "scope": "user", "kind": "service" }
+    {
+      "name": "workout-locker.timer",
+      "scope": "user",
+      "kind": "timer",
+      "why_it_matters": "half-hourly gate check; the 2026-08-04 outage was this timer silently not firing"
+    },
+    {
+      "name": "early-bird-workout-check.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "workout-locker.service",
+      "scope": "user",
+      "kind": "service",
+      "login_oneshot": true,
+      "arming_lives_on": [
+        "workout-locker.timer",
+        "early-bird-workout-check.timer"
+      ],
+      "why_it_matters": "disabled by design: it is activated by its timers, not by an [Install] section"
+    },
+    {
+      "name": "workout-sync.timer",
+      "scope": "user",
+      "kind": "timer"
+    },
+    {
+      "name": "workout-sync.service",
+      "scope": "user",
+      "kind": "service"
+    },
+    {
+      "name": "screen-locker-web.service",
+      "scope": "user",
+      "kind": "service"
+    }
   ],
-  "snapshot_dirs": ["~/.config/systemd/user/disabled-*"],
+  "snapshot_dirs": [
+    "~/.config/systemd/user/disabled-*"
+  ],
   "logs": [
-    { "id": "workout-locker", "kind": "journal", "unit": "workout-locker.service", "scope": "user" },
-    { "id": "workout-decisions", "kind": "file", "path": "~/.local/share/screen_locker/decisions.jsonl" }
+    {
+      "id": "workout-locker",
+      "kind": "journal",
+      "unit": "workout-locker.service",
+      "scope": "user"
+    },
+    {
+      "id": "workout-decisions",
+      "kind": "file",
+      "path": "~/.local/share/screen_locker/decisions.jsonl"
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "Workout status",
+      "url": "http://127.0.0.1:8770/"
+    }
   ]
 }

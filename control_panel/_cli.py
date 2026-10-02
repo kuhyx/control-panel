@@ -12,10 +12,15 @@ import argparse
 import os
 import sys
 
-from control_panel import _collect, _doctor, _manifest, _sysroot, _web_server
+from control_panel import (
+    _collect,
+    _dashboards,
+    _doctor,
+    _manifest,
+    _sysroot,
+    _web_server,
+)
 from control_panel._runner import SubprocessRunner
-
-DEFAULT_PORT = 8770
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -26,8 +31,9 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("doctor", help="print the arming table and exit")
+    subparsers.add_parser("dashboards", help="probe every dashboard link and exit")
     serve = subparsers.add_parser("serve", help="serve the dashboard on loopback")
-    serve.add_argument("--port", type=int, default=DEFAULT_PORT)
+    serve.add_argument("--port", type=int, default=_web_server.DEFAULT_PORT)
     return parser
 
 
@@ -51,6 +57,8 @@ def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     if args.command == "doctor":
         return _run_doctor()
+    if args.command == "dashboards":
+        return _dashboards.run(SubprocessRunner(), sys.stdout)
     return _web_server.serve(port=args.port)
 
 

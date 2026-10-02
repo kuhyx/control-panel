@@ -1,0 +1,17 @@
+{
+  "id": "home-assistant",
+  "title": "Home Assistant",
+  "category": "server",
+  "containers": [
+    {
+      "name": "homeassistant",
+      "restartable": true
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "Home Assistant",
+      "url": "http://127.0.0.1:8123/"
+    }
+  ]
+}

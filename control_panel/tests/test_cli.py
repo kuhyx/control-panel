@@ -69,7 +69,8 @@ def test_serve_defaults_to_the_reserved_port(monkeypatch: pytest.MonkeyPatch) ->
 
     monkeypatch.setattr(_web_server, "serve", record)
     _cli.main(["serve"])
-    assert seen == [_cli.DEFAULT_PORT]
+    assert seen == [_web_server.DEFAULT_PORT]
+    assert _web_server.DEFAULT_PORT == 8760
 
 
 def test_the_cli_defaults_the_sysroot_to_the_real_filesystem(
@@ -106,3 +107,10 @@ def test_doctor_renders_without_colour_when_piped(
     monkeypatch.setattr(_doctor, "render", spy)
     _cli.main(["doctor"])
     assert captured == [False]
+
+
+def test_dashboards_dispatches_to_the_checker(monkeypatch: pytest.MonkeyPatch) -> None:
+    from control_panel import _dashboards
+
+    monkeypatch.setattr(_dashboards, "run", lambda _runner, _out: 7)
+    assert _cli.main(["dashboards"]) == 7
