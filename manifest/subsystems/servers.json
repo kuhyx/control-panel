@@ -17,7 +17,7 @@
       "name": "stunnel-dot.service",
       "scope": "system",
       "kind": "service",
-      "why_it_matters": "DNS-over-TLS on :853; enabled but currently dead, which unit state alone does not reveal"
+      "why_it_matters": "DNS-over-TLS on the WireGuard address 10.8.0.1:853 (not loopback); it used to die at every boot on dnsmasq's failed first start"
     },
     {
       "name": "dot-cert-sync.timer",
@@ -32,7 +32,7 @@
     },
     {
       "kind": "tcp",
-      "target": "127.0.0.1:853"
+      "target": "10.8.0.1:853"
     },
     {
       "kind": "tcp",

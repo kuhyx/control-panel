@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from control_panel import _sysroot, _tail
+from control_panel import _disarm, _sysroot, _tail
 from control_panel._types import Anomaly, Arming, Level, Scope
 
 if TYPE_CHECKING:
@@ -161,6 +161,7 @@ def _snapshot_anomalies(entries: tuple[ManifestEntry, ...]) -> list[Anomaly]:
     These are the fingerprint of enforcement having been switched off by hand
     and never switched back -- invisible to systemd, which sees only a folder.
     """
+    stashed = _disarm_stash_units(entries)
     return [
         Anomaly(
             id=f"orphaned-unit-snapshot-{_slug(path.name)}",
@@ -177,7 +178,32 @@ def _snapshot_anomalies(entries: tuple[ManifestEntry, ...]) -> list[Anomaly]:
         for entry in entries
         for pattern in entry.snapshot_dirs
         for path in sorted(_expand(pattern))
+        if not _is_disarm_stash(path, stashed)
     ]
+
+
+def _disarm_stash_units(entries: tuple[ManifestEntry, ...]) -> frozenset[str]:
+    """Unit names belonging to subsystems that are disarmed on purpose."""
+    return frozenset(
+        unit.name
+        for entry in entries
+        if _disarm.reason(entry.live.disarm_marker) is not None
+        for unit in entry.units
+    )
+
+
+def _is_disarm_stash(path: Path, stashed: frozenset[str]) -> bool:
+    """A snapshot holding only a disarmed subsystem's units is its stash.
+
+    home-guard's disarm.sh moves its unit files into one of these, and
+    rearm.sh restores from it -- so it is the disarm's own record, not an
+    orphan, and flagging it would invite deleting the way back.
+    """
+    try:
+        names = {child.name for child in path.iterdir()}
+    except OSError:
+        return False
+    return bool(names) and names <= stashed
 
 
 def _expand(pattern: str) -> list[Path]:

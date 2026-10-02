@@ -32,12 +32,22 @@
     {
       "name": "pc-startup-monitor.timer",
       "scope": "system",
-      "kind": "timer"
+      "kind": "timer",
+      "retired": {
+        "since": "2026-05-15",
+        "superseded_by": "nothing",
+        "note": "pc_startup was removed in testsAndMisc 765fa925; its units lingered on the host until 2026-10-02, latched by RemainAfterExit so the 08:30 timer never re-armed."
+      }
     },
     {
       "name": "pc-startup-monitor.service",
       "scope": "system",
-      "kind": "service"
+      "kind": "service",
+      "retired": {
+        "since": "2026-05-15",
+        "superseded_by": "nothing",
+        "note": "pc_startup was removed in testsAndMisc 765fa925; its units lingered on the host until 2026-10-02, latched by RemainAfterExit so the 08:30 timer never re-armed."
+      }
     },
     {
       "name": "claude-timer-audit.timer",

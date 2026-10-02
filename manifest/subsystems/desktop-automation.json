@@ -22,17 +22,29 @@
     {
       "name": "claude-workout-autoscan.timer",
       "scope": "user",
-      "kind": "timer"
+      "kind": "timer",
+      "retired": {
+        "since": "2026-10-02",
+        "superseded_by": "endurain-import.timer",
+        "note": "Polled for the phone to scan workouts; RunnerUp now uploads TCX over WebDAV and endurain-import picks it up, no phone needed."
+      }
     },
     {
       "name": "claude-workout-autoscan.service",
       "scope": "user",
-      "kind": "service"
+      "kind": "service",
+      "retired": {
+        "since": "2026-10-02",
+        "superseded_by": "endurain-import.timer",
+        "note": "Polled for the phone to scan workouts; RunnerUp now uploads TCX over WebDAV and endurain-import picks it up, no phone needed."
+      }
     },
     {
       "name": "control-from-mobile.service",
       "scope": "user",
-      "kind": "service"
+      "kind": "service",
+      "on_demand": true,
+      "why_it_matters": "Exposes the X11 desktop over VNC; started by hand when needed, never left running."
     },
     {
       "name": "freedays-sync.timer",
@@ -57,12 +69,22 @@
     {
       "name": "line-speed-probe.timer",
       "scope": "user",
-      "kind": "timer"
+      "kind": "timer",
+      "retired": {
+        "since": "2026-07-19",
+        "superseded_by": "nothing",
+        "note": "A one-off diagnostic: it answered its question (986 Mbps, zero loss; slow Steam downloads are Steam's own pacing), so the 04:00 probe stays off."
+      }
     },
     {
       "name": "line-speed-probe.service",
       "scope": "user",
-      "kind": "service"
+      "kind": "service",
+      "retired": {
+        "since": "2026-07-19",
+        "superseded_by": "nothing",
+        "note": "A one-off diagnostic: it answered its question (986 Mbps, zero loss; slow Steam downloads are Steam's own pacing), so the 04:00 probe stays off."
+      }
     },
     {
       "name": "morning-routine.service",

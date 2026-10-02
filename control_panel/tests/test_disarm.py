@@ -101,3 +101,50 @@ def test_aggregate_reports_the_owners_reason(guarded: None, sysroot: Path) -> No
     assert disarmed.state is Arming.DISARMED
     assert disarmed.reason == "disarmed on purpose: until the app is done (kuhy)"
     assert _manifest.load_manifest()[0].live.disarm_marker == MARKER
+
+
+def _stash_fleet(sysroot: Path) -> tuple[object, ...]:
+    from control_panel._manifest import ManifestLive
+    from control_panel.tests import _fixture_fleet as fleet
+
+    snap = sysroot / "home/tester/.config/systemd/user/disabled-20260912-135632"
+    snap.mkdir(parents=True)
+    (snap / "home-guard-gate.timer").write_text("[Timer]\n")
+    guard = fleet.entry(
+        id="home-guard",
+        units=(fleet.timer("home-guard-gate.timer"),),
+        live=ManifestLive(disarm_marker=MARKER),
+    )
+    locker = fleet.entry(snapshot_dirs=("~/.config/systemd/user/disabled-*",))
+    return (guard, locker)
+
+
+def test_a_disarm_stash_is_not_an_orphan(sysroot: Path) -> None:
+    from control_panel import _anomalies
+    from control_panel.tests import _fixture_fleet as fleet
+
+    entries = _stash_fleet(sysroot)
+    orphan = _anomalies.detect(entries, (), fleet.view())
+    assert [a.id for a in orphan] == ["orphaned-unit-snapshot-disabled-20260912-135632"]
+    _marker(sysroot, "until the app is done (kuhy)")
+    assert _anomalies.detect(entries, (), fleet.view()) == ()
+
+
+def test_an_unreadable_snapshot_still_counts_as_orphaned(
+    sysroot: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from pathlib import Path as RealPath
+
+    from control_panel import _anomalies
+
+    entries = _stash_fleet(sysroot)
+    _marker(sysroot, "why")
+
+    def denied(_self: object) -> None:
+        msg = "permission denied"
+        raise OSError(msg)
+
+    monkeypatch.setattr(RealPath, "iterdir", denied)
+    from control_panel.tests import _fixture_fleet as fleet
+
+    assert len(_anomalies.detect(entries, (), fleet.view())) == 1
