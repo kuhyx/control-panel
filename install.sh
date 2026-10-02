@@ -81,7 +81,7 @@ main() {
     build_web
     install_unit
     install_tray
-    log "done. Check every link: python3 -m control_panel dashboards"
+    log "done. Check every link: ~/src/control-panel/run.sh --dashboards"
 }
 
 main "$@"

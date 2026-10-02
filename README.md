@@ -7,7 +7,7 @@ and timer on this machine — with a link to each one's own web UI, its logs, an
 ```
 ./install.sh                            # build, run as a user service, add the tray
 python -m control_panel doctor          # the arming table, no server
-python -m control_panel dashboards      # probe every dashboard link; exit 1 on a dead one
+./run.sh --dashboards                   # probe every dashboard link; exit 1 on a dead one
 python -m control_panel serve           # http://127.0.0.1:8760
 ```
 
