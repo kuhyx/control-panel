@@ -6,7 +6,7 @@ import { defineConfig } from "vite";
 // unlike the explorer there is no need for a path-agnostic base. The proxy
 // exists only for `pnpm dev`: in production the Python server serves both the
 // API and this bundle from one origin.
-export default defineConfig({
+const config = defineConfig({
   plugins: [react()],
   server: {
     proxy: {
@@ -31,3 +31,5 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
   },
 });
+
+export default config;

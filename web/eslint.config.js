@@ -23,7 +23,7 @@ import sonarjs from "eslint-plugin-sonarjs";
 import unicorn from "eslint-plugin-unicorn";
 import tseslint from "typescript-eslint";
 
-export default tseslint.config(
+const config = tseslint.config(
   { ignores: ["dist", "coverage", "data/cache", "public/servers.json"] },
   { linterOptions: { reportUnusedDisableDirectives: "error" } },
 
@@ -183,3 +183,5 @@ export default tseslint.config(
     files: ["**/*.{js,mjs,cjs}"],
   },
 );
+
+export default config;
