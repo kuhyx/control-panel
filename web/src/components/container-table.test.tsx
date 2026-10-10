@@ -8,6 +8,7 @@ import { ContainerTable } from "./container-table.tsx";
 
 describe("ContainerTable", () => {
   beforeEach(() => {
+    globalThis.history.replaceState(null, "", "#");
     vi.restoreAllMocks();
   });
 
@@ -27,6 +28,14 @@ describe("ContainerTable", () => {
     // A container Docker has never heard of has no state; say so with a dash.
     const ghost = screen.getByRole("row", { name: /ghost/ });
     expect(within(ghost).getByText("—")).toBeInTheDocument();
+  });
+
+  it("says so when a search matches no container", async () => {
+    const user = userEvent.setup();
+    render(<ContainerTable containers={SERVER.containers} />);
+    await user.type(screen.getByLabelText("Search Container"), "nonexistent");
+    expect(screen.getByText("No rows match the current filters.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Restart signal-api" })).not.toBeInTheDocument();
   });
 
   it("opens and closes the container's log in a row of its own", async () => {

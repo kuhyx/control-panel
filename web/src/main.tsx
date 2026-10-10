@@ -4,6 +4,7 @@ import "@kuhyx/web-ui/tokens.css";
 
 import "./styles/app.css";
 import "./styles/live.css";
+import "./styles/table-controls.css";
 import { App } from "./app.tsx";
 
 const root = document.querySelector("#root");

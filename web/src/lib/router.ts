@@ -7,8 +7,13 @@ export interface Route {
 
 // A hand-rolled hash router: four routes do not justify a dependency, and a
 // hash route needs no server-side rewrite rule on the Python static handler.
+//
+// A hash may carry a query -- `#/s/hosts?units.sort=state:desc` -- which holds
+// table sort/filter/search state (see table-state.ts). It is not part of the
+// route, so it is cut off before the path is read.
 export function parseHash(hash: string): Route {
-  const clean = hash.replace(/^#\/?/, "");
+  const [path = ""] = hash.split("?", 1);
+  const clean = path.replace(/^#\/?/, "");
   const [head = "", tail = ""] = clean.split("/", 2);
   if (head === "s" && tail !== "") return { id: tail, name: "detail" };
   return head === "logs" && tail !== ""

@@ -1,20 +1,57 @@
 import { useState } from "react";
 
+import type { ColumnSpec } from "../lib/table-state.ts";
 import type { UnitRecord } from "../lib/types.ts";
 
+import { severityRank } from "../lib/arming.ts";
 import { formatEpochMicros } from "../lib/format.ts";
+import { useTableView } from "../lib/table-state.ts";
 import { JournalPanel } from "./journal-panel.tsx";
 import { LogsToggle } from "./logs-toggle.tsx";
 import { RestartButton } from "./restart-button.tsx";
 import { StateBadge } from "./state-badge.tsx";
+import { ColumnHeader, NoMatchRow, TableHint } from "./table-controls.tsx";
 
-const COLUMNS = 6;
+const COLUMN_COUNT = 6;
+
+// systemd reports next_elapse in microseconds; a unit with no timer has none,
+// and a missing value sorts last whichever way the column is ordered.
+function nextRunKey(unit: UnitRecord): null | number {
+  const micros = Number(unit.state.next_elapse);
+  return Number.isFinite(micros) && micros > 0 ? micros : null;
+}
+
+const COLUMNS: readonly ColumnSpec<UnitRecord>[] = [
+  { id: "unit", label: "Unit", search: true, text: (u) => `${u.name} ${u.scope}` },
+  {
+    filter: true,
+    id: "state",
+    label: "State",
+    sortKey: (u) => severityRank(u.arming),
+    text: (u) => u.arming,
+  },
+  {
+    filter: true,
+    id: "file",
+    label: "Unit file",
+    text: (u) => (u.installed ? (u.state.unit_file_state ?? "—") : "not installed"),
+  },
+  {
+    id: "next",
+    label: "Next run",
+    search: true,
+    sortKey: nextRunKey,
+    text: (u) => formatEpochMicros(u.state.next_elapse),
+  },
+  { filter: true, id: "why", label: "Why", text: (u) => u.arming_reason.join("; ") },
+];
 
 export function UnitTable({
   units,
 }: Readonly<{
   units: readonly UnitRecord[];
 }>): React.JSX.Element {
+  const view = useTableView("units", COLUMNS, units);
   if (units.length === 0) {
     return (
       <p className="empty">
@@ -24,22 +61,26 @@ export function UnitTable({
     );
   }
   return (
-    <table className="table">
-      <caption className="sr-only">Declared units</caption>
-      <thead>
-        <tr>
-          <th scope="col">Unit</th>
-          <th scope="col">State</th>
-          <th scope="col">Unit file</th>
-          <th scope="col">Next run</th>
-          <th scope="col">Why</th>
-          <th scope="col">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {units.map((unit) => <UnitRow key={`${unit.scope}/${unit.name}`} unit={unit} />)}
-      </tbody>
-    </table>
+    <>
+      <TableHint view={view} />
+      <table className="table">
+        <caption className="sr-only">Declared units</caption>
+        <thead>
+          <tr>
+            {COLUMNS.map((column) => {
+              return (
+                <ColumnHeader column={column} key={column.id} view={view} />
+              );
+            })}
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {view.rows.length === 0 && <NoMatchRow colSpan={COLUMN_COUNT} />}
+          {view.rows.map((unit) => <UnitRow key={`${unit.scope}/${unit.name}`} unit={unit} />)}
+        </tbody>
+      </table>
+    </>
   );
 }
 
@@ -79,7 +120,7 @@ function UnitRow({ unit }: Readonly<{ unit: UnitRecord }>): React.JSX.Element {
       </tr>
       {open && (
         <tr className="log-row">
-          <td colSpan={COLUMNS}>
+          <td colSpan={COLUMN_COUNT}>
             <JournalPanel name={unit.name} source={unit.scope} />
           </td>
         </tr>

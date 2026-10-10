@@ -20,6 +20,16 @@ describe("parseHash", () => {
     });
   });
 
+  it("ignores a table-state query on every route", () => {
+    expect(parseHash("#/s/hosts?units.sort=state:desc")).toEqual({
+      id: "hosts",
+      name: "detail",
+    });
+    expect(parseHash("#/logs/x?a=b")).toEqual({ id: "x", name: "logs" });
+    expect(parseHash("#/?fleet.q.subsystem=a")).toEqual({ id: "", name: "overview" });
+    expect(parseHash("#?fleet.sort=state:asc")).toEqual({ id: "", name: "overview" });
+  });
+
   it("ignores a route with no id", () => {
     expect(parseHash("#/s/")).toEqual({ id: "", name: "overview" });
     expect(parseHash("#/logs")).toEqual({ id: "", name: "overview" });

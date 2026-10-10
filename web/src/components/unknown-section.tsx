@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { UnknownReport } from "../lib/types.ts";
 
 import { fetchUnknown } from "../lib/api.ts";
+import { ListenerTable, UserUnitTable } from "./unknown-tables.tsx";
 
 // The manifest only knows what someone remembered to declare. This section is
 // the other half: listening ports and user units nothing above accounts for.
@@ -54,37 +55,13 @@ function UnknownBody({
       {report.listeners.length > 0 && (
         <>
           <h3>Listening ports</h3>
-          <ul className="logs">
-            {report.listeners.map((listener) => {
-              return (
-                <li key={`${listener.address}:${String(listener.port)}`}>
-                  <code>
-                    {listener.address}:{listener.port}
-                  </code>
-                  <span className="category">
-                    {listener.process === ""
-                      ? "process not visible to this user"
-                      : listener.process}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+          <ListenerTable listeners={report.listeners} />
         </>
       )}
       {report.units.length > 0 && (
         <>
           <h3>User units</h3>
-          <ul className="logs">
-            {report.units.map((unit) => {
-              return (
-                <li key={unit.name}>
-                  <code>{unit.name}</code>
-                  <span className="category">{unit.scope}</span>
-                </li>
-              );
-            })}
-          </ul>
+          <UserUnitTable units={report.units} />
         </>
       )}
     </>

@@ -1,0 +1,102 @@
+/* Sort / search / filter controls in table headers. Same tokens as app.css,
+   no new values. The filter menu opens inline rather than as a popover: the
+   table clips its overflow to round its corners, which would cut a popover. */
+
+/* The global `button` is an accent-filled action; a header sort control is
+   quiet text, so reset it here. */
+.sort-button {
+  align-items: center;
+  background: none;
+  color: inherit;
+  display: inline-flex;
+  font: inherit;
+  gap: var(--space-1);
+  letter-spacing: inherit;
+  padding: 0;
+  text-transform: inherit;
+}
+
+.sort-indicator {
+  font-size: var(--text-caption);
+}
+
+.sort-none {
+  opacity: 0.4;
+}
+
+.sortable[aria-sort="ascending"] .sort-button,
+.sortable[aria-sort="descending"] .sort-button {
+  color: var(--accent);
+}
+
+.column-search {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-sizing: border-box;
+  color: var(--text);
+  display: block;
+  font: inherit;
+  font-size: var(--text-caption);
+  font-weight: 400;
+  letter-spacing: normal;
+  margin-top: var(--space-1);
+  min-width: 6rem;
+  padding: var(--space-1) var(--space-2);
+  text-transform: none;
+  width: 100%;
+}
+
+.column-search:focus-visible {
+  outline: var(--focus-ring);
+}
+
+.column-filter {
+  font-size: var(--text-caption);
+  font-weight: 400;
+  letter-spacing: normal;
+  margin-top: var(--space-1);
+  text-transform: none;
+}
+
+.column-filter summary {
+  cursor: pointer;
+}
+
+.column-filter summary:focus-visible {
+  outline: var(--focus-ring);
+}
+
+.filter-menu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+  max-height: 12rem;
+  max-width: var(--measure);
+  overflow-y: auto;
+}
+
+.filter-menu label {
+  align-items: baseline;
+  color: var(--text);
+  display: flex;
+  gap: var(--space-2);
+}
+
+.table-hint {
+  align-items: center;
+  color: var(--text-muted);
+  display: flex;
+  font-size: var(--text-caption);
+  gap: var(--space-3);
+  margin: 0 0 var(--space-2);
+}
+
+.link-button {
+  background: none;
+  color: var(--accent);
+  font-weight: 400;
+  padding: 0;
+  text-decoration: underline;
+}

@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as api from "../lib/api.ts";
@@ -6,6 +7,7 @@ import { UnknownSection } from "./unknown-section.tsx";
 
 describe("UnknownSection", () => {
   beforeEach(() => {
+    globalThis.history.replaceState(null, "", "#");
     vi.restoreAllMocks();
   });
 
@@ -32,6 +34,43 @@ describe("UnknownSection", () => {
       screen.getByText("process not visible to this user"),
     ).toBeInTheDocument();
     expect(screen.getByText("new-thing.service")).toBeInTheDocument();
+  });
+
+  it("sorts listeners by port number, not by address text", async () => {
+    vi.spyOn(api, "fetchUnknown").mockResolvedValue({
+      listeners: [
+        { address: "0.0.0.0", port: 8798, process: "a" },
+        { address: "127.0.0.1", port: 952, process: "b" },
+        { address: "192.0.2.1", port: 22, process: "c" },
+      ],
+      units: [],
+    });
+    const user = userEvent.setup();
+    render(<UnknownSection />);
+    await screen.findByText("0.0.0.0:8798");
+    const ports = (): string[] => {
+      const cells = within(screen.getByRole("table")).getAllByRole("rowheader");
+      return cells.map((cell) => cell.textContent);
+    };
+    await user.click(screen.getByRole("button", { name: /Listener/ }));
+    expect(ports()).toEqual(["192.0.2.1:22", "127.0.0.1:952", "0.0.0.0:8798"]);
+    await user.click(screen.getByRole("button", { name: /Listener/ }));
+    expect(ports()).toEqual(["0.0.0.0:8798", "127.0.0.1:952", "192.0.2.1:22"]);
+  });
+
+  it("says so when a search matches no listener or user unit", async () => {
+    vi.spyOn(api, "fetchUnknown").mockResolvedValue({
+      listeners: [{ address: "0.0.0.0", port: 8798, process: "a" }],
+      units: [{ name: "x.timer", scope: "user" }],
+    });
+    const user = userEvent.setup();
+    render(<UnknownSection />);
+    await screen.findByText("x.timer");
+    await user.type(screen.getByLabelText("Search Listener"), "zzz");
+    await user.type(screen.getByLabelText("Search Unit"), "zzz");
+    expect(screen.getAllByText("No rows match the current filters.")).toHaveLength(2);
+    expect(screen.queryByText("0.0.0.0:8798")).not.toBeInTheDocument();
+    expect(screen.queryByText("x.timer")).not.toBeInTheDocument();
   });
 
   it("says everything is declared when nothing is left over", async () => {
