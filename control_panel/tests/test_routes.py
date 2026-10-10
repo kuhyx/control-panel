@@ -5,7 +5,9 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
-from control_panel import _routes
+from control_panel import _manifest, _routes
+from control_panel._manifest import ManifestLog
+from control_panel.tests import _fixture_fleet as fleet
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -29,10 +31,17 @@ STATUS: dict[str, Any] = {
 }
 
 
+# Log specs are looked up in the manifest, not the snapshot.
+LOG_ENTRY = fleet.entry(
+    logs=(ManifestLog(id="a-log", kind="file", path="/var/log/a.log"),)
+)
+
+
 @pytest.fixture
 def router(monkeypatch: pytest.MonkeyPatch) -> _routes.Router:
     made = _routes.Router.__new__(_routes.Router)
     monkeypatch.setattr(_routes.Router, "_status", lambda _self: STATUS)
+    monkeypatch.setattr(_manifest, "load_manifest", lambda: (LOG_ENTRY,))
     made._port = 8770
     return made
 

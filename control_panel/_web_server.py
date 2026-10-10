@@ -187,10 +187,14 @@ def serve(port: int = DEFAULT_PORT) -> int:
         sys.stderr.write(_port_guard.refusal_message(runner, port) + "\n")
         return 1
     sys.stdout.write(f"control-panel: http://{HOST}:{port}  (Ctrl-C to stop)\n")
+    # Here and not in create_server(): tests build servers around fake
+    # runners and must not get a thread collecting against them.
+    server.router.snapshot.start()
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         sys.stdout.write("\nShutting down.\n")
     finally:
+        server.router.snapshot.stop()
         server.server_close()
     return 0

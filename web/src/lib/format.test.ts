@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { formatBytes, formatEpochMicros, formatTimestamp } from "./format.ts";
+import {
+  formatAge,
+  formatBytes,
+  formatEpochMicros,
+  formatTimestamp,
+} from "./format.ts";
 
 describe("formatBytes", () => {
   it("renders a missing size as a dash", () => {
@@ -41,5 +46,23 @@ describe("formatTimestamp", () => {
 
   it("passes an unparsable value straight through", () => {
     expect(formatTimestamp("whenever")).toBe("whenever");
+  });
+});
+
+describe("formatAge", () => {
+  const at = "2026-08-28T16:40:00+00:00";
+  const base = Date.parse(at);
+
+  it("counts seconds, then whole minutes", () => {
+    expect(formatAge(at, base + 7400)).toBe("7s ago");
+    expect(formatAge(at, base + 185_000)).toBe("3m ago");
+  });
+
+  it("never renders a negative age for a clock that runs behind", () => {
+    expect(formatAge(at, base - 2000)).toBe("0s ago");
+  });
+
+  it("renders an unparsable timestamp as a dash", () => {
+    expect(formatAge("whenever", base)).toBe("—");
   });
 });

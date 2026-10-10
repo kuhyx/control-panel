@@ -4,6 +4,7 @@ import type { FleetStatus } from "./lib/types.ts";
 
 import { AnomalyBanner } from "./components/anomaly-banner.tsx";
 import { FleetTable } from "./components/fleet-table.tsx";
+import { Freshness } from "./components/freshness.tsx";
 import { LogViewer } from "./components/log-viewer.tsx";
 import { RollupTiles } from "./components/rollup-tiles.tsx";
 import { SubsystemDetail } from "./components/subsystem-detail.tsx";
@@ -55,7 +56,8 @@ export function App(): React.JSX.Element {
         {status !== null && (
           <p className="category">
             {status.host} · read {formatTimestamp(status.generated_at)} in{" "}
-            {status.collector.duration_ms} ms
+            {status.collector.duration_ms} ms ·{" "}
+            <Freshness at={status.collected_at} />
           </p>
         )}
       </header>

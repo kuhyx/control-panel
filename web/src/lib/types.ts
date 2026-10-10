@@ -122,6 +122,9 @@ export interface Collector {
 
 export interface FleetStatus {
   anomalies: Anomaly[];
+  // ISO-8601 UTC: when the server's background collector stored this
+  // snapshot. Requests are served from it, so it can be ~10 s old.
+  collected_at: string;
   collector: Collector;
   generated_at: string;
   host: string;

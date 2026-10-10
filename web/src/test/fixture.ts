@@ -22,6 +22,7 @@ export const STATUS: FleetStatus = {
       title: "kuhytrack-budget.timer is UNARMED",
     },
   ],
+  collected_at: "2026-08-28T16:40:02+00:00",
   collector: {
     degraded: false,
     duration_ms: 1557,

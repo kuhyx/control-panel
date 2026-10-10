@@ -3,6 +3,7 @@ from __future__ import annotations
 import http.client
 import json
 import threading
+from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
 import pytest
@@ -147,11 +148,22 @@ def test_other_oserrors_are_not_swallowed(monkeypatch: pytest.MonkeyPatch) -> No
 def test_serve_runs_until_interrupted(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
+    calls: list[str] = []
+
+    class Snapshot:
+        def start(self) -> None:
+            calls.append("start")
+
+        def stop(self) -> None:
+            calls.append("stop")
+
     class Fake:
         def __init__(self) -> None:
             self.closed = False
+            self.router = SimpleNamespace(snapshot=Snapshot())
 
         def serve_forever(self) -> None:
+            calls.append("serve")
             raise KeyboardInterrupt
 
         def server_close(self) -> None:
@@ -161,6 +173,8 @@ def test_serve_runs_until_interrupted(
     monkeypatch.setattr(_web_server, "create_server", lambda *_a, **_k: made)
     assert _web_server.serve(8770) == 0
     assert made.closed
+    # The collector runs only while serving, and is stopped on the way out.
+    assert calls == ["start", "serve", "stop"]
     assert "Shutting down" in capsys.readouterr().out
 
 

@@ -11,6 +11,8 @@ from typing import Any
 import pytest
 
 from control_panel import _journal, _manifest, _routes, _unknown
+from control_panel._manifest import ManifestLog
+from control_panel._types import Scope
 from control_panel.tests import _fixture_fleet as fleet
 from control_panel.tests._fixture_runner import FakeRunner, ok
 
@@ -29,7 +31,13 @@ STATUS: dict[str, Any] = {
         }
     ]
 }
-ENTRY = fleet.entry(units=(fleet.service("a.service"),))
+ENTRY = fleet.entry(
+    units=(fleet.service("a.service"),),
+    logs=(
+        ManifestLog(id="uj", kind="journal", unit="a.service", scope=Scope.USER),
+        ManifestLog(id="sj", kind="journal", unit="b.service"),
+    ),
+)
 
 
 @pytest.fixture

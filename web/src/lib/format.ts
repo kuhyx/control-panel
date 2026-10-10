@@ -32,3 +32,18 @@ export function formatTimestamp(iso: string): string {
   const parsed = new Date(iso);
   return Number.isNaN(parsed.getTime()) ? iso : parsed.toLocaleString();
 }
+
+const MS_PER_SECOND = 1000;
+const SECONDS_PER_MINUTE = 60;
+
+// "12s ago" / "3m ago". A clock running slightly behind the server's must not
+// render a negative age, so the floor is zero.
+export function formatAge(iso: string, nowMs: number): string {
+  const parsed = new Date(iso);
+  const then = parsed.getTime();
+  if (Number.isNaN(then)) return "—";
+  const seconds = Math.max(0, Math.round((nowMs - then) / MS_PER_SECOND));
+  return seconds < SECONDS_PER_MINUTE
+    ? `${String(seconds)}s ago`
+    : `${String(Math.floor(seconds / SECONDS_PER_MINUTE))}m ago`;
+}

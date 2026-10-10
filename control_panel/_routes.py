@@ -12,6 +12,7 @@ from control_panel import (
     _journal,
     _manifest,
     _rationale,
+    _snapshot,
     _tail,
     _tray_model,
     _unknown,
@@ -31,14 +32,30 @@ _JOURNAL_SEGMENTS = 2
 class Router:
     """Resolve API requests against a cached fleet snapshot."""
 
-    def __init__(self, runner: CommandRunner, port: int) -> None:
-        """Store the command seam and the port to report in payloads."""
+    def __init__(
+        self,
+        runner: CommandRunner,
+        port: int,
+        snapshot: _snapshot.SnapshotCache | None = None,
+    ) -> None:
+        """Store the command seam, the port, and the snapshot cache.
+
+        The default cache starts no thread: it builds on first read and after
+        a mutation. ``serve()`` starts its background collector.
+        """
         self._runner = runner
         self._port = port
+        if snapshot is None:
+            snapshot = _snapshot.SnapshotCache(self._build_status)
+        self.snapshot = snapshot
+
+    def _build_status(self) -> dict[str, Any]:
+        """Collect a fresh fleet snapshot as a JSON-ready dict (slow: ~2 s)."""
+        return to_payload(_aggregate.build_status(self._runner, self._port))
 
     def _status(self) -> dict[str, Any]:
-        """Build a fresh fleet snapshot as a JSON-ready dict."""
-        return to_payload(_aggregate.build_status(self._runner, self._port))
+        """Return the cached fleet snapshot, building it only if none exists."""
+        return self.snapshot.get()
 
     def resolve(self, path_and_query: str) -> tuple[HTTPStatus, dict[str, Any]] | None:
         """Return the response for an API path, or None if it is not one."""
@@ -90,6 +107,9 @@ class Router:
         if handler is None:
             return HTTPStatus.NOT_FOUND, {"error": f"no such mutation: {name}"}
         result = handler(self._runner, body)
+        # Answer only once the snapshot reflects the change, so the next GET
+        # shows it instead of the up-to-10 s-old state from before.
+        self.snapshot.refresh_if_warm()
         # A refusal is the guard working, so it is a 200 carrying the script's
         # own words -- not a 4xx, which would read as "the dashboard is broken".
         return HTTPStatus.OK, _mutation_types.to_payload(result)
@@ -115,16 +135,18 @@ class Router:
         if not log_id:
             return HTTPStatus.NOT_FOUND, {"error": "no log id given"}
         lines = _int_param(query, "lines", _tail.DEFAULT_LINES)
-        for subsystem in self._status()["subsystems"]:
-            for ref in subsystem["logs"]:
-                if ref["id"] != log_id:
+        # From the manifest, not the snapshot: a log spec is declared, not
+        # collected, and reading it must not wait on a fleet collection.
+        for entry in _manifest.load_manifest():
+            for declared in entry.logs:
+                if declared.id != log_id:
                     continue
-                if ref["kind"] != "file":
+                if declared.kind != "file":
                     return self._journal_route(
-                        [ref["scope"] or "system", ref["unit"]], query
+                        [str(declared.scope), declared.unit], query
                     )
-                result = _tail.tail(ref["path"], lines)
-                return HTTPStatus.OK, {"id": log_id, "path": ref["path"]} | asdict(
+                result = _tail.tail(declared.path, lines)
+                return HTTPStatus.OK, {"id": log_id, "path": declared.path} | asdict(
                     result
                 )
         return HTTPStatus.NOT_FOUND, {"error": f"no such log: {log_id}"}
