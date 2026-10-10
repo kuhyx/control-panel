@@ -68,7 +68,7 @@ def build_status(runner: CommandRunner, port: int) -> FleetStatus:
     entries = _manifest.load_manifest()
     view = _collect.read_systemd(runner)
     units = _collect.collect_units(runner, entries, view)
-    live = _live.collect(runner, entries)
+    live = _live.collect(runner, entries, units)
 
     subsystems = [
         _subsystem(entry, units[entry.id], live[entry.id]) for entry in entries

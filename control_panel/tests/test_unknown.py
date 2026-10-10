@@ -69,6 +69,12 @@ def test_parse_prefers_cmdline_and_dedupes(sysroot: Path) -> None:
     assert ("*", 80) not in by_key
 
 
+def test_a_repeated_socket_is_listed_once() -> None:
+    line = 'LISTEN 0 5 127.0.0.1:8141 0.0.0.0:* users:(("python",pid=7747,fd=3))'
+    found = _unknown.parse_listeners(f"{line}\n{line}\n")
+    assert [(item.address, item.port) for item in found] == [("127.0.0.1", 8141)]
+
+
 def test_unknown_filters_declared_ignored_own_and_noise(sysroot: Path) -> None:
     del sysroot
     runner = FakeRunner({_unknown.SS_ARGV: ok(_unknown.SS_ARGV, SS)})

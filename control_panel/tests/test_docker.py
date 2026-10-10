@@ -28,6 +28,16 @@ def test_list_containers_parses_tab_rows() -> None:
 
 def test_list_containers_none_when_docker_fails() -> None:
     assert _docker.list_containers(FakeRunner({})) is None
+    assert _docker.read_containers(FakeRunner({})) is None
+
+
+def test_read_containers_maps_names_to_short_ids() -> None:
+    stdout = "gitea\trunning\tUp 4 days\tc22c7199215b\nold\texited\tExited (1)"
+    runner = FakeRunner({_docker.PS_ARGV: ok(_docker.PS_ARGV, stdout)})
+    assert _docker.read_containers(runner) == (
+        {"gitea": ("running", "Up 4 days"), "old": ("exited", "Exited (1)")},
+        {"gitea": "c22c7199215b"},
+    )
 
 
 @pytest.mark.parametrize(

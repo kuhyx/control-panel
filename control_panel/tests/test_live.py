@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import pytest
-
-from control_panel import _docker, _live, _probe
+from control_panel import _docker, _live
 from control_panel._live_types import ContainerRecord, DashboardRecord, ProbeRecord
 from control_panel._manifest import ManifestProbe
 from control_panel._manifest_live import ManifestContainer, ManifestDashboard
@@ -13,21 +11,6 @@ from control_panel.tests._fixture_runner import FakeRunner, ok
 UP = ProbeRecord(kind="http", target="u", up=True, status=200)
 DOWN = ProbeRecord(kind="tcp", target="127.0.0.1:1", up=False)
 PUBLIC = ProbeRecord(kind="http", target="https://x/", up=None)
-
-
-@pytest.fixture
-def fake_probes(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, str]]:
-    """Record probe targets and answer every one as up, never touching a socket."""
-    seen: list[tuple[str, str]] = []
-
-    def run_all(targets: list[tuple[str, str]]) -> dict[tuple[str, str], ProbeRecord]:
-        seen.extend(targets)
-        return {
-            t: ProbeRecord(kind=t[0], target=t[1], up=True, status=200) for t in targets
-        }
-
-    monkeypatch.setattr(_probe, "run_all", run_all)
-    return seen
 
 
 def test_collect_probes_dashboards_but_skips_on_demand(

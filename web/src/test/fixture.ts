@@ -148,6 +148,7 @@ export const SERVER: SubsystemStatus = {
   ],
   dashboards: [
     {
+      clash: null,
       label: "Manage UI",
       on_demand: false,
       probe: {
@@ -158,9 +159,11 @@ export const SERVER: SubsystemStatus = {
         target: "http://127.0.0.1:8140/",
         up: true,
       },
+      stopped: false,
       url: "http://127.0.0.1:8140/",
     },
     {
+      clash: null,
       label: "Popes site (public)",
       on_demand: false,
       probe: {
@@ -171,6 +174,7 @@ export const SERVER: SubsystemStatus = {
         target: "https://popes.kuhy.duckdns.org/",
         up: null,
       },
+      stopped: false,
       url: "https://popes.kuhy.duckdns.org/",
     },
   ],

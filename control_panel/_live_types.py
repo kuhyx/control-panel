@@ -35,12 +35,19 @@ class ProbeRecord:
 
 @dataclass(frozen=True, slots=True)
 class DashboardRecord:
-    """One clickable web UI belonging to a subsystem, with its probe result."""
+    """One clickable web UI belonging to a subsystem, with its probe result.
+
+    ``stopped``: an on-demand UI whose units are all inactive and whose port
+    nothing of its own holds -- render it as stopped, not as a dead link.
+    ``clash``: a foreign unit or container holds the port (see _port_owner).
+    """
 
     label: str
     url: str
     probe: ProbeRecord
     on_demand: bool = False
+    stopped: bool = False
+    clash: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

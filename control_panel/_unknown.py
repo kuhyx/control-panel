@@ -20,6 +20,7 @@ from control_panel import _sysroot
 from control_panel._live_types import Listener, UndeclaredUnit
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
     from pathlib import Path
 
     from control_panel._manifest import IgnoredListener, ManifestEntry
@@ -75,19 +76,25 @@ def _process(line: str) -> str:
     return name.group(1) if name else ""
 
 
-def parse_listeners(stdout: str) -> list[Listener]:
-    """Parse ``ss -ltnpH`` into one record per (address, port)."""
-    found: dict[tuple[str, int], Listener] = {}
+def ss_endpoints(stdout: str) -> Iterator[tuple[str, int, str]]:
+    """Yield ``(address, port, line)`` for each socket in ``ss -ltnpH`` output."""
     for line in stdout.splitlines():
         fields = line.split()
         if len(fields) <= _LOCAL_FIELD:
             continue
         address, _, port = fields[_LOCAL_FIELD].rpartition(":")
-        if not port.isdigit() or (address, int(port)) in found:
-            continue
-        found[address, int(port)] = Listener(
-            address=address, port=int(port), process=_process(line)
-        )
+        if port.isdigit():
+            yield address, int(port), line
+
+
+def parse_listeners(stdout: str) -> list[Listener]:
+    """Parse ``ss -ltnpH`` into one record per (address, port)."""
+    found: dict[tuple[str, int], Listener] = {}
+    for address, port, line in ss_endpoints(stdout):
+        if (address, port) not in found:
+            found[address, port] = Listener(
+                address=address, port=port, process=_process(line)
+            )
     return sorted(found.values(), key=lambda item: (item.port, item.address))
 
 

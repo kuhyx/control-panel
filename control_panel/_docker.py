@@ -22,23 +22,45 @@ if TYPE_CHECKING:
     from control_panel._runner import CommandRunner
 
 # Named fields, not `{{json .}}`: the JSON form makes docker compute every
-# field, sizes included, and took 5.2 s here against 14 ms for these three.
-PS_ARGV = ("docker", "ps", "-a", "--format", "{{.Names}}\t{{.State}}\t{{.Status}}")
+# field, sizes included, and took 5.2 s here against 14 ms for these four.
+# The ID lets a listener's ``docker-<id>.scope`` cgroup be named (_port_owner).
+PS_ARGV = (
+    "docker",
+    "ps",
+    "-a",
+    "--format",
+    "{{.Names}}\t{{.State}}\t{{.Status}}\t{{.ID}}",
+)
 _FIELDS = 3
 _DEAD_STATES = frozenset({"exited", "dead", "created", "paused", "removing"})
 
 
-def list_containers(runner: CommandRunner) -> dict[str, tuple[str, str]] | None:
-    """Map container name to ``(State, Status)``, or None if docker is unusable."""
+def read_containers(
+    runner: CommandRunner,
+) -> tuple[dict[str, tuple[str, str]], dict[str, str]] | None:
+    """Map container name to ``(State, Status)`` and to its short ID.
+
+    None if docker is unusable. A row without the ID column still counts; its
+    container simply cannot be matched to a listener's cgroup.
+    """
     result = runner.run(PS_ARGV)
     if not result.ok:
         return None
     rows: dict[str, tuple[str, str]] = {}
+    ids: dict[str, str] = {}
     for line in result.stdout.splitlines():
         fields = line.split("\t")
-        if len(fields) == _FIELDS:
+        if len(fields) in {_FIELDS, _FIELDS + 1}:
             rows[fields[0]] = (fields[1], fields[2])
-    return rows
+            if len(fields) > _FIELDS:
+                ids[fields[0]] = fields[_FIELDS]
+    return rows, ids
+
+
+def list_containers(runner: CommandRunner) -> dict[str, tuple[str, str]] | None:
+    """Map container name to ``(State, Status)``, or None if docker is unusable."""
+    read = read_containers(runner)
+    return None if read is None else read[0]
 
 
 def _arming(state: str, status: str) -> Arming:

@@ -50,9 +50,13 @@ export interface ProbeRecord {
 }
 
 export interface DashboardRecord {
+  // A foreign unit or container holds the port: the link opens someone else.
+  clash: null | string;
   label: string;
   on_demand: boolean;
   probe: ProbeRecord;
+  // On demand and not running: nothing to open until someone starts it.
+  stopped: boolean;
   url: string;
 }
 

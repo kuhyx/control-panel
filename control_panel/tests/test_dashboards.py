@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import io
 
 import pytest
@@ -27,6 +28,9 @@ def _dash(
         (_dash(up=True, status=404), "FAIL"),
         (_dash(up=False, detail="refused"), "FAIL"),
         (_dash(up=True, status=None), "FAIL"),
+        # Anki's 404 answers mangatl's port: a clash fails whatever the probe.
+        (replace(_dash(up=True, status=200), clash="port 1 held by a"), "FAIL"),
+        (replace(_dash(up=None), clash="port 1 held by a"), "FAIL"),
     ],
 )
 def test_verdict(record: DashboardRecord, expected: str) -> None:

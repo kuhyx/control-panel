@@ -24,6 +24,9 @@ _LOGIN_PROMPT = 401
 def verdict(record: DashboardRecord) -> str:
     """Classify one dashboard: ok, login, skipped or FAIL."""
     probe = record.probe
+    if record.clash:
+        # The link opens somebody else's server, whatever the probe says.
+        return "FAIL"
     if probe.up is None:
         return "skipped"
     if probe.status == _LOGIN_PROMPT:
@@ -42,7 +45,7 @@ def run(runner: CommandRunner, out: IO[str]) -> int:
         for record in views[entry.id].dashboards:
             result = verdict(record)
             failed += result == "FAIL"
-            detail = record.probe.status or record.probe.detail or ""
+            detail = record.clash or record.probe.status or record.probe.detail or ""
             out.write(
                 f"{result:8} {entry.id:24} {record.label:28} {record.url}  {detail}\n"
             )

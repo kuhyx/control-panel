@@ -25,6 +25,17 @@
   margin-top: 0;
 }
 
+/* Why a dashboard renders as text, not a link: stopped, or its port taken. */
+.dashboard-note {
+  color: var(--text-muted);
+  font-size: var(--text-caption);
+  letter-spacing: var(--tracking-caption);
+}
+
+.dashboard-note.clash {
+  color: var(--danger);
+}
+
 .actions {
   white-space: nowrap;
 }
