@@ -1,6 +1,6 @@
 {
-  "id": "websites",
-  "title": "Websites (personal site, KCD2 dice)",
+  "id": "kcd2-dice",
+  "title": "KCD2 dice",
   "category": "server",
   "units": [
     {
@@ -11,23 +11,11 @@
   ],
   "containers": [
     {
-      "name": "personal-website",
-      "restartable": true
-    },
-    {
       "name": "kcd2-dice",
       "restartable": true
     }
   ],
   "dashboards": [
-    {
-      "label": "Personal website",
-      "url": "http://127.0.0.1:8088/"
-    },
-    {
-      "label": "Personal website (public)",
-      "url": "https://kuhy.duckdns.org/"
-    },
     {
       "label": "KCD2 dice",
       "url": "http://127.0.0.1:8089/"

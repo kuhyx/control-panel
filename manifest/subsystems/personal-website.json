@@ -1,0 +1,21 @@
+{
+  "id": "personal-website",
+  "title": "Personal website",
+  "category": "server",
+  "containers": [
+    {
+      "name": "personal-website",
+      "restartable": true
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "Personal website",
+      "url": "http://127.0.0.1:8088/"
+    },
+    {
+      "label": "Personal website (public)",
+      "url": "https://kuhy.duckdns.org/"
+    }
+  ]
+}
