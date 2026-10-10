@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 import logging
+import subprocess
 import threading
 from typing import TYPE_CHECKING, Any
 
@@ -25,6 +26,11 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
+
+# What one collection can raise: a fork or read that failed (OSError,
+# SubprocessError) or output it could not parse. Anything else is a bug and
+# should surface rather than hide behind a stale "updated Xs ago".
+BUILD_FAULTS = (OSError, subprocess.SubprocessError, ValueError, KeyError, RuntimeError)
 
 # Five times finer than anything in this fleet moves, and the UI polls at 5 s.
 REFRESH_SECONDS = 10.0
@@ -88,7 +94,7 @@ class SnapshotCache:
                 return
             try:
                 self._build_locked()
-            except Exception:
+            except BUILD_FAULTS:
                 logger.exception("refresh after a mutation failed")
 
     def _build_locked(self) -> dict[str, Any]:
@@ -109,7 +115,7 @@ class SnapshotCache:
         while not self._stop.is_set():
             try:
                 self.refresh()
-            except Exception:
+            except BUILD_FAULTS:
                 logger.exception("background fleet collection failed")
             self._stop.wait(interval)
 
