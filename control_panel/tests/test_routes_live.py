@@ -42,7 +42,7 @@ ENTRY = fleet.entry(
 
 @pytest.fixture
 def router(monkeypatch: pytest.MonkeyPatch) -> _routes.Router:
-    monkeypatch.setattr(_routes.Router, "_status", lambda _self: STATUS)
+    monkeypatch.setattr(_routes.Router, "_status", lambda _self, **_kw: STATUS)
     monkeypatch.setattr(_manifest, "load_manifest", lambda: (ENTRY,))
     argv = _journal.argv_for("user", "a.service", 100)
     return _routes.Router(FakeRunner({argv: ok(argv, "line\n")}), 8760)

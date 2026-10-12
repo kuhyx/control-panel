@@ -10,16 +10,26 @@ refresh honest: a refresh requested after a change waits for any build already
 running, then builds again -- so it can never hand back a snapshot that was
 collected before the change.
 
+The collector only works while someone is looking. Each build makes systemd
+load and re-parse dozens of unit files and emit a burst of D-Bus signals; doing
+that every 10 s around the clock for three days exhausted the system bus on
+2026-10-12 (dbus-broker died, logind dropped off, the next login came up
+without ``XDG_RUNTIME_DIR`` and so without audio). So a tick rebuilds only
+while reads keep arriving (an open dashboard tab polls every 5 s); otherwise a
+read of a snapshot older than :data:`IDLE_MAX_AGE_SECONDS` asks for one rebuild.
+
 Nothing here starts a thread on its own. ``serve()`` calls :meth:`start`;
 tests call :meth:`refresh` and inject the clock, so they stay deterministic.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import UTC, datetime
 import logging
 import subprocess
 import threading
+import time
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -35,10 +45,25 @@ BUILD_FAULTS = (OSError, subprocess.SubprocessError, ValueError, KeyError, Runti
 # Five times finer than anything in this fleet moves, and the UI polls at 5 s.
 REFRESH_SECONDS = 10.0
 
+# A read this recent means a dashboard tab is open: keep every tick fresh.
+ACTIVE_WINDOW_SECONDS = 20.0
+
+# Unwatched (only the tray's 30 s background poll, or nobody), a read of a snapshot this
+# old wakes the collector for one rebuild instead of it looping regardless.
+IDLE_MAX_AGE_SECONDS = 120.0
+
 
 def _utc_now() -> datetime:
     """Return the current time, timezone-aware UTC."""
     return datetime.now(UTC)
+
+
+@dataclass(slots=True)
+class _Demand:
+    """When the snapshot was last read by a watcher, and last built (ticks)."""
+
+    last_read: float | None = None
+    built_at: float | None = None
 
 
 class SnapshotCache:
@@ -48,10 +73,14 @@ class SnapshotCache:
         self,
         build: Callable[[], dict[str, Any]],
         clock: Callable[[], datetime] = _utc_now,
+        ticks: Callable[[], float] = time.monotonic,
     ) -> None:
-        """Store the builder and the clock that stamps ``collected_at``."""
+        """Store the builder, the ``collected_at`` clock and the demand clock."""
         self._build = build
         self._clock = clock
+        self._ticks = ticks
+        self._demand = _Demand()
+        self._wake = threading.Event()
         self._build_lock = threading.Lock()
         self._payload: dict[str, Any] | None = None
         self._generation = 0
@@ -63,10 +92,20 @@ class SnapshotCache:
         """How many snapshots have been built so far."""
         return self._generation
 
-    def get(self) -> dict[str, Any]:
-        """Return the cached payload, building the first one if none exists."""
+    def get(self, *, watching: bool = True) -> dict[str, Any]:
+        """Return the cached payload, building the first one if none exists.
+
+        A ``watching`` read (the dashboard page) keeps the collector active.
+        The always-on tray passes ``watching=False``: counting its 30 s poll
+        kept every other tick busy. Any read of a stale snapshot wakes the
+        collector, so the next read is fresh without this one waiting.
+        """
+        if watching:
+            self._demand.last_read = self._ticks()
         payload = self._payload
         if payload is not None:
+            if self._is_stale():
+                self._wake.set()
             return payload
         with self._build_lock:
             # Another request may have finished the first build while this
@@ -103,21 +142,39 @@ class SnapshotCache:
         # One reference assignment: a concurrent get() sees the old dict or
         # the new one, never a half-built one.
         self._payload = built
+        self._demand.built_at = self._ticks()
         self._generation += 1
         return built
 
-    def run(self, interval: float = REFRESH_SECONDS) -> None:
-        """Refresh every ``interval`` seconds until :meth:`stop` is called.
+    def _is_stale(self) -> bool:
+        """Report whether the snapshot is older than the idle ceiling."""
+        built_at = self._demand.built_at
+        return built_at is None or self._ticks() - built_at >= IDLE_MAX_AGE_SECONDS
 
-        A failed build keeps the last good snapshot and is retried next tick,
-        so one transient fault does not freeze the dashboard for good.
+    def due(self) -> bool:
+        """Report whether a tick should rebuild: nothing built, or watched."""
+        if self._payload is None or self._wake.is_set():
+            return True
+        last_read = self._demand.last_read
+        return (
+            last_read is not None and self._ticks() - last_read <= ACTIVE_WINDOW_SECONDS
+        )
+
+    def run(self, interval: float = REFRESH_SECONDS) -> None:
+        """Tick every ``interval`` seconds until :meth:`stop` is called.
+
+        A tick rebuilds only when :meth:`due`; a stale read cuts the wait
+        short. A failed build keeps the last good snapshot and is retried next
+        tick, so one transient fault does not freeze the dashboard for good.
         """
         while not self._stop.is_set():
-            try:
-                self.refresh()
-            except BUILD_FAULTS:
-                logger.exception("background fleet collection failed")
-            self._stop.wait(interval)
+            if self.due():
+                self._wake.clear()
+                try:
+                    self.refresh()
+                except BUILD_FAULTS:
+                    logger.exception("background fleet collection failed")
+            self._wake.wait(interval)
 
     def start(self, interval: float = REFRESH_SECONDS) -> None:
         """Run :meth:`run` on a daemon thread. The first build starts at once."""
@@ -130,6 +187,7 @@ class SnapshotCache:
     def stop(self) -> None:
         """Ask the collector to exit and wait briefly for it."""
         self._stop.set()
+        self._wake.set()
         if self._thread is not None:
             # A build in flight finishes first; it is bounded by the
             # runner's own timeouts, and the thread is a daemon regardless.

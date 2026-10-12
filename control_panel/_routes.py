@@ -53,9 +53,9 @@ class Router:
         """Collect a fresh fleet snapshot as a JSON-ready dict (slow: ~2 s)."""
         return to_payload(_aggregate.build_status(self._runner, self._port))
 
-    def _status(self) -> dict[str, Any]:
+    def _status(self, *, watching: bool = True) -> dict[str, Any]:
         """Return the cached fleet snapshot, building it only if none exists."""
-        return self.snapshot.get()
+        return self.snapshot.get(watching=watching)
 
     def resolve(self, path_and_query: str) -> tuple[HTTPStatus, dict[str, Any]] | None:
         """Return the response for an API path, or None if it is not one."""
@@ -182,7 +182,7 @@ class Router:
     def _tray_route(self) -> tuple[HTTPStatus, dict[str, Any]]:
         """Serve the tray icon's whole view, decided server-side."""
         panel_url = f"http://127.0.0.1:{self._port}/"
-        return HTTPStatus.OK, _tray_model.build(self._status(), panel_url)
+        return HTTPStatus.OK, _tray_model.build(self._status(watching=False), panel_url)
 
 
 def _int_param(query: str, name: str, default: int) -> int:
