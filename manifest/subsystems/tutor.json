@@ -1,0 +1,25 @@
+{
+  "id": "tutor",
+  "title": "Tutor",
+  "category": "enforcement",
+  "dashboards": [
+    {
+      "label": "Tutor",
+      "url": "http://127.0.0.1:8778/",
+      "on_demand": true
+    }
+  ],
+  "logs": [
+    {
+      "id": "tutor",
+      "kind": "file",
+      "path": "~/.local/state/tutor/server.log"
+    }
+  ],
+  "docs": [
+    {
+      "path": "~/src/tutor/README.md",
+      "label": "tutor README (start it: ~/src/tutor/run.sh)"
+    }
+  ]
+}
