@@ -2,11 +2,19 @@
   "id": "tutor",
   "title": "Tutor",
   "category": "enforcement",
+  "units": [
+    {
+      "name": "tutor.service",
+      "scope": "user",
+      "kind": "service",
+      "why_it_matters": "the PC worker the phone talks to over Firebase; down = phone shows PC offline"
+    }
+  ],
   "dashboards": [
     {
       "label": "Tutor",
       "url": "http://127.0.0.1:8778/",
-      "on_demand": true
+      "on_demand": false
     }
   ],
   "logs": [
@@ -19,7 +27,7 @@
   "docs": [
     {
       "path": "~/src/tutor/README.md",
-      "label": "tutor README (start it: ~/src/tutor/run.sh)"
+      "label": "tutor README (service: tutor.service; open: ~/src/tutor/run.sh)"
     }
   ]
 }
