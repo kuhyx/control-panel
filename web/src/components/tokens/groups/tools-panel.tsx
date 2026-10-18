@@ -162,6 +162,7 @@ export function ToolsPanel({
             points: data.batching.map((d) => ({ x: d.day, y: d.share })),
           },
         ]}
+        titled
       />
       <DataTable<ToolRow>
         columns={[textColumn<ToolRow>("name", "tool"), ...statColumns()]}

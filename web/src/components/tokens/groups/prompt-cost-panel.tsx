@@ -144,11 +144,13 @@ export function PromptCostPanel({
             points: data.daily.map((d) => ({ x: d.day, y: d.mean_usd })),
           },
         ]}
+        titled
       />
       <ColumnChart
         columns={data.histogram.map((b) => ({ x: b.bucket, y: b.prompts }))}
         format={formatCount}
         label="Prompts by cost"
+        titled
       />
       <DataTable<PromptCostRow>
         columns={COLUMNS}

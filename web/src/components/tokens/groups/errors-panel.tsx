@@ -137,6 +137,7 @@ export function ErrorsPanel({
           },
           { label: "interrupts", points: points((d) => d.interrupts) },
         ]}
+        titled
       />
       <LineChart
         format={formatShare}
@@ -144,6 +145,7 @@ export function ErrorsPanel({
         series={[
           { label: "failing / all calls", points: points((d) => d.error_rate) },
         ]}
+        titled
       />
       <Table
         columns={API_TYPE_COLUMNS}

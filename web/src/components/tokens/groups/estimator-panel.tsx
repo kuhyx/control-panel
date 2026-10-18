@@ -156,6 +156,7 @@ export function EstimatorPanel({
         columns={data.events_daily.map((d) => ({ x: d.day, y: d.count }))}
         format={formatCount}
         label="Context-gate misses per day"
+        titled
       />
       <DataTable<EstimateRow>
         columns={SESSION_COLUMNS}

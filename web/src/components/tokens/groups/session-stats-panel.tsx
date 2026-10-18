@@ -60,6 +60,7 @@ export function Histogram({
       columns={rows.map((r) => ({ x: r.bucket, y: r.sessions }))}
       format={formatCount}
       label={label}
+      titled
     />
   );
 }
@@ -98,6 +99,7 @@ export function SessionStatsPanel({
         })}
         format={formatUsd}
         label="Mean USD of the n-th call"
+        titled
       />
       <Histogram label="Sessions by prompt count" rows={data.prompts_hist} />
       <Histogram
@@ -117,6 +119,7 @@ export function SessionStatsPanel({
             points: data.daily.map((d) => ({ x: d.day, y: d.max_concurrent })),
           },
         ]}
+        titled
       />
       <DataTable<PositionRow>
         columns={POSITION_COLUMNS}

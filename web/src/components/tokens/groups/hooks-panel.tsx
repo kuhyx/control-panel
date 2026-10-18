@@ -125,6 +125,7 @@ export function HooksPanel({
             points: data.daily.map((d) => ({ x: d.day, y: d.retry_usd })),
           },
         ]}
+        titled
       />
       <DataTable<HookRow>
         columns={HOOK_COLUMNS}

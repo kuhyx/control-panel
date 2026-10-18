@@ -70,6 +70,7 @@ export function ContextGrowthPanel({
         columns={data.histogram.map((b) => ({ x: b.bucket, y: b.calls }))}
         format={formatCount}
         label="Calls per context size"
+        titled
       />
       {chunks(data.growth).map((group, index) => {
         const first = index * PER_CHART + 1;
@@ -90,6 +91,7 @@ export function ContextGrowthPanel({
                 }),
               };
             })}
+            titled
           />
         );
       })}

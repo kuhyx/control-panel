@@ -58,12 +58,15 @@ export function ColumnChart({
   detailLabel = "per-session detail",
   format,
   label,
+  titled = false,
 }: Readonly<{
   aggregateLabel?: string;
   columns: Column[];
   detailLabel?: string;
   format: (n: number) => string;
   label: string;
+  // Show `label` as a visible caption (panels without their own heading).
+  titled?: boolean;
 }>): React.JSX.Element {
   const [hover, setHover] = useState<null | number>(null);
   const frame = makeFrame(Math.max(0, ...columns.map((c) => c.y)), HEIGHT);
@@ -77,6 +80,7 @@ export function ColumnChart({
   const hovered = hover === null ? undefined : columns[hover];
   return (
     <figure className="chart">
+      {titled && <figcaption className="chart-title">{label}</figcaption>}
       <Legend
         items={
           hasAggregate

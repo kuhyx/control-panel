@@ -72,12 +72,15 @@ export function LineChart({
   markers = [],
   refLines: referenceLines = [],
   series,
+  titled = false,
 }: Readonly<{
   format: (n: number) => string;
   label: string;
   markers?: Marker[];
   refLines?: ReferenceLine[];
   series: LineSeries[];
+  // Show `label` as a visible caption (panels without their own heading).
+  titled?: boolean;
 }>): React.JSX.Element {
   const [hover, setHover] = useState<null | number>(null);
   const seen = new Set(series.flatMap((s) => s.points.map((p) => p.x)));
@@ -106,6 +109,7 @@ export function LineChart({
         ];
   return (
     <figure className="chart">
+      {titled && <figcaption className="chart-title">{label}</figcaption>}
       <Legend
         items={series.map((s, index) => {
           return {

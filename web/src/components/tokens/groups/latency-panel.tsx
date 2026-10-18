@@ -106,11 +106,13 @@ export function LatencyPanel({
             points: daily.map((d) => ({ x: d.day, y: d[q] })),
           };
         })}
+        titled
       />
       <ColumnChart
         columns={histogram}
         format={formatCount}
         label="Prompts per think time"
+        titled
       />
       <DataTable<ModelRow>
         columns={MODEL_COLUMNS}

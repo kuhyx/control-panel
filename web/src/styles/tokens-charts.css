@@ -107,3 +107,10 @@
   gap: var(--space-4);
   grid-template-columns: repeat(auto-fit, minmax(32rem, 1fr));
 }
+
+.chart-title {
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  font-weight: 600;
+  margin: var(--space-3) 0 var(--space-1);
+}

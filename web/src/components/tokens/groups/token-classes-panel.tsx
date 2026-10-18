@@ -108,6 +108,7 @@ export function TokenClassesPanel({
           ),
           series(daily, "input + output", (d) => d.input_usd + d.output_usd),
         ]}
+        titled
       />
       <LineChart
         format={formatCount}
@@ -117,11 +118,13 @@ export function TokenClassesPanel({
           series(daily, "1h", (d) => d.cw_1h),
           series(daily, "unsplit (priced as 5m)", (d) => d.unsplit),
         ]}
+        titled
       />
       <LineChart
         format={formatShare}
         label="Cache hit ratio per day"
         series={[series(daily, "hit ratio", (d) => d.hit_ratio)]}
+        titled
       />
       <ClassTables
         compactions={data.compactions}

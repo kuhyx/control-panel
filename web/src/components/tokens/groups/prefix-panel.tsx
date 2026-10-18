@@ -167,6 +167,7 @@ export function PrefixPanel({
             points: s.points.map((p) => ({ x: p.day, y: p.tokens })),
           };
         })}
+        titled
       />
       <DataTable<SurfaceRow>
         columns={SURFACE_COLUMNS}

@@ -140,6 +140,7 @@ export function OutputPanel({
             points: daily.map((d) => ({ x: d.day, y: d.tool })),
           },
         ]}
+        titled
       />
       <LineChart
         format={formatShare}
@@ -150,6 +151,7 @@ export function OutputPanel({
             points: daily.map((d) => ({ x: d.day, y: d.output_share })),
           },
         ]}
+        titled
       />
       <DataTable<LongestRow>
         columns={LONGEST_COLUMNS}
