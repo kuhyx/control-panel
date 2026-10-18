@@ -12,7 +12,7 @@ export class ApiError extends Error {
   override readonly name = "ApiError";
 }
 
-async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
+export async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(path, signal ? { signal } : {});
   if (!response.ok) {
     throw new ApiError(`${path} responded ${String(response.status)}`);

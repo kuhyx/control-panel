@@ -2,32 +2,66 @@ import { useEffect, useState } from "react";
 
 export interface Route {
   id: string;
-  name: "detail" | "logs" | "overview";
+  name:
+    | "detail"
+    | "logs"
+    | "overview"
+    | "tokens"
+    | "tokens-file"
+    | "tokens-session";
 }
 
-// A hand-rolled hash router: four routes do not justify a dependency, and a
-// hash route needs no server-side rewrite rule on the Python static handler.
+const OVERVIEW: Route = { id: "", name: "overview" };
+
+// A hand-rolled hash router: a handful of routes do not justify a dependency,
+// and a hash route needs no server-side rewrite rule on the Python static
+// handler.
 //
 // A hash may carry a query -- `#/s/hosts?units.sort=state:desc` -- which holds
-// table sort/filter/search state (see table-state.ts). It is not part of the
-// route, so it is cut off before the path is read.
+// table sort/filter/search state (see table-state.ts) or the token page's
+// filters. It is not part of the route, so it is cut off before the path is
+// read.
 export function parseHash(hash: string): Route {
   const [path = ""] = hash.split("?", 1);
   const clean = path.replace(/^#\/?/, "");
-  const [head = "", tail = ""] = clean.split("/", 2);
+  const [head = "", tail = "", rest = ""] = clean.split("/", 3);
+  if (head === "tokens") {
+    if (rest === "") return { id: "", name: "tokens" };
+    if (tail === "f") return { id: decodeURIComponent(rest), name: "tokens-file" };
+    return tail === "s"
+      ? { id: decodeURIComponent(rest), name: "tokens-session" }
+      : { id: "", name: "tokens" };
+  }
   if (head === "s" && tail !== "") return { id: tail, name: "detail" };
-  return head === "logs" && tail !== ""
-    ? { id: tail, name: "logs" }
-    : { id: "", name: "overview" };
+  return head === "logs" && tail !== "" ? { id: tail, name: "logs" } : OVERVIEW;
+}
+
+// A loop rather than `/\/+$/`: that regex backtracks super-linearly.
+function trimTrailingSlashes(path: string): string {
+  let end = path.length;
+  while (end > 0 && path[end - 1] === "/") end -= 1;
+  return path.slice(0, end);
+}
+
+// `/tokens` is a real path too (the server falls back to index.html for any
+// unknown path), so a bookmark or `curl localhost:8760/tokens` lands on the
+// token page; a hash, when present, still wins.
+export function parseLocation(pathname: string, hash: string): Route {
+  if (hash !== "" && hash !== "#" && hash !== "#/") return parseHash(hash);
+  return trimTrailingSlashes(pathname) === "/tokens"
+    ? { id: "", name: "tokens" }
+    : parseHash(hash);
 }
 
 export function useRoute(): Route {
   const [route, setRoute] = useState<Route>(() =>
-    parseHash(globalThis.location.hash),
+    parseLocation(globalThis.location.pathname, globalThis.location.hash),
   );
   useEffect(() => {
     const onChange = (): void => {
-      setRoute(parseHash(globalThis.location.hash));
+      setRoute(
+        parseLocation(globalThis.location.pathname, globalThis.location.hash),
+      );
     };
     globalThis.addEventListener("hashchange", onChange);
     return () => {

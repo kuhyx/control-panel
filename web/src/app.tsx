@@ -8,6 +8,7 @@ import { Freshness } from "./components/freshness.tsx";
 import { LogViewer } from "./components/log-viewer.tsx";
 import { RollupTiles } from "./components/rollup-tiles.tsx";
 import { SubsystemDetail } from "./components/subsystem-detail.tsx";
+import { TokensPage } from "./components/tokens/tokens-page.tsx";
 import { UnknownSection } from "./components/unknown-section.tsx";
 import { fetchStatus } from "./lib/api.ts";
 import { formatTimestamp } from "./lib/format.ts";
@@ -53,6 +54,9 @@ export function App(): React.JSX.Element {
         <h1>
           <a href="#/">control-panel</a>
         </h1>
+        <nav className="masthead-nav">
+          <a href="#/">fleet</a> · <a href="#/tokens">tokens</a>
+        </nav>
         {status !== null && (
           <p className="category">
             {status.host} · read {formatTimestamp(status.generated_at)} in{" "}
@@ -62,6 +66,26 @@ export function App(): React.JSX.Element {
         )}
       </header>
 
+      {route.name.startsWith("tokens") ? (
+        <TokensPage route={route} />
+      ) : (
+        <Fleet error={error} route={route} status={status} />
+      )}
+    </main>
+  );
+}
+
+function Fleet({
+  error,
+  route,
+  status,
+}: Readonly<{
+  error: null | string;
+  route: ReturnType<typeof useRoute>;
+  status: FleetStatus | null;
+}>): React.JSX.Element {
+  return (
+    <>
       {error !== null && (
         <p className="empty" role="alert">
           {error}
@@ -70,7 +94,7 @@ export function App(): React.JSX.Element {
       {status === null && error === null && <p className="empty">Reading…</p>}
 
       {status !== null && <Body route={route} status={status} />}
-    </main>
+    </>
   );
 }
 

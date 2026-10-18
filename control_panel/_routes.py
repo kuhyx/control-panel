@@ -20,6 +20,7 @@ from control_panel import (
 from control_panel._types import to_payload
 from control_panel.mutations import _hosts_add, _restart, _shutdown_hours, _steam_view
 from control_panel.mutations import _types as _mutation_types
+from control_panel.tokens import _api as _tokens_api
 
 if TYPE_CHECKING:
     from control_panel._runner import CommandRunner
@@ -78,6 +79,7 @@ class Router:
             "journal": lambda _: self._journal_route(segments[1:], parts.query),
             "unknown": lambda _: self._unknown_route(),
             "tray": lambda _: self._tray_route(),
+            "tokens": lambda _: _tokens_api.route(segments[1:], parts.query),
         }
         handler = routes.get(head)
         if handler is None:

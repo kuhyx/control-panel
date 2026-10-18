@@ -1,0 +1,152 @@
+/* /tokens page and its charts. Every value is a token from
+   @kuhyx/web-ui/tokens.css; chart series use the categorical ramp in the fixed
+   order set in chart-frame.tsx. Text never wears a series colour. */
+
+.masthead-nav {
+  color: var(--text-muted);
+  font-size: var(--text-label);
+}
+
+.page-title {
+  font-size: var(--text-title);
+  margin: 0 0 var(--space-2);
+}
+
+.tile-count.hero {
+  font-size: var(--text-display);
+  font-variant-numeric: normal;
+  font-weight: 600;
+}
+
+.filter-bar {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: var(--space-3) 0 var(--space-4);
+}
+
+.filter-bar label {
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-caption);
+  gap: var(--space-1);
+}
+
+.filter-bar input,
+.filter-bar select {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font: inherit;
+  padding: var(--space-1) var(--space-2);
+}
+
+.caption {
+  color: var(--text-muted);
+  font-size: var(--text-caption);
+  margin: var(--space-1) 0 0;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.tokens-table {
+  font-size: var(--text-caption);
+  margin: var(--space-2) 0;
+}
+
+.tokens-table .num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tokens-table .strong,
+.prompt-cost {
+  font-weight: 600;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.prompts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.prompt {
+  border-top: 1px solid var(--border);
+  padding: var(--space-3) 0;
+}
+
+.prompt-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.prompt-text {
+  flex: 1 1 20rem;
+}
+
+.csv-link {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: var(--text-caption);
+  font-weight: 400;
+  margin-left: var(--space-2);
+  padding: 0 var(--space-2);
+}
+
+/* The A/B verdict: semantic fills carry on-fill text, never text-on-dark. */
+.ab-banner {
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+}
+
+.ab-red {
+  background: var(--danger);
+  color: var(--on-fill);
+}
+
+.ab-green {
+  background: var(--success);
+  color: var(--on-fill);
+}
+
+.ab-grey {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.warn-badge {
+  background: var(--warning);
+}
+
+.file-content {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  max-height: 60rem;
+  overflow: auto;
+  padding: var(--space-3);
+  white-space: pre-wrap;
+}
+
+.git-log {
+  font-size: var(--text-caption);
+  list-style: none;
+  padding: 0;
+}

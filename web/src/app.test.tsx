@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./app.tsx";
 import * as api from "./lib/api.ts";
 import { STATUS } from "./test/fixture.ts";
+import { stubTokensFetch } from "./test/tokens-fetch.ts";
 
 function goto(hash: string): void {
   globalThis.location.hash = hash;
@@ -30,6 +31,16 @@ describe("App", () => {
     });
     expect(screen.getByText(/archlinux/)).toBeInTheDocument();
     expect(screen.getByText(/1557 ms/)).toBeInTheDocument();
+  });
+
+  it("routes to the token page", async () => {
+    stubTokensFetch();
+    render(<App />);
+    goto("#/tokens");
+    expect(
+      await screen.findByRole("heading", { name: "Claude Code spend" }),
+    ).toBeInTheDocument();
+    vi.unstubAllGlobals();
   });
 
   it("routes to a subsystem and back", async () => {

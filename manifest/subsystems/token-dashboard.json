@@ -1,0 +1,24 @@
+{
+  "id": "token-dashboard",
+  "title": "Token dashboard (Claude Code spend)",
+  "category": "telemetry",
+  "units": [
+    {
+      "name": "token-dashboard-ingest.timer",
+      "scope": "user",
+      "kind": "timer",
+      "why_it_matters": "transcripts are deleted after cleanupPeriodDays; this copies their spend into ~/data/token-dashboard before they go"
+    },
+    {
+      "name": "token-dashboard-ingest.service",
+      "scope": "user",
+      "kind": "service"
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "Tokens",
+      "url": "http://127.0.0.1:8760/tokens"
+    }
+  ]
+}

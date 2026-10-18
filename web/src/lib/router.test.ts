@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseHash } from "./router.ts";
+import { parseHash, parseLocation } from "./router.ts";
 
 describe("parseHash", () => {
   it("defaults to the overview", () => {
@@ -33,5 +33,37 @@ describe("parseHash", () => {
   it("ignores a route with no id", () => {
     expect(parseHash("#/s/")).toEqual({ id: "", name: "overview" });
     expect(parseHash("#/logs")).toEqual({ id: "", name: "overview" });
+  });
+});
+
+describe("token routes", () => {
+  it("routes the tokens page by hash and by the /tokens path", () => {
+    expect(parseHash("#/tokens")).toEqual({ id: "", name: "tokens" });
+    expect(parseHash("#/tokens?from=2026-10-10")).toEqual({ id: "", name: "tokens" });
+    expect(parseLocation("/tokens", "")).toEqual({ id: "", name: "tokens" });
+    expect(parseLocation("/", "#/s/x")).toEqual({ id: "x", name: "detail" });
+  });
+
+  it("ignores trailing slashes on the path and an empty hash", () => {
+    expect(parseLocation("/tokens//", "#/")).toEqual({ id: "", name: "tokens" });
+    expect(parseLocation("/tokens/", "#")).toEqual({ id: "", name: "tokens" });
+    expect(parseLocation("/", "")).toEqual({ id: "", name: "overview" });
+    expect(parseLocation("", "")).toEqual({ id: "", name: "overview" });
+    expect(parseLocation("/other", "")).toEqual({ id: "", name: "overview" });
+  });
+
+  it("routes one context file", () => {
+    expect(parseHash(`#/tokens/f/${encodeURIComponent("/a/b.md")}`)).toEqual({
+      id: "/a/b.md",
+      name: "tokens-file",
+    });
+    expect(parseHash("#/tokens/x/y")).toEqual({ id: "", name: "tokens" });
+  });
+
+  it("routes one session", () => {
+    expect(parseHash("#/tokens/s/abc-1")).toEqual({
+      id: "abc-1",
+      name: "tokens-session",
+    });
   });
 });

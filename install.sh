@@ -11,6 +11,8 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPO_DIR
 readonly UNIT="control-panel-web.service"
+# The token store's refresh timer (the ingester itself lives in testsAndMisc).
+readonly TOKEN_UNITS=("token-dashboard-ingest.service" "token-dashboard-ingest.timer")
 readonly UNIT_DIR="${HOME}/.config/systemd/user"
 readonly TRAY_DIR="${HOME}/.config/i3/scripts"
 readonly TRAY="control_panel_tray.py"
@@ -58,6 +60,17 @@ install_unit() {
     exit 1
 }
 
+install_token_timer() {
+    local unit
+    mkdir -p "$UNIT_DIR"
+    for unit in "${TOKEN_UNITS[@]}"; do
+        install -m 644 "$REPO_DIR/systemd/$unit" "$UNIT_DIR/$unit"
+    done
+    systemctl --user daemon-reload
+    systemctl --user enable --now token-dashboard-ingest.timer
+    log "token store refreshes every 30 min (token-dashboard-ingest.timer)"
+}
+
 install_tray() {
     # Copied, not symlinked, matching leetcode-guard's and screen-locker's trays.
     mkdir -p "$TRAY_DIR"
@@ -80,6 +93,7 @@ main() {
     install_tray_deps
     build_web
     install_unit
+    install_token_timer
     install_tray
     log "done. Check every link: ~/src/control-panel/run.sh --dashboards"
 }
