@@ -8,9 +8,10 @@ export interface Counts {
   total: number;
 }
 
-async function didCopy(text: string): Promise<boolean> {
+// Build the text (which may fetch every matching row) and copy it.
+async function didCopy(build: () => Promise<string>): Promise<boolean> {
   try {
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(await build());
     return true;
   } catch {
     return false;
@@ -32,21 +33,21 @@ export function TableToolbar({
   counts: Counts;
   csvHref: string;
   csvName: string;
-  forClaude: () => string;
-  json: () => string;
+  forClaude: () => Promise<string>;
+  json: () => Promise<string>;
   onSearch: (q: string) => void;
   onShowAll: () => void;
   search: string;
   selected: number;
 }>): React.JSX.Element {
   const [status, setStatus] = useState("");
-  const run = (label: string, build: () => string): void => {
-    void didCopy(build()).then((ok) => {
-      setStatus(ok ? `${label}: copied` : `${label}: clipboard unavailable`);
+  const run = (label: string, build: () => Promise<string>): void => {
+    void didCopy(build).then((ok) => {
+      setStatus(ok ? `${label}: copied` : `${label}: copy failed`);
     });
   };
   const which =
-    selected > 0 ? `${String(selected)} selected` : "all shown rows";
+    selected > 0 ? `${String(selected)} selected` : "every matching row";
   return (
     <div className="table-toolbar">
       <DraftInput

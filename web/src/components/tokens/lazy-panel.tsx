@@ -13,6 +13,24 @@ interface Answered {
   filters?: { since: number; until: number };
 }
 
+function unlimited(query: TokenQuery, key: string): TokenQuery {
+  return { ...query, tables: { ...query.tables, [`t.${key}.limit`]: "0" } };
+}
+
+// Every matching row of one table of a panel (its limit lifted).
+export async function loadAll(
+  panel: string,
+  query: TokenQuery,
+  id: string,
+): Promise<object[]> {
+  const payload = await fetchPanel<Record<string, unknown>>(
+    panel,
+    unlimited(query, `${panel}/${id}`),
+  );
+  const rows = payload[id];
+  return Array.isArray(rows) ? (rows as object[]) : [];
+}
+
 // One panel: fetches its own data under the page's filters and its own
 // tables' parameters, and renders it inside its table scope, or a per-panel
 // loading / error line.
@@ -33,6 +51,7 @@ export function LazyPanel({
   );
   if (state.value !== null) {
     const scope = {
+      loadAll: (id: string) => loadAll(view.name, query, id),
       onQuery,
       panel: view.name,
       query,

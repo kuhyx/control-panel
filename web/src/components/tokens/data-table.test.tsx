@@ -76,7 +76,7 @@ describe("DataTable", () => {
     render(table());
     fireEvent.click(screen.getByRole("button", { name: "Copy for Claude" }));
     expect(
-      await screen.findByText("Copy for Claude: clipboard unavailable"),
+      await screen.findByText("Copy for Claude: copy failed"),
     ).toBeInTheDocument();
   });
 

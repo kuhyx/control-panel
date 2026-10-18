@@ -60,8 +60,10 @@ export function table(
 export function scoped(
   onQuery: (q: TokenQuery) => void,
   tables = {},
+  loadAll?: (id: string) => Promise<object[]>,
 ): React.JSX.Element {
   const scope = {
+    ...(loadAll !== undefined && { loadAll }),
     onQuery,
     panel: "demo",
     query: { ...EMPTY_QUERY, cwd: "/r", tables },

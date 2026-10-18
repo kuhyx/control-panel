@@ -125,4 +125,24 @@ describe("DataTable state in the hash", () => {
     rerender(scoped(onQuery, { ...odd, "t.demo/rows.q": "fresh" }));
     expect(screen.getByLabelText("search this table")).toHaveValue("fresh");
   });
+
+  it("copies every matching row when the table is cut and nothing is selected", async () => {
+    const writeText = vi.fn<(text: string) => Promise<void>>(() =>
+      Promise.resolve(),
+    );
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    const loadAll = vi.fn(() =>
+      Promise.resolve([{ kind: "x", label: "all", n: 9, obj: { a: 0 } }]),
+    );
+    render(scoped(querySpy(), {}, loadAll));
+    fireEvent.click(screen.getByRole("button", { name: "Copy as JSON" }));
+    await screen.findByText("Copy as JSON: copied");
+    expect(loadAll).toHaveBeenCalledWith("rows");
+    expect(String(writeText.mock.calls[0]?.[0])).toContain('"label": "all"');
+    fireEvent.click(screen.getByLabelText("select 5"));
+    fireEvent.click(screen.getByRole("button", { name: "Copy for Claude" }));
+    await screen.findByText("Copy for Claude: copied");
+    expect(loadAll).toHaveBeenCalledTimes(1);
+    vi.unstubAllGlobals();
+  });
 });

@@ -77,6 +77,15 @@ export function DataTable<T extends object>({
     shown: rows.length,
     total: rows.length,
   };
+  // Nothing selected and the table is cut by its limit: copy every matching
+  // row (nested tables such as prompts.tools copy their own list).
+  const copyRows = async (): Promise<object[]> => {
+    const loadAll = scope?.loadAll;
+    const isNested = id.includes(".");
+    const isCut = counts.shown < counts.matched;
+    const isWhole = isNested || !isCut || picked.length > 0;
+    return isWhole || loadAll === undefined ? chosen : loadAll(id);
+  };
   const context: CopyContext = {
     matched: counts.matched,
     query: scope?.query ?? null,
@@ -100,8 +109,8 @@ export function DataTable<T extends object>({
         counts={counts}
         csvHref={csv}
         csvName={`${id}.csv`}
-        forClaude={() => forClaude(columns, chosen, context)}
-        json={() => asJson(columns, chosen, context)}
+        forClaude={async () => forClaude(columns, await copyRows(), context)}
+        json={async () => asJson(columns, await copyRows(), context)}
         onSearch={(q) => {
           setState({ ...state, q });
         }}

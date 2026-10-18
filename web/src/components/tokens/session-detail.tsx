@@ -89,6 +89,17 @@ export function SessionDetail({
   if (detail === null) return <p className="empty">Reading…</p>;
   const { session } = detail;
   const scope = {
+    loadAll: async (table: string): Promise<object[]> => {
+      const all = {
+        ...query,
+        tables: { ...query.tables, [`t.session/${table}.limit`]: "0" },
+      };
+      const found = await fetchSession(id, undefined, all);
+      const rows: unknown = (found as unknown as Record<string, unknown>)[
+        table
+      ];
+      return Array.isArray(rows) ? (rows as object[]) : [];
+    },
     onQuery,
     panel: "session",
     query,
@@ -125,11 +136,7 @@ export function SessionDetail({
           title="Prompts"
         />
         <ol className="prompts">
-          {detail.prompts.map((p) => {
-            return (
-              <Prompt key={p.idx} prompt={p} tables={detail._tables} />
-            );
-          })}
+          {detail.prompts.map((p) => <Prompt key={p.idx} prompt={p} tables={detail._tables} />)}
         </ol>
         {detail.unattributed.length > 0 && (
           <DataTable<SubagentRow>

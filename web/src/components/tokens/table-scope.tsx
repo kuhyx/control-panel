@@ -12,6 +12,8 @@ import {
 // Where a table lives: its panel (the hash prefix of its state), the page's
 // query and the window the panel answered for (for the copied header).
 export interface Scope {
+  // Every row of one of this scope's tables that matches its filters.
+  loadAll?: (id: string) => Promise<object[]>;
   onQuery: (next: TokenQuery) => void;
   panel: string;
   query: TokenQuery;
