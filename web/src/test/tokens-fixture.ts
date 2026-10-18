@@ -188,6 +188,15 @@ export const AB: AbPanel = {
   arms: { sonnet: ARM },
   banner: { level: "grey", text: "too few" },
   diffs: { redo: { diff: -0.05, high: 0.1, low: -0.2 } },
+  metrics: [
+    { difference: "", measure: "n", opus: "0", sonnet: "120" },
+    {
+      difference: "-5.0% [-20.0%, 10.0%]",
+      measure: "redo rate (similar Agent re-dispatched)",
+      opus: "—",
+      sonnet: "0.0% [0.0%, 10.0%]",
+    },
+  ],
   unjoined: 3,
 };
 

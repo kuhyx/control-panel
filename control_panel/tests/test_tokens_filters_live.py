@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from control_panel.tests import _fixture_tokens as fx
-from control_panel.tokens import _ab_stats, _api, _db
+from control_panel.tokens import _ab_rows, _ab_stats, _api, _db
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -162,3 +162,49 @@ def test_ab_statistics_match_reference_values() -> None:
     same = _ab_stats.diff_ci(3, 10, 3, 10)
     assert same["diff"] == 0.0
     assert same["low"] < 0 < same["high"]
+
+
+def test_ab_measures_come_as_table_rows(store: Path) -> None:
+    payload = _panel("ab", "t.metrics.q=rate")
+    assert [r["measure"] for r in payload["metrics"]] == [
+        "redo rate (similar Agent re-dispatched)",
+        "follow-up rate (SendMessage after return)",
+        "error / aborted rate",
+        "user-correction rate (noisy: phrase match)",
+    ]
+    assert payload["_tables"]["metrics"]["total"] == 8
+
+
+def test_ab_rows_format_every_measure() -> None:
+    arm = {
+        "n": 2,
+        "usd": {"mean": 1.0, "low": 0.5, "high": 2.0},
+        "duration_s": {"mean": 3900.0},
+        "redo": {"k": 1, "rate": 0.5, "low": 0.1, "high": 0.9},
+        "tags": {"DONE": 2},
+    }
+    diffs = {"redo": {"diff": -0.05, "low": -0.2, "high": 0.1}}
+    rows = {
+        r["measure"]: r
+        for r in _ab_rows.rows({"arms": {"sonnet": arm}, "diffs": diffs})
+    }
+    assert rows["n"]["opus"] == "0"
+    assert rows["cost per agent (mean, 95% CI)"]["sonnet"] == "$1.00 [$0.50, $2.00]"
+    assert rows["cost per agent (mean, 95% CI)"]["opus"] == "—"
+    assert rows["duration (mean)"]["sonnet"] == "1h05"
+    redo = rows["redo rate (similar Agent re-dispatched)"]
+    assert (redo["sonnet"], redo["opus"]) == ("50.0% [10.0%, 90.0%]", "—")
+    assert redo["difference"] == "-5.0% [-20.0%, 10.0%]"
+    assert rows["error / aborted rate"]["difference"] == "—"
+    assert rows["parent session end tag"]["sonnet"] == "DONE 2"
+    assert _ab_rows.rows({})[0] == {
+        "difference": "",
+        "measure": "n",
+        "sonnet": "0",
+        "opus": "0",
+    }
+    for seconds, text in ((42.0, "42s"), (420.0, "7m")):
+        dur = _ab_rows.rows(
+            {"arms": {"opus": {**arm, "duration_s": {"mean": seconds}}}}
+        )
+        assert dur[2]["opus"] == text

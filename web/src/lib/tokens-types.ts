@@ -194,50 +194,27 @@ export interface AbArm {
   usd: MeanCi;
 }
 
+// One A/B measure: display strings per arm and Sonnet − Opus difference.
+export interface AbMetric {
+  difference: string;
+  measure: string;
+  opus: string;
+  sonnet: string;
+}
+
 export interface AbPanel {
   _tables?: Tables;
   arms: Partial<Record<"opus" | "sonnet", AbArm>>;
   banner: Banner;
   diffs?: Record<string, { diff: number; high: number; low: number }>;
   filtered_by?: string;
+  metrics?: AbMetric[];
   unjoined?: number;
 }
 
-export interface Breach {
-  hard: boolean;
-  limit: number;
-  measure: string;
-  value: number;
-  why: string;
-}
-
-export interface ContextFileRow {
-  breaches: Breach[];
-  budgets: string[];
-  bytes: null | number;
-  hard_limits: string[];
-  history: { bytes: number; source: string; ts: number }[];
-  kind: string;
-  lines: null | number;
-  path: string;
-  standing: string;
-  status: "ok" | "over budget" | "over hard limit";
-  tokens: number;
-  usd_per_day: number;
-  warning: null | string;
-}
-
-export interface ContextPanel {
-  _tables?: Tables;
-  calls_per_day: number;
-  files: ContextFileRow[];
-  measure_command: string;
-  price_per_mtok: number;
-}
-
-export interface ContextFileDetail {
-  content: null | string;
-  git_log: string[];
-  kind: string;
-  path: string;
-}
+export type {
+  Breach,
+  ContextFileDetail,
+  ContextFileRow,
+  ContextPanel,
+} from "./tokens-types-context.ts";

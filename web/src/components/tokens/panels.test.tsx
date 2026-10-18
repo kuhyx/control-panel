@@ -30,25 +30,19 @@ describe("AbPanel", () => {
     expect(screen.getByRole("status")).toHaveClass("ab-banner", "ab-red");
   });
 
-  it("fills the present arm and dashes the missing one", () => {
+  it("lists every measure per arm through the shared table", () => {
     render(<AbPanel data={AB} />);
     expect(screen.getByText(/3 assignments not/)).toBeInTheDocument();
-    expect(row("n")).toHaveTextContent("n120");
-    expect(row("cost per agent (mean, 95% CI)")).toHaveTextContent(
-      "$1.00 [$0.50, $2.00]—",
-    );
-    expect(row("duration (mean)")).toHaveTextContent("1m—");
+    expect(row("n")).toHaveTextContent("n1200");
     const redo = row("redo rate (similar Agent re-dispatched)");
     expect(redo).toHaveTextContent("0.0% [0.0%, 10.0%]—-5.0% [-20.0%, 10.0%]");
-    expect(row("error / aborted rate")).toHaveTextContent("——");
-    expect(row("parent session end tag")).toHaveTextContent(
-      "DONE 3, RUNNING 1—",
-    );
+    expect(screen.getByRole("button", { name: "Copy for Claude" })).toBeInTheDocument();
   });
 
   it("tolerates a payload with no diffs or unjoined count", () => {
     render(<AbPanel data={{ arms: {}, banner: AB.banner, filtered_by: "all time" }} />);
     expect(screen.getByText("Filtered by: all time")).toBeInTheDocument();
+    expect(screen.getByText("No rows match.")).toBeInTheDocument();
     expect(screen.getByText(/0 assignments not/)).toBeInTheDocument();
   });
 });

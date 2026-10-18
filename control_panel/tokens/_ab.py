@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from control_panel.tokens import _ab_stats, _db
+from control_panel.tokens import _ab_rows, _ab_stats, _db
 from control_panel.tokens._registry import panel
 
 if TYPE_CHECKING:
@@ -70,13 +70,18 @@ def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
     stored = payload(conn)
     scoped = (filters.cwd, filters.model) != ("", "") or filters.scope != "all"
     if not scoped or not _has_rows(conn):
-        return {**stored, "filtered_by": "all time, all assignments"}
+        return {
+            **stored,
+            "metrics": _ab_rows.rows(stored),
+            "filtered_by": "all time, all assignments",
+        }
     rows = [
         dict(zip(_COLUMNS, row, strict=True))
         for row in conn.execute(_ROWS, filters.params()[2:])
     ]
+    recount = {**stored, **_ab_stats.summary(rows)}
     return {
-        **stored,
-        **_ab_stats.summary(rows),
+        **recount,
+        "metrics": _ab_rows.rows(recount),
         "filtered_by": "all time; arms recounted for cwd/model/scope",
     }
