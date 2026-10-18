@@ -67,7 +67,7 @@ local parsing only, no LLM.
       WebFetch/WebSearch. Needs per-call rows (command text, path) in walk.
 - [ ] **E. Standing prefix**: per-surface totals over time from
       `token_audit.checkup` + prune sizes, $/day; prune history timeline.
-- [ ] **F. Hooks**: fires, injected tokens, blocks/denials + cost of the
+- [x] **F. Hooks**: fires, injected tokens, blocks/denials + cost of the
       retry, runtime (hook budget-gate log under ~/.claude/logs), Stop-hook
       status-tag bounces and their cost.
 - [ ] **G. Tools**: error rate, result-token p50/p95, failed/denied,
