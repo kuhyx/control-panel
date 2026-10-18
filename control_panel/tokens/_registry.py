@@ -1,16 +1,20 @@
 """Panel registration: one module per panel group, each self-registering.
 
-Adding a panel is two steps and touches nothing else on the backend:
+Adding a panel touches no shared file:
 
 1. Write ``control_panel/tokens/_<group>.py`` with a function decorated
-   ``@panel("<name>", "<title>", order=<n>)`` taking ``(conn, filters)`` and
-   returning a JSON-ready dict. Use the shared filters in :mod:`_db`
-   (the turns filter clause + ``Filters.params()``) so every panel honours the date
-   range, cwd, model and main/subagent scope.
-2. Import the module in :mod:`_api` (the import is what registers it).
+   ``@panel("<name>", "<title>", order=<n>, tables={...})`` taking
+   ``(conn, filters)`` and returning a JSON-ready dict. Every query ends with
+   the shared filter clause (see :mod:`_db`) and binds ``Filters.params()``;
+   tables are lists of flat dicts, which :mod:`_tables` searches, filters,
+   sorts and limits for every client alike (``tables`` sets defaults).
+   :mod:`_api` imports every module of the package, which registers it.
+2. Frontend: ``web/src/components/tokens/groups/<group>-panel.tsx`` plus
+   ``panels/<group>-view.tsx`` exporting ``view`` (picked up by a glob);
+   every table is a ``DataTable``. ``#/tokens/p/<name>`` shows it alone.
 
-``GET /api/tokens`` lists the registered panels in ``order``; the frontend
-renders the ones it has a component for.
+``GET /api/tokens`` lists the registered panels in ``order``;
+``GET /api/tokens/schema`` describes each one's tables and columns.
 """
 
 from __future__ import annotations
