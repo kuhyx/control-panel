@@ -3,9 +3,13 @@ import type { LeversPanel as Data, LeverRow } from "../../lib/tokens-types.ts";
 import { CsvButton } from "./csv.tsx";
 import { LineChart, type ReferenceLine } from "./line-chart.tsx";
 
+const formatShare = (n: number): string => `${(n * 100).toFixed(1)}%`;
+const formatUsd = (n: number): string => `$${n.toFixed(n < 1 ? 3 : 1)}`;
+const formatCount = (n: number): string => (n >= 1000 ? `${(n / 1000).toFixed(1)}K` : n.toFixed(2));
+
 function formatMetric(metric: string): (n: number) => string {
-  if (metric.includes("share")) return (n) => `${(n * 100).toFixed(1)}%`;
-  return metric.startsWith("usd") ? (n) => `$${n < 1 ? n.toFixed(3) : n.toFixed(1)}` : (n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}K` : n.toFixed(2));
+  if (metric.includes("share")) return formatShare;
+  return metric.startsWith("usd") ? formatUsd : formatCount;
 }
 
 function cell(value: null | number): string {
