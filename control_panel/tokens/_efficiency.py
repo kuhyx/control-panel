@@ -1,4 +1,4 @@
-"""Efficiency panel: three weekly 0-token ratios, precomputed by the ingester.
+"""Efficiency panel: three weekly 0-token ratios, computed live under the filters.
 
 Each carries a caption naming exactly what it measures and its weakness; the
 frontend shows the caption under the chart, so the number is never read
@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from control_panel.tokens import _db
+from control_panel.tokens import _efficiency_weeks
 from control_panel.tokens._registry import panel
 
 if TYPE_CHECKING:
@@ -38,16 +38,14 @@ CAPTIONS = {
 
 @panel("efficiency", "Efficiency", order=30)
 def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
-    """The three weekly series inside the date range, with captions."""
-    raw = _db.meta_json(conn, "efficiency")
-    data = raw if isinstance(raw, dict) else {}
-    low = _db.monday(_db.day_of(filters.since))
-    high = _db.day_of(filters.until)
+    """The three weekly series under every filter, with captions."""
+    rows = _efficiency_weeks.sessions(conn, filters)
     return {
         "captions": CAPTIONS,
-        "filtered_by": "date range only (precomputed weekly)",
-        **{
-            name: [w for w in data.get(name, []) if low <= w["week"] <= high]
-            for name in CAPTIONS
-        },
+        "filtered_by": (
+            "date range, cwd, model, scope (a session's spend = its matching turns)"
+        ),
+        "done": _efficiency_weeks.done(rows),
+        "commits": _efficiency_weeks.commits(conn, rows, filters.until),
+        "estimate": _efficiency_weeks.estimate(conn, rows),
     }

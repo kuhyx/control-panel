@@ -47,7 +47,8 @@ describe("AbPanel", () => {
   });
 
   it("tolerates a payload with no diffs or unjoined count", () => {
-    render(<AbPanel data={{ arms: {}, banner: AB.banner }} />);
+    render(<AbPanel data={{ arms: {}, banner: AB.banner, filtered_by: "all time" }} />);
+    expect(screen.getByText("Filtered by: all time")).toBeInTheDocument();
     expect(screen.getByText(/0 assignments not/)).toBeInTheDocument();
   });
 });
@@ -111,6 +112,9 @@ describe("ContextPanel", () => {
 
 describe("EfficiencyPanel", () => {
   it("totals numeric cells and skips the rest", () => {
+    const { unmount } = render(<EfficiencyPanel data={{ ...EFFICIENCY, filtered_by: "cwd" }} />);
+    expect(screen.getByText("Filtered by: cwd")).toBeInTheDocument();
+    unmount();
     render(<EfficiencyPanel data={EFFICIENCY} />);
     expect(screen.getByText(/in range: 2,/)).toBeInTheDocument();
     expect(screen.getByText(/3 survived,/)).toBeInTheDocument();

@@ -141,6 +141,7 @@ export interface EfficiencyPanel {
   commits: EfficiencyWeek[];
   done: EfficiencyWeek[];
   estimate: EfficiencyWeek[];
+  filtered_by?: string;
 }
 
 export interface LeverRow {
@@ -198,6 +199,7 @@ export interface AbPanel {
   arms: Partial<Record<"opus" | "sonnet", AbArm>>;
   banner: Banner;
   diffs?: Record<string, { diff: number; high: number; low: number }>;
+  filtered_by?: string;
   unjoined?: number;
 }
 

@@ -59,6 +59,9 @@ export function EfficiencyPanel({
   return (
     <section className="card" id="efficiency">
       <h2>Efficiency (weekly)</h2>
+      {data.filtered_by === undefined ? null : (
+        <p className="category">Filtered by: {data.filtered_by}</p>
+      )}
       <div className="chart-grid-2">
         <div>
           <h3>USD per DONE session</h3>

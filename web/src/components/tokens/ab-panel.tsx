@@ -40,6 +40,9 @@ export function AbPanel({ data }: Readonly<{ data: Data }>): React.JSX.Element {
   return (
     <section className="card" id="ab">
       <h2>A/B: judgment subagents (Sonnet vs Opus)</h2>
+      {data.filtered_by === undefined ? null : (
+        <p className="category">Filtered by: {data.filtered_by}</p>
+      )}
       <p className="category">
         From ~/.claude/logs/agent-ab.jsonl joined to transcripts on tool_use_id.
         Rates show 95% Wilson intervals; the difference column is Sonnet − Opus with

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from control_panel.tokens import _db
+from control_panel.tokens import _ab_stats, _db
 from control_panel.tokens._registry import panel
 
 if TYPE_CHECKING:
@@ -32,8 +32,51 @@ def banner(conn: sqlite3.Connection) -> dict[str, Any]:
     return found if isinstance(found, dict) else COLLECTING
 
 
+_ROWS = (
+    "SELECT arm, usd, duration_s, redo, followup, error, correction, tag"
+    " FROM ab_rows WHERE"
+    " (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?)"
+    " AND (? = -1 OR is_sub = ?)"
+)
+_COLUMNS = (
+    "arm",
+    "usd",
+    "duration_s",
+    "redo",
+    "followup",
+    "error",
+    "correction",
+    "tag",
+)
+
+
+def _has_rows(conn: sqlite3.Connection) -> bool:
+    """Whether the ingester stored per-assignment rows (newer stores only)."""
+    found = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='ab_rows'"
+    ).fetchone()
+    return found is not None
+
+
 @panel("ab", "A/B: judgment subagents", order=35)
 def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
-    """Per-arm rates with Wilson CIs and per-arm differences (all time)."""
-    del filters  # an A/B verdict over a sub-range would only lose power
-    return payload(conn)
+    """Per-arm rates with Wilson CIs and per-arm differences, all time.
+
+    The date range is ignored on purpose (a verdict over a sub-range only
+    loses power); cwd, model and scope recount the arms from ``ab_rows``.
+    The banner stays the all-time verdict either way.
+    """
+    stored = payload(conn)
+    scoped = (filters.cwd, filters.model) != ("", "") or filters.scope != "all"
+    if not scoped or not _has_rows(conn):
+        return {**stored, "filtered_by": "all time, all assignments"}
+    rows = [
+        dict(zip(_COLUMNS, row, strict=True))
+        for row in conn.execute(_ROWS, filters.params()[2:])
+    ]
+    return {
+        **stored,
+        **_ab_stats.summary(rows),
+        "filtered_by": "all time; arms recounted for cwd/model/scope",
+    }
