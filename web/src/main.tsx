@@ -7,6 +7,7 @@ import "./styles/live.css";
 import "./styles/table-controls.css";
 import "./styles/tokens.css";
 import "./styles/tokens-charts.css";
+import "./styles/tokens-table.css";
 import { App } from "./app.tsx";
 
 const root = document.querySelector("#root");

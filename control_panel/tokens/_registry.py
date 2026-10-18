@@ -33,16 +33,23 @@ class Panel:
     title: str
     order: int
     build: PanelFn
+    # Default table parameters (see _tables), e.g. {"sessions": {"limit": "200"}}.
+    tables: dict[str, dict[str, str]] | None = None
 
 
 PANELS: dict[str, Panel] = {}
 
 
-def panel(name: str, title: str, order: int) -> Callable[[PanelFn], PanelFn]:
-    """Register ``fn`` as panel ``name``."""
+def panel(
+    name: str,
+    title: str,
+    order: int,
+    tables: dict[str, dict[str, str]] | None = None,
+) -> Callable[[PanelFn], PanelFn]:
+    """Register ``fn`` as panel ``name`` (``tables``: default table params)."""
 
     def register(fn: PanelFn) -> PanelFn:
-        PANELS[name] = Panel(name, title, order, fn)
+        PANELS[name] = Panel(name, title, order, fn, tables)
         return fn
 
     return register

@@ -7,40 +7,12 @@ import json
 from pathlib import Path
 import sqlite3
 
+from control_panel.tests._fixture_schema import SCHEMA
+
 # Monday 2026-09-28 12:00 UTC (14:00 local): far from any DST edge.
 T0 = datetime(2026, 9, 28, 12, tzinfo=UTC).timestamp()
 DAY = 86400.0
 
-SCHEMA = """
-CREATE TABLE meta(key TEXT PRIMARY KEY, value TEXT);
-CREATE TABLE turns(key TEXT, main_key TEXT, is_sub INT, cwd TEXT, ts REAL,
-    day TEXT, model TEXT, usd REAL, context INT, prompt_idx INT, input INT,
-    cache_write INT, cache_read INT, output INT);
-CREATE TABLE session_summary(key TEXT PRIMARY KEY, cwd TEXT, title TEXT,
-    first_ts REAL, last_ts REAL, wall_s REAL, active_s REAL, usd REAL,
-    usd_main REAL, usd_sub REAL, calls INT, prompts INT, subagents INT,
-    models TEXT, final_tag TEXT);
-CREATE TABLE prompt_summary(key TEXT, idx INT, ts REAL, text TEXT,
-    usd_own REAL, usd_sub REAL, active_s REAL, wall_s REAL, calls INT);
-CREATE TABLE subagent_link(sub_key TEXT PRIMARY KEY, main_key TEXT,
-    prompt_idx INT, depth INT, description TEXT, agent_type TEXT, model TEXT,
-    usd REAL, calls INT, first_ts REAL, last_ts REAL, wall_s REAL,
-    active_s REAL);
-CREATE TABLE tool_use(key TEXT, prompt_idx INT, name TEXT, calls INT,
-    result_tokens INT, usd REAL, carry_usd REAL);
-CREATE TABLE snapshots(name TEXT PRIMARY KEY, generated TEXT, since REAL,
-    until REAL, metrics TEXT);
-CREATE TABLE levers(source TEXT, date TEXT, lever TEXT, metric TEXT,
-    baseline REAL, predicted REAL, actual REAL, lower_is_better INT,
-    status TEXT, outcome TEXT, detail TEXT);
-CREATE TABLE aggregate_sessions(session_id TEXT PRIMARY KEY, source TEXT,
-    day TEXT, started REAL, cwd TEXT, title TEXT, input INT, cache_write INT,
-    cache_read INT, output INT, api_turns INT, records INT, usd_est REAL);
-CREATE TABLE prompt_activity(day TEXT PRIMARY KEY, prompts INT);
-CREATE TABLE context_files(path TEXT PRIMARY KEY, kind TEXT, standing TEXT,
-    size_limit INT);
-CREATE TABLE context_sizes(path TEXT, ts REAL, bytes INT, source TEXT);
-"""
 
 AB = {
     "arms": {"sonnet": {"n": 3}, "opus": {"n": 2}},

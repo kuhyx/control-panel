@@ -5,6 +5,7 @@ import type {
 } from "./tokens-types.ts";
 
 import { getJson } from "./api.ts";
+import { panelParameters, type TableParameters } from "./table-parameters.ts";
 
 // What the filter bar edits; serialised into the query string the panels take.
 export interface TokenQuery {
@@ -12,6 +13,8 @@ export interface TokenQuery {
   from: string;
   model: string;
   scope: string;
+  // Every table's search / filter / sort / limit, keyed `t.<panel>/<table>.*`.
+  tables: TableParameters;
   to: string;
   window: string;
 }
@@ -21,13 +24,14 @@ export const EMPTY_QUERY: TokenQuery = {
   from: "",
   model: "",
   scope: "all",
+  tables: {},
   to: "",
   window: "",
 };
 
 // Alphabetical, matching the property order every TokenQuery is built in, so
 // the query string reads the same as it would from Object.entries.
-const QUERY_KEYS: readonly (keyof TokenQuery)[] = [
+const QUERY_KEYS: readonly Exclude<keyof TokenQuery, "tables">[] = [
   "cwd",
   "from",
   "model",
@@ -36,7 +40,7 @@ const QUERY_KEYS: readonly (keyof TokenQuery)[] = [
   "window",
 ];
 
-export function toSearch(query: TokenQuery): string {
+function globalParameters(query: TokenQuery): URLSearchParams {
   const parameters = new URLSearchParams();
   for (const key of QUERY_KEYS) {
     const value = query[key];
@@ -44,18 +48,41 @@ export function toSearch(query: TokenQuery): string {
       parameters.set(key, value);
     }
   }
+  return parameters;
+}
+
+function withTables(parameters: URLSearchParams, tables: TableParameters): string {
+  const sorted = Object.entries(tables).toSorted(([a], [b]) => a.localeCompare(b));
+  for (const [key, value] of sorted) {
+    parameters.set(key, value);
+  }
   return parameters.toString();
+}
+
+// The page's whole state (filters + every table), as the URL hash carries it.
+export function toSearch(query: TokenQuery): string {
+  return withTables(globalParameters(query), query.tables);
+}
+
+// What one panel's API call sends: the filters plus its own tables only.
+export function panelSearch(query: TokenQuery, panel: string): string {
+  return withTables(globalParameters(query), panelParameters(query.tables, panel));
 }
 
 export function fromSearch(search: string): TokenQuery {
   const parameters = new URLSearchParams(search);
-  const read = (key: keyof TokenQuery): string =>
+  const read = (key: Exclude<keyof TokenQuery, "tables">): string =>
     parameters.get(key) ?? EMPTY_QUERY[key];
+  const tables: TableParameters = {};
+  for (const [key, value] of parameters) {
+    if (key.startsWith("t.")) tables[key] = value;
+  }
   return {
     cwd: read("cwd"),
     from: read("from"),
     model: read("model"),
     scope: read("scope"),
+    tables,
     to: read("to"),
     window: read("window"),
   };
@@ -71,7 +98,7 @@ export function fetchPanel<T>(
   signal?: AbortSignal,
 ): Promise<T> {
   return getJson<T>(
-    `/api/tokens/panel/${encodeURIComponent(name)}?${toSearch(query)}`,
+    `/api/tokens/panel/${encodeURIComponent(name)}?${panelSearch(query, name)}`,
     signal,
   );
 }
@@ -79,9 +106,15 @@ export function fetchPanel<T>(
 export function fetchSession(
   key: string,
   signal?: AbortSignal,
+  query: TokenQuery = EMPTY_QUERY,
 ): Promise<SessionDetail> {
+  const search = withTables(
+    new URLSearchParams(),
+    panelParameters(query.tables, "session"),
+  );
+  const suffix = search === "" ? "" : `?${search}`;
   return getJson<SessionDetail>(
-    `/api/tokens/session/${encodeURIComponent(key)}`,
+    `/api/tokens/session/${encodeURIComponent(key)}${suffix}`,
     signal,
   );
 }

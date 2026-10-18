@@ -13,15 +13,21 @@ import {
   formatShare,
   formatUsd,
   fromSearch,
+  panelSearch,
   toSearch,
 } from "./tokens-api.ts";
 
 describe("token query string", () => {
   it("drops empty fields and the default scope", () => {
     expect(toSearch(EMPTY_QUERY)).toBe("");
-    expect(toSearch({ ...EMPTY_QUERY, cwd: "/a b", from: "2026-10-01", scope: "sub" })).toBe(
-      "cwd=%2Fa+b&from=2026-10-01&scope=sub",
-    );
+    expect(
+      toSearch({
+        ...EMPTY_QUERY,
+        cwd: "/a b",
+        from: "2026-10-01",
+        scope: "sub",
+      }),
+    ).toBe("cwd=%2Fa+b&from=2026-10-01&scope=sub");
   });
 
   it("reads missing fields as their defaults", () => {
@@ -39,10 +45,19 @@ describe("token query string", () => {
       from: "2026-01-01",
       model: "m",
       scope: "main",
+      tables: {
+        "t.sessions/sessions.f.usd": "1..",
+        "t.sessions/sessions.sort": "-usd",
+      },
       to: "2026-02-01",
       window: "w",
     };
     expect(fromSearch(toSearch(query))).toEqual(query);
+    // A panel's API call carries only its own tables, re-keyed for the API.
+    const other = { ...query.tables, "t.levers/rows.q": "x" };
+    expect(panelSearch({ ...query, tables: other }, "levers")).toBe(
+      "cwd=%2Fx&from=2026-01-01&model=m&scope=main&to=2026-02-01&window=w&t.rows.q=x",
+    );
   });
 });
 

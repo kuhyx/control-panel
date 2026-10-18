@@ -1,7 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { DETAIL, stubHangingFetch, stubTokensFetch } from "../../test/tokens-fetch.ts";
+import {
+  DETAIL,
+  stubHangingFetch,
+  stubTokensFetch,
+} from "../../test/tokens-fetch.ts";
 import { CONTEXT, FILE } from "../../test/tokens-fixture.ts";
 import { ContextFile } from "./context-panel.tsx";
 import { SessionDetail } from "./session-detail.tsx";
@@ -9,7 +13,11 @@ import { SessionDetail } from "./session-detail.tsx";
 function answer(body: unknown): void {
   vi.stubGlobal(
     "fetch",
-    vi.fn().mockResolvedValue({ json: () => Promise.resolve(body), ok: true, status: 200 }),
+    vi.fn().mockResolvedValue({
+      json: () => Promise.resolve(body),
+      ok: true,
+      status: 200,
+    }),
   );
 }
 
@@ -20,13 +28,21 @@ afterEach(() => {
 describe("SessionDetail", () => {
   it("breaks a session down by prompt, subagent and tool", async () => {
     stubTokensFetch();
-    render(<SessionDetail id="sess-1" />);
+    render(<SessionDetail id="sess-1" onQuery={vi.fn()} />);
     expect(screen.getByText("Reading…")).toBeInTheDocument();
-    expect(await screen.findByRole("heading", { name: "Fix the thing" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Fix the thing" }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/ended DONE/)).toBeInTheDocument();
-    expect(screen.getByText("do the work")).toBeInTheDocument();
+    expect(screen.getAllByText("do the work")).toHaveLength(2);
+    expect(screen.getByRole("link", { name: "do the work" })).toHaveAttribute(
+      "href",
+      "#prompt-0",
+    );
     expect(screen.getByText("↳ ↳ look around")).toBeInTheDocument();
-    expect(screen.getAllByRole("cell", { name: "sonnet" }).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByRole("cell", { name: "sonnet" }).length,
+    ).toBeGreaterThan(0);
     expect(screen.getByRole("cell", { name: "Bash" })).toBeInTheDocument();
     expect(screen.getByRole("cell", { name: "60.0%" })).toBeInTheDocument();
     expect(screen.getByText(/Unattributed subagents/)).toBeInTheDocument();
@@ -39,21 +55,23 @@ describe("SessionDetail", () => {
       session: { ...DETAIL.session, final_tag: null, title: "" },
       unattributed: [],
     });
-    render(<SessionDetail id="sess-1" />);
-    expect(await screen.findByRole("heading", { name: "sess-1" })).toBeInTheDocument();
+    render(<SessionDetail id="sess-1" onQuery={vi.fn()} />);
+    expect(
+      await screen.findByRole("heading", { name: "sess-1" }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/ended untagged/)).toBeInTheDocument();
     expect(screen.queryByText(/Unattributed subagents/)).toBeNull();
   });
 
   it("reports a failed fetch", async () => {
     stubTokensFetch(["/session/"]);
-    render(<SessionDetail id="gone" />);
+    render(<SessionDetail id="gone" onQuery={vi.fn()} />);
     expect(await screen.findByRole("alert")).toHaveTextContent(/responded 500/);
   });
 
   it("drops a request cut short by unmounting", () => {
     stubHangingFetch();
-    const { unmount } = render(<SessionDetail id="x" />);
+    const { unmount } = render(<SessionDetail id="x" onQuery={vi.fn()} />);
     unmount();
     expect(screen.queryByRole("alert")).toBeNull();
   });
@@ -64,19 +82,36 @@ describe("ContextFile", () => {
     stubTokensFetch();
     render(<ContextFile data={CONTEXT} path={FILE.path} />);
     expect(screen.getByText("Reading…")).toBeInTheDocument();
-    expect(await screen.findByText("# rules")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "~/.claude/CLAUDE.md" })).toBeInTheDocument();
-    expect(screen.getByText(/global · 1,000 tokens loaded · \$0\.25\/day · over 40k/)).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: `size of ${FILE.path} over time` })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "rules" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "~/.claude/CLAUDE.md" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /global · 1,000 tokens loaded · \$0\.25\/day · over hard limit · over 40k/,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: `size of ${FILE.path} over time` }),
+    ).toBeInTheDocument();
     expect(screen.getByText("abc123 trim rules")).toBeInTheDocument();
   });
 
   it("copes with a file that is gone, untracked and has no history", async () => {
-    answer({ content: null, git_log: [], kind: "repo", path: "/srv/b/CLAUDE.md" });
+    answer({
+      content: null,
+      git_log: [],
+      kind: "repo",
+      path: "/srv/b/CLAUDE.md",
+    });
     render(<ContextFile data={CONTEXT} path="/srv/b/CLAUDE.md" />);
     expect(await screen.findByText("(file is gone)")).toBeInTheDocument();
     expect(screen.getByText("not tracked by git")).toBeInTheDocument();
-    expect(screen.getByText(/^repo · 0 tokens loaded · \$0\.00\/day$/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/^repo · 0 tokens loaded · \$0\.00\/day · ok$/),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("img")).toBeNull();
   });
 

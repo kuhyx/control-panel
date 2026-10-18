@@ -1,11 +1,12 @@
 import type { LeversPanel as Data, LeverRow } from "../../lib/tokens-types.ts";
 
-import { CsvButton } from "./csv.tsx";
+import { type ColumnSpec, DataTable } from "./data-table.tsx";
 import { LineChart, type ReferenceLine } from "./line-chart.tsx";
 
 const formatShare = (n: number): string => `${(n * 100).toFixed(1)}%`;
 const formatUsd = (n: number): string => `$${n.toFixed(n < 1 ? 3 : 1)}`;
-const formatCount = (n: number): string => (n >= 1000 ? `${(n / 1000).toFixed(1)}K` : n.toFixed(2));
+const formatCount = (n: number): string =>
+  n >= 1000 ? `${(n / 1000).toFixed(1)}K` : n.toFixed(2);
 
 function formatMetric(metric: string): (n: number) => string {
   if (metric.includes("share")) return formatShare;
@@ -22,8 +23,10 @@ function LeverChart({
 }: Readonly<{ data: Data; lever: LeverRow }>): React.JSX.Element {
   const series = data.series[lever.metric];
   const references: ReferenceLine[] = [];
-  if (lever.baseline !== null) references.push({ label: "baseline", y: lever.baseline });
-  if (lever.predicted !== null) references.push({ label: "predicted", y: lever.predicted });
+  if (lever.baseline !== null)
+    references.push({ label: "baseline", y: lever.baseline });
+  if (lever.predicted !== null)
+    references.push({ label: "predicted", y: lever.predicted });
   const daily = series?.daily ?? [];
   return (
     <div>
@@ -33,7 +36,9 @@ function LeverChart({
       <LineChart
         format={formatMetric(lever.metric)}
         label={`${lever.metric} around ${lever.lever}`}
-        markers={lever.date === null ? [] : [{ label: "applied", x: lever.date }]}
+        markers={
+          lever.date === null ? [] : [{ label: "applied", x: lever.date }]
+        }
         refLines={references}
         series={[
           ...(daily.length > 0
@@ -47,7 +52,12 @@ function LeverChart({
           {
             dots: true,
             label: "snapshot",
-            points: (series?.snapshots ?? []).map((p) => ({ x: p.date, y: p.value })),
+            points: (series?.snapshots ?? []).map((p) => {
+              return {
+                x: p.date,
+                y: p.value,
+              };
+            }),
           },
         ]}
       />
@@ -59,68 +69,63 @@ function LeverChart({
   );
 }
 
-const COLUMNS: (keyof LeverRow)[] = [
-  "status",
-  "outcome",
-  "date",
-  "lever",
-  "metric",
-  "baseline",
-  "predicted",
-  "actual",
-  "source",
-  "detail",
+const TABLE: ColumnSpec<LeverRow>[] = [
+  { key: "status", label: "status" },
+  { format: (r) => r.outcome ?? "—", key: "outcome", label: "outcome" },
+  { format: (r) => r.date ?? "—", key: "date", label: "date" },
+  {
+    format: (r) => <span title={r.detail ?? ""}>{r.lever}</span>,
+    key: "lever",
+    label: "lever",
+  },
+  {
+    format: (r) => <span className="mono">{r.metric}</span>,
+    key: "metric",
+    label: "metric",
+  },
+  {
+    format: (r) => cell(r.baseline),
+    key: "baseline",
+    label: "baseline",
+    num: true,
+  },
+  {
+    format: (r) => cell(r.predicted),
+    key: "predicted",
+    label: "predicted",
+    num: true,
+  },
+  { format: (r) => cell(r.actual), key: "actual", label: "now", num: true },
+  { key: "source", label: "source" },
+  { key: "detail", label: "detail" },
 ];
 
-export function LeversPanel({ data }: Readonly<{ data: Data }>): React.JSX.Element {
+export function LeversPanel({
+  data,
+}: Readonly<{ data: Data }>): React.JSX.Element {
   const applied = data.rows.filter((r) => r.source === "ledger");
   return (
     <section className="card" id="levers">
-      <h2>
-        Levers <CsvButton columns={COLUMNS} name="levers.csv" rows={data.rows} />
-      </h2>
+      <h2>Levers</h2>
       <div className="chart-grid-2">
         {applied.map((lever) => {
           return (
-            <LeverChart data={data} key={`${lever.lever}${String(lever.date)}`} lever={lever} />
+            <LeverChart
+              data={data}
+              key={`${lever.lever}${String(lever.date)}`}
+              lever={lever}
+            />
           );
         })}
       </div>
-      <h3>Every lever ({data.rows.length})</h3>
-      <div className="table-scroll">
-        <table className="table tokens-table">
-          <thead>
-            <tr>
-              <th>status</th>
-              <th>outcome</th>
-              <th>date</th>
-              <th>lever</th>
-              <th>metric</th>
-              <th className="num">baseline</th>
-              <th className="num">predicted</th>
-              <th className="num">now</th>
-              <th>source</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.rows.map((r, index) => {
-              return (
-                <tr key={`${r.source}${String(index)}`}>
-                  <td>{r.status}</td>
-                  <td>{r.outcome ?? "—"}</td>
-                  <td>{r.date ?? "—"}</td>
-                  <td title={r.detail ?? ""}>{r.lever}</td>
-                  <td className="mono">{r.metric}</td>
-                  <td className="num">{cell(r.baseline)}</td>
-                  <td className="num">{cell(r.predicted)}</td>
-                  <td className="num">{cell(r.actual)}</td>
-                  <td>{r.source}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <DataTable<LeverRow>
+        columns={TABLE}
+        id="rows"
+        meta={data._tables?.rows}
+        rowKey={(r, index) => `${r.source}|${r.lever}|${String(index)}`}
+        rows={data.rows}
+        title={`Every lever (${String(data._tables?.rows?.total ?? data.rows.length)})`}
+      />
     </section>
   );
 }

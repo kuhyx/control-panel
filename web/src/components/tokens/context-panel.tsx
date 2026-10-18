@@ -2,74 +2,60 @@ import { useEffect, useState } from "react";
 
 import type {
   ContextFileDetail,
+  ContextFileRow,
   ContextPanel as Data,
 } from "../../lib/tokens-types.ts";
 
-import { fetchContextFile, formatCount, formatUsd } from "../../lib/tokens-api.ts";
-import { CsvButton } from "./csv.tsx";
+import {
+  fetchContextFile,
+  formatCount,
+  formatUsd,
+} from "../../lib/tokens-api.ts";
+import { COLUMNS, OptimiseButton, shortPath } from "./context-columns.tsx";
+import { DataTable } from "./data-table.tsx";
 import { LineChart } from "./line-chart.tsx";
-
-function shortPath(path: string): string {
-  return path.replace(/^\/home\/[^/]+/, "~");
-}
+import { Markdown } from "./markdown.tsx";
 
 function day(ts: number): string {
   const when = new Date(ts * 1000);
   return when.toISOString().slice(0, 10);
 }
 
-export function ContextPanel({ data }: Readonly<{ data: Data }>): React.JSX.Element {
+export function ContextPanel({
+  data,
+}: Readonly<{ data: Data }>): React.JSX.Element {
   const total = data.files.reduce((sum, f) => sum + f.usd_per_day, 0);
   return (
     <section className="card" id="context">
-      <h2>
-        Context files{" "}
-        <CsvButton
-          columns={["path", "kind", "standing", "bytes", "tokens", "usd_per_day", "warning"]}
-          name="context-files.csv"
-          rows={data.files}
-        />
-      </h2>
-      <p className="category">
-        Read live from disk. Standing cost = tokens (bytes / 4) ×{" "}
-        {formatCount(Math.round(data.calls_per_day))} calls/day (last 7 days; repo
-        files: calls in that repo) × ${data.price_per_mtok.toFixed(2)}/MTok cache read.
-        Skills and agents count only their description. Total {formatUsd(total)}/day.
-      </p>
-      <div className="table-scroll">
-        <table className="table tokens-table">
-          <thead>
-            <tr>
-              <th>file</th>
-              <th>kind</th>
-              <th className="num">bytes</th>
-              <th className="num">tokens loaded</th>
-              <th className="num">$/day</th>
-              <th>limit</th>
-              <th className="num">history</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.files.map((f) => {
-              return (
-                <tr key={f.path}>
-                  <td className="mono">
-                    <a href={`#/tokens/f/${encodeURIComponent(f.path)}`}>
-                      {shortPath(f.path)}
-                    </a>
-                  </td>
-                  <td>{f.kind}</td>
-                  <td className="num">{f.bytes === null ? "gone" : formatCount(f.bytes)}</td>
-                  <td className="num">{formatCount(f.tokens)}</td>
-                  <td className="num strong">{formatUsd(f.usd_per_day)}</td>
-                  <td>{f.warning === null ? "" : <span className="badge warn-badge">{f.warning}</span>}</td>
-                  <td className="num">{f.history.length} points</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <h2>Context files</h2>
+      <DataTable<ContextFileRow>
+        actions={(selected) => {
+          return (
+            <OptimiseButton
+              measure={data.measure_command}
+              rows={data.files}
+              selected={selected}
+            />
+          );
+        }}
+        caption={
+          <p className="category">
+            Read live from disk. Standing cost = tokens (bytes / 4) ×{" "}
+            {formatCount(Math.round(data.calls_per_day))} calls/day (last 7 days
+            under the filters; repo files: calls in that repo) × $
+            {data.price_per_mtok.toFixed(2)}/MTok cache read. Skills and agents
+            count only their description. Total {formatUsd(total)}/day. Hard
+            limits are Claude Code&apos;s own (content past them is not loaded);
+            budgets are yours, in control_panel/tokens/context_limits.json.
+          </p>
+        }
+        columns={COLUMNS}
+        id="files"
+        meta={data._tables?.files}
+        rowKey={(f) => f.path}
+        rows={data.files}
+        title="Files"
+      />
     </section>
   );
 }
@@ -94,7 +80,12 @@ export function ContextFile({
       controller.abort();
     };
   }, [path]);
-  if (error !== null) return <p className="empty" role="alert">{error}</p>;
+  if (error !== null)
+    return (
+      <p className="empty" role="alert">
+        {error}
+      </p>
+    );
   if (detail === null) return <p className="empty">Reading…</p>;
   const row = data?.files.find((f) => f.path === path);
   return (
@@ -108,6 +99,7 @@ export function ContextFile({
         {row === undefined
           ? ""
           : ` · ${formatCount(row.tokens)} tokens loaded · ${formatUsd(row.usd_per_day)}/day`}
+        {row === undefined ? "" : ` · ${row.status}`}
         {row?.warning == null ? "" : ` · ${row.warning}`}
       </p>
       {row !== undefined && row.history.length > 0 && (
@@ -125,14 +117,16 @@ export function ContextFile({
       <h3>git log (read-only)</h3>
       <ul className="git-log mono">
         {detail.git_log.length === 0 ? <li>not tracked by git</li> : null}
-        {detail.git_log.map((line) => {
-          return (
-            <li key={line}>{line}</li>
-          );
-        })}
+        {detail.git_log.map((line) => <li key={line}>{line}</li>)}
       </ul>
       <h3>content</h3>
-      <pre className="file-content">{detail.content ?? "(file is gone)"}</pre>
+      {detail.content === null ? (
+        <p className="empty">(file is gone)</p>
+      ) : (
+        <div className="file-content">
+          <Markdown text={detail.content} />
+        </div>
+      )}
     </section>
   );
 }

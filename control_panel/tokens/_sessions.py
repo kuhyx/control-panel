@@ -19,7 +19,8 @@ if TYPE_CHECKING:
 
     from control_panel.tokens._db import Filters
 
-LIMIT = 200
+LIMIT = 200  # rows shown by default (the table layer's default limit)
+MAX_ROWS = 5000  # rows the table layer may search, filter and sort
 _COLUMNS = (
     "key",
     "cwd",
@@ -44,7 +45,9 @@ _LIST = (
     " WHERE first_ts BETWEEN ? AND ?"
     " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
     " AND (? = '' OR models LIKE '%\"' || ? || '\"%')"
-    " ORDER BY usd DESC LIMIT ?"
+    " AND (? != 'sub' OR subagents > 0)"
+    " ORDER BY CASE ? WHEN 'main' THEN usd_main WHEN 'sub' THEN usd_sub"
+    " ELSE usd END DESC LIMIT ?"
 )
 _ONE = (
     "SELECT key, cwd, title, first_ts, last_ts, wall_s, active_s, usd, usd_main,"
@@ -60,7 +63,7 @@ def _session(row: tuple[Any, ...]) -> dict[str, Any]:
     return out
 
 
-@panel("sessions", "Sessions", order=20)
+@panel("sessions", "Sessions", order=20, tables={"sessions": {"limit": "200"}})
 def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
     """The costliest sessions that started inside the filters."""
     rows = conn.execute(
@@ -73,10 +76,18 @@ def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
             filters.cwd,
             filters.model,
             filters.model,
-            LIMIT,
+            filters.scope,
+            filters.scope,
+            MAX_ROWS,
         ),
     ).fetchall()
-    return {"sessions": [_session(r) for r in rows], "limit": LIMIT}
+    sessions = [_session(r) for r in rows]
+    for row in sessions:
+        # The scope's own spend: what the list is ranked by.
+        row["usd_scope"] = {"main": row["usd_main"], "sub": row["usd_sub"]}.get(
+            filters.scope, row["usd"]
+        )
+    return {"sessions": sessions, "limit": LIMIT, "scope": filters.scope}
 
 
 def _subagents(conn: sqlite3.Connection, key: str) -> dict[int | None, list[Any]]:

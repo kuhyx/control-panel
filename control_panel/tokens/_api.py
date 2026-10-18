@@ -13,30 +13,39 @@ from __future__ import annotations
 
 from contextlib import closing
 from http import HTTPStatus
+import importlib
 import json
+import pkgutil
 import time
 from typing import TYPE_CHECKING, Any
 from urllib.parse import parse_qs, unquote
 
-from control_panel.tokens import (  # imported to register their panels
-    _ab,
-    _context,
-    _db,
-    _efficiency,
-    _levers,
-    _overview,
-    _sessions,
-)
+from control_panel import tokens
+from control_panel.tokens import _ab, _context, _db, _schema, _sessions, _tables
 from control_panel.tokens._registry import PANELS, listing
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     import sqlite3
 
-__all__ = ["_efficiency", "_levers", "_overview", "route"]
+__all__ = ["route"]
 
 Response = tuple[HTTPStatus, dict[str, Any]]
 _CWD_OPTIONS = 40
+
+
+def _register_all() -> list[str]:
+    """Import every module of the package: importing a panel registers it.
+
+    A new panel group is one new ``_<group>.py`` file; nothing here changes.
+    """
+    names = [m.name for m in pkgutil.iter_modules(tokens.__path__)]
+    for name in names:
+        importlib.import_module(f"{tokens.__name__}.{name}")
+    return names
+
+
+_register_all()
 
 
 def _now() -> float:
@@ -127,11 +136,16 @@ def _dispatch(conn: sqlite3.Connection, segments: list[str], query: str) -> Resp
         "session": lambda: _session(conn, arg, query),
         "ab": lambda: (HTTPStatus.OK, _ab.payload(conn)),
         "context-file": lambda: _context_file(conn, arg, query),
+        "schema": lambda: (HTTPStatus.OK, _schema.document(conn, _now())),
     }
     handler = handlers.get(head)
     if handler is None:
         return HTTPStatus.NOT_FOUND, {"error": f"no such tokens endpoint: {head}"}
-    return handler()
+    status, payload = handler()
+    if status != HTTPStatus.OK or head == "schema":
+        return status, payload
+    found = PANELS.get(arg) if head == "panel" else None
+    return status, _tables.apply(payload, query, found.tables if found else None)
 
 
 def route(segments: list[str], query: str) -> Response:

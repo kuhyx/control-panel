@@ -137,12 +137,9 @@
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
   max-height: 60rem;
   overflow: auto;
   padding: var(--space-3);
-  white-space: pre-wrap;
 }
 
 .git-log {

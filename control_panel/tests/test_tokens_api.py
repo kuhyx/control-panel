@@ -146,7 +146,9 @@ def test_context_files_live_size_cost_and_limit(store: Path) -> None:
     # 1,000 tokens x 4 calls/day (4 calls over the 7-day window... 4/7) x $0.2/M
     assert claude["usd_per_day"] == pytest.approx(1000 * (4 / 7) * 0.2 / 1e6)
     assert claude["history"] == [{"ts": fx.T0 - fx.DAY, "bytes": 4000, "source": "git"}]
-    assert rows["memory/MEMORY.md"]["warning"] is not None
+    assert rows["memory/MEMORY.md"]["status"] == "ok"
+    assert rows["memory/MEMORY.md"]["warning"] is None
+    assert payload["measure_command"].startswith("wc -lc")
     assert rows["a/CLAUDE.md"]["usd_per_day"] == pytest.approx(
         100 * (3 / 7) * 0.2 / 1e6
     )

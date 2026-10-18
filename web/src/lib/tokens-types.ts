@@ -1,3 +1,8 @@
+import type { TableMeta } from "../components/tokens/data-table.tsx";
+
+// Per-table counts and column kinds the backend's table layer adds.
+export type Tables = Record<string, TableMeta>;
+
 // Mirrors control_panel/tokens/*.py payloads. `null` where JSON has nulls.
 
 export interface TokenFilters {
@@ -41,6 +46,7 @@ export interface DailyRow {
 }
 
 export interface OverviewPanel {
+  _tables?: Tables;
   aggregate: { day: string; sessions: number; usd_est: number }[];
   daily: DailyRow[];
   filters: TokenFilters;
@@ -70,12 +76,16 @@ export interface SessionRow {
   title: string;
   usd: number;
   usd_main: number;
+  // The spend of the active scope (main / sub / all): what the list ranks by.
+  usd_scope?: number;
   usd_sub: number;
   wall_s: number;
 }
 
 export interface SessionsPanel {
+  _tables?: Tables;
   limit: number;
+  scope?: string;
   sessions: SessionRow[];
 }
 
@@ -115,6 +125,7 @@ export interface PromptRow {
 }
 
 export interface SessionDetail {
+  _tables?: Tables;
   prompts: PromptRow[];
   session: SessionRow;
   unattributed: SubagentRow[];
@@ -125,6 +136,7 @@ export type EfficiencyWeek = Record<string, null | number | string> & {
 };
 
 export interface EfficiencyPanel {
+  _tables?: Tables;
   captions: Record<"commits" | "done" | "estimate", string>;
   commits: EfficiencyWeek[];
   done: EfficiencyWeek[];
@@ -151,6 +163,7 @@ export interface MetricPoint {
 }
 
 export interface LeversPanel {
+  _tables?: Tables;
   rolling_days: number;
   rows: LeverRow[];
   series: Record<string, { daily: MetricPoint[]; snapshots: MetricPoint[] }>;
@@ -181,26 +194,42 @@ export interface AbArm {
 }
 
 export interface AbPanel {
+  _tables?: Tables;
   arms: Partial<Record<"opus" | "sonnet", AbArm>>;
   banner: Banner;
   diffs?: Record<string, { diff: number; high: number; low: number }>;
   unjoined?: number;
 }
 
+export interface Breach {
+  hard: boolean;
+  limit: number;
+  measure: string;
+  value: number;
+  why: string;
+}
+
 export interface ContextFileRow {
+  breaches: Breach[];
+  budgets: string[];
   bytes: null | number;
+  hard_limits: string[];
   history: { bytes: number; source: string; ts: number }[];
   kind: string;
+  lines: null | number;
   path: string;
   standing: string;
+  status: "ok" | "over budget" | "over hard limit";
   tokens: number;
   usd_per_day: number;
   warning: null | string;
 }
 
 export interface ContextPanel {
+  _tables?: Tables;
   calls_per_day: number;
   files: ContextFileRow[];
+  measure_command: string;
   price_per_mtok: number;
 }
 

@@ -17,7 +17,7 @@ import subprocess
 from typing import TYPE_CHECKING, Any
 
 from control_panel import _sysroot
-from control_panel.tokens import _db
+from control_panel.tokens import _db, _limits
 from control_panel.tokens._registry import panel
 
 if TYPE_CHECKING:
@@ -27,7 +27,6 @@ if TYPE_CHECKING:
 
 BYTES_PER_TOKEN = 4  # token_audit.surfaces.BYTES_PER_TOKEN
 WINDOW_DAYS = 7
-WARN_SHARE = 0.85
 LOG_LINES = 30
 GIT = "/usr/bin/git"  # absolute: never resolved through a caller-controlled PATH
 
@@ -40,6 +39,11 @@ def _read(path: str) -> str | None:
         return None
 
 
+def checked_lines(text: str) -> int:
+    """Line count as ``wc -l`` would see it, plus an unterminated last line."""
+    return text.count("\n") + (bool(text) and not text.endswith("\n"))
+
+
 def _standing_bytes(text: str, standing: str) -> int:
     """Bytes always in context: the description for skills and agents."""
     if standing != "description":
@@ -48,12 +52,21 @@ def _standing_bytes(text: str, standing: str) -> int:
     return len(rest.split("\n---", 1)[0].encode()) if rest else 0
 
 
-def _calls_per_day(conn: sqlite3.Connection, now: float, cwd: str = "") -> float:
-    """API calls per day over the last week, optionally inside one repo."""
+def _calls_per_day(conn: sqlite3.Connection, filters: Filters, repo: str = "") -> float:
+    """API calls per day over the week before the range end, under the filters.
+
+    ``repo`` additionally narrows to calls made inside one repo (a repo
+    CLAUDE.md is only loaded there).
+    """
+    since, until = filters.until - WINDOW_DAYS * 86400, filters.until
     count = conn.execute(
-        "SELECT COUNT(*) FROM turns WHERE ts > ?"
+        "SELECT COUNT(*) FROM turns WHERE"
+        " ts BETWEEN ? AND ?"
+        " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+        " AND (? = '' OR model = ?)"
+        " AND (? = -1 OR is_sub = ?)"
         " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')",
-        (now - WINDOW_DAYS * 86400, cwd, cwd, cwd),
+        (since, until, *filters.params()[2:], repo, repo, repo),
     ).fetchone()[0]
     return float(count) / WINDOW_DAYS
 
@@ -65,12 +78,12 @@ def _repo_cwd(path: str) -> str:
     return repo[len(root) :] if root and repo.startswith(root) else repo
 
 
-def _warning(size: int, limit: int | None) -> str | None:
-    """Say so when a file is near or over its limit."""
-    if limit is None or size < WARN_SHARE * limit:
-        return None
-    verb = "over" if size > limit else "near"
-    return f"{verb} its {limit:,}-byte limit ({size / limit:.0%})"
+def _warning(checked: dict[str, Any]) -> str | None:
+    """The first hard-limit breach, as text (``None`` when within limits)."""
+    for breach in checked["breaches"]:
+        if breach["hard"]:
+            return f"over {breach['limit']:,} {breach['measure']}: {breach['why']}"
+    return None
 
 
 @dataclass(frozen=True)
@@ -78,21 +91,35 @@ class _Rates:
     """What turns a file's tokens into dollars."""
 
     conn: sqlite3.Connection
-    now: float
+    filters: Filters
     price: float
     everywhere: float
+    limits: dict[str, Any]
 
 
 def _file_row(
     rates: _Rates, record: tuple[str, str, str, int | None], history: list[Any]
 ) -> dict[str, Any]:
     """One file, read live."""
-    path, kind, standing, limit = record
+    path, kind, standing, _limit = record
     text = _read(path)
     size = None if text is None else len(text.encode())
-    tokens = (0 if text is None else _standing_bytes(text, standing)) // BYTES_PER_TOKEN
+    standing_bytes = 0 if text is None else _standing_bytes(text, standing)
+    tokens = standing_bytes // BYTES_PER_TOKEN
+    checked = _limits.status(
+        rates.limits,
+        _limits.Size(
+            name=Path(path).name,
+            kind=kind,
+            standing=standing,
+            lines=0 if text is None else checked_lines(text),
+            bytes=size or 0,
+            standing_bytes=standing_bytes,
+            tokens=tokens,
+        ),
+    )
     calls = (
-        _calls_per_day(rates.conn, rates.now, _repo_cwd(path))
+        _calls_per_day(rates.conn, rates.filters, _repo_cwd(path))
         if standing == "in repo"
         else rates.everywhere
     )
@@ -101,9 +128,11 @@ def _file_row(
         "kind": kind,
         "standing": standing,
         "bytes": size,
+        "lines": None if text is None else checked_lines(text),
         "tokens": tokens,
         "usd_per_day": tokens * calls * rates.price / 1e6,
-        "warning": None if size is None else _warning(size, limit),
+        "warning": None if size is None else _warning(checked),
+        **checked,
         "history": history,
     }
 
@@ -113,9 +142,10 @@ def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
     """Every context file with live size, tokens, $/day and history."""
     rates = _Rates(
         conn,
-        filters.until,
+        filters,
         float(_db.meta(conn, "cache_read_usd_per_mtok") or 0.0),
-        _calls_per_day(conn, filters.until),
+        _calls_per_day(conn, filters),
+        _limits.load(),
     )
     history: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for path, ts, size, source in conn.execute(
@@ -133,6 +163,7 @@ def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
         "files": files,
         "calls_per_day": rates.everywhere,
         "price_per_mtok": rates.price,
+        "measure_command": rates.limits["measure_command"],
     }
 
 

@@ -9,10 +9,28 @@
 set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
+# mcp-server/ is its own subproject: its tests need the `mcp` package, which
+# only its venv has (mcp-server/scripts/setup_mcp.sh), never system python.
+MCP_PYTHON="${MCP_PYTHON:-${HOME}/.venvs/control-panel-mcp/bin/python}"
 CHANGED=()
+MCP_CHANGED=0
 while IFS= read -r f; do
-    [[ -n "$f" && -e "$f" ]] && CHANGED+=("$f")
+    [[ -z "$f" || ! -e "$f" ]] && continue
+    if [[ "$f" == mcp-server/* ]]; then MCP_CHANGED=1; else CHANGED+=("$f"); fi
 done < <({ git diff --name-only HEAD 2>/dev/null || true; git ls-files --others --exclude-standard; } | sort -u)
+
+mcp_run() {
+    if [[ ! -x "$MCP_PYTHON" ]]; then
+        echo "mcp-server changed but $MCP_PYTHON is missing: run mcp-server/scripts/setup_mcp.sh" >&2
+        return 1
+    fi
+    (cd mcp-server && "$MCP_PYTHON" -m pytest -q --tb=short)
+}
+
+if [[ $MCP_CHANGED -eq 1 ]]; then
+    mcp_run || exit $?
+    [[ ${#CHANGED[@]} -eq 0 ]] && exit 0
+fi
 
 pytest_run() {
     if [[ -f uv.lock ]]; then uv run pytest "$@"

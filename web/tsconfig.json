@@ -8,7 +8,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
-    "types": ["vitest/globals", "node"],
+    "types": ["vitest/globals", "node", "vite/client"],
 
     /* Strictness: everything on. These are the guardrails that make the
        zero-runtime-dep, hand-rolled approach safe to maintain. */

@@ -1,8 +1,6 @@
 import type {
   AbArm,
   AbPanel,
-  ContextFileDetail,
-  ContextPanel,
   EfficiencyPanel,
   LeversPanel,
   OverviewPanel,
@@ -90,13 +88,32 @@ export const SESSIONS: SessionsPanel = {
   limit: 50,
   sessions: [
     SESSION_ROW,
-    { ...SESSION_ROW, cwd: null, final_tag: null, key: "sess-2", models: {}, title: "" },
+    {
+      ...SESSION_ROW,
+      cwd: null,
+      final_tag: null,
+      key: "sess-2",
+      models: {},
+      title: "",
+    },
   ],
 };
 
 export const EFFICIENCY: EfficiencyPanel = {
-  captions: { commits: "Commits caption.", done: "Done caption.", estimate: "Est caption." },
-  commits: [{ lost: 1, pending: "n/a", survived: 3, usd_per_survivor: 4, week: "2026-W36" }],
+  captions: {
+    commits: "Commits caption.",
+    done: "Done caption.",
+    estimate: "Est caption.",
+  },
+  commits: [
+    {
+      lost: 1,
+      pending: "n/a",
+      survived: 3,
+      usd_per_survivor: 4,
+      week: "2026-W36",
+    },
+  ],
   done: [
     { done_share: 0.5, untagged: 2, usd_per_done: 3, week: "2026-W36" },
     { done_share: null, untagged: null, usd_per_done: null, week: "2026-W37" },
@@ -133,10 +150,19 @@ export const LEVERS: LeversPanel = {
       predicted: null,
     },
     { ...LEVER, lever: "count lever", metric: "calls_per_day" },
-    { ...LEVER, lever: "idea", metric: "x", source: "proposals", status: "proposed" },
+    {
+      ...LEVER,
+      lever: "idea",
+      metric: "x",
+      source: "proposals",
+      status: "proposed",
+    },
   ],
   series: {
-    calls_per_day: { daily: [{ date: "2026-09-01", value: 2500 }], snapshots: [] },
+    calls_per_day: {
+      daily: [{ date: "2026-09-01", value: 2500 }],
+      snapshots: [],
+    },
     usd_per_call: {
       daily: [
         { date: "2026-09-01", value: 2 },
@@ -165,39 +191,4 @@ export const AB: AbPanel = {
   unjoined: 3,
 };
 
-export const CONTEXT: ContextPanel = {
-  calls_per_day: 812.4,
-  files: [
-    {
-      bytes: 4000,
-      history: [
-        { bytes: 3000, source: "git", ts: 1_759_000_000 },
-        { bytes: 4000, source: "disk", ts: 1_760_000_000 },
-      ],
-      kind: "global",
-      path: "/home/kuhy/.claude/CLAUDE.md",
-      standing: "always",
-      tokens: 1000,
-      usd_per_day: 0.25,
-      warning: "over 40k",
-    },
-    {
-      bytes: null,
-      history: [],
-      kind: "repo",
-      path: "/srv/b/CLAUDE.md",
-      standing: "repo",
-      tokens: 0,
-      usd_per_day: 0,
-      warning: null,
-    },
-  ],
-  price_per_mtok: 0.3,
-};
-
-export const FILE: ContextFileDetail = {
-  content: "# rules",
-  git_log: ["abc123 trim rules"],
-  kind: "global",
-  path: "/home/kuhy/.claude/CLAUDE.md",
-};
+export { CONTEXT, FILE } from "./context-fixture.ts";

@@ -23,14 +23,23 @@ describe("TokensPage", () => {
     render(<TokensPage route={PAGE} />);
     expect(screen.getByText("Reading…")).toBeInTheDocument();
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Spend" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "Spend" }),
+      ).toBeInTheDocument();
     });
     expect(screen.getByText("Sonnet arm within tolerance")).toBeInTheDocument();
     expect(screen.getByText(/Full per-session detail from/)).toHaveTextContent(
       /from 2026-09-01 to —; .* from 2026-01-01; prompt counts from —\./,
     );
-    for (const id of ["Efficiency (weekly)", "Levers CSV", "Context files CSV"]) {
-      expect(screen.getByRole("heading", { name: id })).toBeInTheDocument();
+    for (const id of [
+      "Efficiency (weekly)",
+      "Levers",
+      "Context files",
+      "Sessions by cost",
+    ]) {
+      expect(
+        await screen.findByRole("heading", { name: id }),
+      ).toBeInTheDocument();
     }
   });
 
@@ -44,7 +53,9 @@ describe("TokensPage", () => {
     };
     stubTokensFetch([], { ...INDEX, coverage });
     render(<TokensPage route={PAGE} />);
-    expect(await screen.findByText(/Full per-session detail from/)).toHaveTextContent(
+    expect(
+      await screen.findByText(/Full per-session detail from/),
+    ).toHaveTextContent(
       /from — to 2026-10-10; .* from —; prompt counts from 2025-01-01\./,
     );
   });
@@ -54,13 +65,29 @@ describe("TokensPage", () => {
     const spy = stubTokensFetch();
     render(<TokensPage route={PAGE} />);
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Spend" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "Spend" }),
+      ).toBeInTheDocument();
     });
-    expect(spy).toHaveBeenCalledWith("/api/tokens/panel/overview?model=claude-opus", {
-      signal: expect.any(AbortSignal) as AbortSignal,
+    expect(spy).toHaveBeenCalledWith(
+      "/api/tokens/panel/overview?model=claude-opus",
+      {
+        signal: expect.any(AbortSignal) as AbortSignal,
+      },
+    );
+    fireEvent.change(screen.getByLabelText("scope"), {
+      target: { value: "sub" },
     });
-    fireEvent.change(screen.getByLabelText("scope"), { target: { value: "sub" } });
-    expect(globalThis.location.hash).toBe("#/tokens?model=claude-opus&scope=sub");
+    expect(globalThis.location.hash).toBe(
+      "#/tokens?model=claude-opus&scope=sub",
+    );
+    fireEvent.change(screen.getByLabelText("scope"), {
+      target: { value: "all" },
+    });
+    fireEvent.change(screen.getByLabelText("model"), {
+      target: { value: "" },
+    });
+    expect(globalThis.location.hash).toBe("#/tokens");
     await waitFor(() => {
       expect(spy).toHaveBeenCalledWith(
         "/api/tokens/panel/overview?model=claude-opus&scope=sub",
@@ -72,9 +99,13 @@ describe("TokensPage", () => {
   it("shows a panel failure instead of the panels", async () => {
     stubTokensFetch(["/panel/levers"]);
     render(<TokensPage route={PAGE} />);
-    expect(await screen.findByRole("alert")).toHaveTextContent(/levers.* responded 500/);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /^Levers: .*responded 500/,
+    );
     expect(screen.queryByText("Reading…")).toBeNull();
-    expect(screen.getByRole("form", { name: "Token filters" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("form", { name: "Token filters" }),
+    ).toBeInTheDocument();
   });
 
   it("shows an index failure even when the panels load", async () => {
@@ -88,7 +119,9 @@ describe("TokensPage", () => {
     });
     vi.stubGlobal("fetch", spy);
     render(<TokensPage route={PAGE} />);
-    expect(await screen.findByRole("alert")).toHaveTextContent("/api/tokens responded 500");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "/api/tokens responded 500",
+    );
     expect(screen.queryByRole("status")).toBeNull();
     expect(screen.queryByRole("heading", { name: "Spend" })).toBeNull();
   });
@@ -100,17 +133,33 @@ describe("TokensPage", () => {
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
-  it("routes to one session under the banner", async () => {
-    stubTokensFetch();
+  it("routes to one session under the banner, its table state in the hash", async () => {
+    const spy = stubTokensFetch();
     render(<TokensPage route={{ id: "sess-1", name: "tokens-session" }} />);
     expect(await screen.findByText("← all sessions")).toBeInTheDocument();
-    expect(await screen.findByText("Sonnet arm within tolerance")).toBeInTheDocument();
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "USD" })[0]!,
+    );
+    expect(globalThis.location.hash).toBe(
+      "#/tokens/s/sess-1?t.session%2Fprompts.sort=-usd",
+    );
+    await waitFor(() => {
+      expect(spy).toHaveBeenCalledWith(
+        "/api/tokens/session/sess-1?t.prompts.sort=-usd",
+        expect.anything(),
+      );
+    });
+    expect(
+      await screen.findByText("Sonnet arm within tolerance"),
+    ).toBeInTheDocument();
   });
 
   it("routes to one context file, using the context panel's row once loaded", async () => {
     stubTokensFetch();
     render(
-      <TokensPage route={{ id: "/home/kuhy/.claude/CLAUDE.md", name: "tokens-file" }} />,
+      <TokensPage
+        route={{ id: "/home/kuhy/.claude/CLAUDE.md", name: "tokens-file" }}
+      />,
     );
     expect(await screen.findByText(/1,000 tokens loaded/)).toBeInTheDocument();
   });
@@ -132,7 +181,10 @@ describe("FilterBar", () => {
     ];
     for (const [label, value, key] of edits) {
       fireEvent.change(screen.getByLabelText(label), { target: { value } });
-      expect(onChange).toHaveBeenLastCalledWith({ ...EMPTY_QUERY, [key]: value });
+      expect(onChange).toHaveBeenLastCalledWith({
+        ...EMPTY_QUERY,
+        [key]: value,
+      });
     }
     fireEvent.submit(screen.getByRole("form", { name: "Token filters" }));
   });

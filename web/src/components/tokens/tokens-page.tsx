@@ -1,12 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import type {
-  AbPanel as AbData,
   ContextPanel as ContextData,
-  EfficiencyPanel as EfficiencyData,
-  LeversPanel as LeversData,
-  OverviewPanel,
-  SessionsPanel as SessionsData,
   TokensIndex,
 } from "../../lib/tokens-types.ts";
 
@@ -17,74 +12,48 @@ import {
   type TokenQuery,
   toSearch,
 } from "../../lib/tokens-api.ts";
-import { AbBanner, AbPanel } from "./ab-panel.tsx";
-import { ContextFile, ContextPanel } from "./context-panel.tsx";
-import { EfficiencyPanel } from "./efficiency-panel.tsx";
+import { useAsync } from "../../lib/use-async.ts";
+import { AbBanner } from "./ab-panel.tsx";
+import { ContextFile } from "./context-panel.tsx";
 import { FilterBar } from "./filter-bar.tsx";
-import { LeversPanel } from "./levers-panel.tsx";
+import { LazyPanel } from "./lazy-panel.tsx";
 import { SessionDetail } from "./session-detail.tsx";
-import { SessionsPanel } from "./sessions-panel.tsx";
-import { SpendPanel } from "./spend-panel.tsx";
+import { VIEWS } from "./views.ts";
 
-interface Panels {
-  ab: AbData;
-  context: ContextData;
-  efficiency: EfficiencyData;
-  levers: LeversData;
-  overview: OverviewPanel;
-  sessions: SessionsData;
-}
-
-function useAsync<T>(load: (signal: AbortSignal) => Promise<T>, key: string) {
-  const [state, setState] = useState<{ error: null | string; value: null | T }>({
-    error: null,
-    value: null,
-  });
-  useEffect(() => {
-    const controller = new AbortController();
-    const run = async (): Promise<void> => {
-      try {
-        const value = await load(controller.signal);
-        setState({ error: null, value });
-      } catch (error_: unknown) {
-        if (!controller.signal.aborted) setState({ error: String(error_), value: null });
-      }
-    };
-    void run();
-    return () => {
-      controller.abort();
-    };
-    // `load` is rebuilt every render; `key` is what identifies the request.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
-  return state;
-}
-
-async function loadPanels(query: TokenQuery, signal: AbortSignal): Promise<Panels> {
-  const [overview, sessions, efficiency, levers, ab, context] = await Promise.all([
-    fetchPanel<OverviewPanel>("overview", query, signal),
-    fetchPanel<SessionsData>("sessions", query, signal),
-    fetchPanel<EfficiencyData>("efficiency", query, signal),
-    fetchPanel<LeversData>("levers", query, signal),
-    fetchPanel<AbData>("ab", query, signal),
-    fetchPanel<ContextData>("context", query, signal),
-  ]);
-  return { ab, context, efficiency, levers, overview, sessions };
-}
-
-function Coverage({ index }: Readonly<{ index: TokensIndex }>): React.JSX.Element {
+function Coverage({
+  index,
+}: Readonly<{ index: TokensIndex }>): React.JSX.Element {
   const { coverage } = index;
   const refreshed = new Date(coverage.refreshed_at * 1000);
   return (
     <p className="category">
-      Full per-session detail from <strong>{coverage.detail_from ?? "—"}</strong> to{" "}
-      {coverage.detail_to ?? "—"}; aggregate-only session totals (session-autopsy,
-      main sessions, estimated USD) from {coverage.aggregate_from ?? "—"}; prompt
-      counts from {coverage.any_from ?? "—"}. Store refreshed{" "}
-      {refreshed.toLocaleString()}. List prices,
-      deduplicated per API message; 0 LLM tokens.
+      Full per-session detail from{" "}
+      <strong>{coverage.detail_from ?? "—"}</strong> to{" "}
+      {coverage.detail_to ?? "—"}; aggregate-only session totals
+      (session-autopsy, main sessions, estimated USD) from{" "}
+      {coverage.aggregate_from ?? "—"}; prompt counts from{" "}
+      {coverage.any_from ?? "—"}. Store refreshed {refreshed.toLocaleString()}.
+      List prices, deduplicated per API message; 0 LLM tokens.
     </p>
   );
+}
+
+function ContextFileRoute({
+  path,
+  query,
+}: Readonly<{ path: string; query: TokenQuery }>): React.JSX.Element {
+  const context = useAsync(
+    (signal) => fetchPanel<ContextData>("context", query, signal),
+    "context-file",
+  );
+  return <ContextFile data={context.value} path={path} />;
+}
+
+// Where the query is written back (the file view has no tables to change).
+function hashBase(route: { id: string; name: string }): string {
+  return route.name === "tokens-session"
+    ? `#/tokens/s/${encodeURIComponent(route.id)}`
+    : "#/tokens";
 }
 
 export function TokensPage({
@@ -93,17 +62,20 @@ export function TokensPage({
   const hashQuery = globalThis.location.hash.split("?", 2)[1] ?? "";
   const [query, setQuery] = useState<TokenQuery>(() => fromSearch(hashQuery));
   const index = useAsync(fetchTokensIndex, "index");
-  const panels = useAsync((signal) => loadPanels(query, signal), toSearch(query));
   const onChange = (next: TokenQuery): void => {
     setQuery(next);
-    globalThis.history.replaceState(null, "", `#/tokens?${toSearch(next)}`);
+    const search = toSearch(next);
+    const suffix = search === "" ? "" : `?${search}`;
+    globalThis.history.replaceState(null, "", hashBase(route) + suffix);
   };
-  const banner = index.value === null ? null : <AbBanner banner={index.value.ab_banner} />;
+  const loaded = index.value;
+  const banner =
+    index.value === null ? null : <AbBanner banner={index.value.ab_banner} />;
   if (route.name === "tokens-session") {
     return (
       <>
         {banner}
-        <SessionDetail id={route.id} />
+        <SessionDetail id={route.id} onQuery={onChange} query={query} />
       </>
     );
   }
@@ -111,11 +83,10 @@ export function TokensPage({
     return (
       <>
         {banner}
-        <ContextFile data={panels.value?.context ?? null} path={route.id} />
+        <ContextFileRoute path={route.id} query={query} />
       </>
     );
   }
-  const error = index.error ?? panels.error;
   return (
     <>
       {banner}
@@ -124,27 +95,24 @@ export function TokensPage({
       {index.value !== null && (
         <FilterBar index={index.value} onChange={onChange} query={query} />
       )}
-      {error !== null && (
+      {index.error !== null && (
         <p className="empty" role="alert">
-          {error}
+          {index.error}
         </p>
       )}
-      {panels.value === null || index.value === null ? (
-        error === null && <p className="empty">Reading…</p>
-      ) : (
-        <>
-          <SpendPanel
-            data={panels.value.overview}
-            index={index.value}
-            snapshotMetrics={index.value.snapshot_metrics}
-          />
-          <EfficiencyPanel data={panels.value.efficiency} />
-          <AbPanel data={panels.value.ab} />
-          <LeversPanel data={panels.value.levers} />
-          <SessionsPanel data={panels.value.sessions} />
-          <ContextPanel data={panels.value.context} />
-        </>
-      )}
+      {loaded === null
+        ? index.error === null && <p className="empty">Reading…</p>
+        : VIEWS.map((view) => {
+            return (
+              <LazyPanel
+                index={loaded}
+                key={view.name}
+                onQuery={onChange}
+                query={query}
+                view={view}
+              />
+            );
+          })}
     </>
   );
 }
