@@ -21,27 +21,21 @@ TEXT = 200  # characters of a prompt shown
 _WRITES = (
     "SELECT ts, key, target FROM calls WHERE name = 'Write'"
     " AND target LIKE '%handoff%' AND"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
 )
 _MARKS = (
     "SELECT ts, key, kind || ': ' || detail FROM marks"
     " WHERE detail LIKE '%handoff%' AND"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
 )
 # The prompts table has no filter columns: a prompt counts when the filtered
 # turns include a call of the same key and prompt index.
 _PROMPT_KEYS = (
     "SELECT DISTINCT key, prompt_idx FROM turns WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
 )
 _PROMPTS = "SELECT key, idx, ts, text FROM prompts WHERE text LIKE '%handoff%'"
 

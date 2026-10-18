@@ -39,24 +39,18 @@ CAPTION = (
 
 _LATENCY = (
     "SELECT day, model, latency_s FROM turn_detail WHERE latency_s > 0 AND"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
 )
 _TOOLS = (
     "SELECT name, end_ts - ts FROM calls WHERE end_ts >= ts AND"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
 )
 _REPLIES = (
     "SELECT key, prompt_idx, MAX(ts) FROM turns WHERE is_sub = 0 AND"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " GROUP BY key, prompt_idx"
 )
 _PROMPTS = "SELECT key, idx, ts FROM prompts"

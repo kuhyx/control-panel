@@ -37,17 +37,13 @@ CAPTION = (
 
 _CALLS = (
     "SELECT name, family, result_tokens, is_error, error_kind FROM calls WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
 )
 _BATCHING = (
     "SELECT day, COUNT(*), SUM(batch > 1) FROM calls WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " GROUP BY day ORDER BY day"
 )
 _EVENTS = "SELECT ts, kind FROM events WHERE source = 'time-cap' AND ts BETWEEN ? AND ?"

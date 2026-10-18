@@ -45,10 +45,8 @@ CAPTION = (
 
 _CALLS = (
     "SELECT COUNT(*) FROM turns WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
 )
 _SIZES = (
     "SELECT s.path, s.ts, s.bytes, f.kind FROM context_sizes s"

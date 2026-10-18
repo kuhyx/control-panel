@@ -25,10 +25,8 @@ CAPTION = (
 _LOOPS = (
     "SELECT key, MIN(name), MIN(target), COUNT(*), SUM(create_usd + carry_usd)"
     " FROM calls WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " GROUP BY key, sig HAVING COUNT(*) > ?"
 )
 

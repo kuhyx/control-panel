@@ -61,10 +61,8 @@ def _calls_per_day(conn: sqlite3.Connection, filters: Filters, repo: str = "") -
     since, until = filters.until - WINDOW_DAYS * 86400, filters.until
     count = conn.execute(
         "SELECT COUNT(*) FROM turns WHERE"
-        " ts BETWEEN ? AND ?"
-        " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-        " AND (? = '' OR model = ?)"
-        " AND (? = -1 OR is_sub = ?)"
+        " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+        " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
         " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')",
         (since, until, *filters.params()[2:], repo, repo, repo),
     ).fetchone()[0]

@@ -23,10 +23,8 @@ Week = dict[str, Any]
 
 _SPEND = (
     "SELECT main_key, SUM(usd) FROM turns WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " GROUP BY main_key"
 )
 

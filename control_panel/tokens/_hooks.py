@@ -47,19 +47,15 @@ _PER_HOOK = (
     " SUM(CASE WHEN kind = 'hook_error' THEN count ELSE 0 END),"
     " SUM(CASE WHEN kind = 'hook_msg' THEN count ELSE 0 END)"
     " FROM marks WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " AND kind IN ('hook_run', 'hook_context', 'hook_block', 'hook_error',"
     " 'hook_msg') GROUP BY name, detail"
 )
 _STOPS = (
     "SELECT name, detail, SUM(count), SUM(retry_usd) FROM marks WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " AND kind = 'hook_block' AND name IN (?, ?) GROUP BY name, detail"
     " ORDER BY SUM(retry_usd) DESC, SUM(count) DESC"
 )
@@ -69,19 +65,15 @@ _DAILY = (
     " THEN create_usd + carry_usd ELSE 0 END),"
     " SUM(CASE WHEN kind = 'hook_block' THEN retry_usd ELSE 0 END)"
     " FROM marks WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " AND kind IN ('hook_run', 'hook_context', 'hook_block') GROUP BY day"
     " ORDER BY day"
 )
 _SPEND = (
     "SELECT COALESCE(SUM(usd), 0) FROM turns WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
 )
 
 

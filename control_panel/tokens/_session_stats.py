@@ -64,28 +64,21 @@ CAPTION = (
 
 _TURNS = (
     "SELECT main_key, ts, day, usd FROM turns WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " ORDER BY ts"
 )
 _POSITION = (
     "SELECT pos, COUNT(*), AVG(usd) FROM (SELECT ts, cwd, model, is_sub, usd,"
-    " ROW_NUMBER() OVER (PARTITION BY key ORDER BY ts) AS pos FROM turns)"
-    " WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ROW_NUMBER() OVER (PARTITION BY key ORDER BY ts) AS pos FROM turns) WHERE"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " AND pos <= ? GROUP BY pos"
 )
 _INTERRUPTS = (
     "SELECT main_key, SUM(count) FROM marks WHERE kind = 'interrupt' AND"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " GROUP BY main_key"
 )
 _PROMPTS = "SELECT key, COUNT(*) FROM prompts GROUP BY key"

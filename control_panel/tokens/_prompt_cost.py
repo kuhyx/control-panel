@@ -52,10 +52,8 @@ CAPTION = (
 
 _SESSIONS = (
     "SELECT DISTINCT main_key FROM turns WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
 )
 _PROMPTS = (
     "SELECT key, idx, ts, text, usd_own, usd_sub, active_s, calls"

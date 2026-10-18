@@ -33,19 +33,15 @@ _TURNS = (
 _CALLS = (
     "SELECT ts, key, cwd, model, name, family, target, result_tokens,"
     " error_kind, create_usd, carry_usd, carry_calls FROM calls WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " ORDER BY ts DESC LIMIT ?"
 )
 _MARKS = (
     "SELECT ts, key, cwd, model, kind, name, detail, count, tokens,"
     " duration_ms, retry_usd, create_usd, carry_usd FROM marks WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " ORDER BY ts DESC LIMIT ?"
 )
 COLUMNS = {

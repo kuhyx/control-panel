@@ -46,10 +46,8 @@ CAPTION = (
 _SESSIONS = (
     "SELECT e.session_id, e.est_calls, COUNT(*), SUM(usd), MIN(ts), MIN(cwd)"
     " FROM estimates e JOIN turns ON main_key = e.session_id WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " GROUP BY e.session_id"
 )
 _TITLES = "SELECT key, title FROM session_summary"

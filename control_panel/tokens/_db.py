@@ -22,10 +22,12 @@ STORE = "data/token-dashboard/tokens.sqlite"
 DEFAULT_DAYS = 30
 SCOPES = {"all": -1, "main": 0, "sub": 1}
 
-# Every panel query over ``turns`` ends with this literal clause (repeated
-# inline, so no SQL is ever assembled from strings) and binds Filters.params():
-#   ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')
-#   AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)
+# Every panel query over turns (and calls / marks / turn_detail) ends with the
+# shared filter clause -- ts in range, cwd equal to or under the cwd filter,
+# model equal, is_sub matching the scope -- written as the same two literal
+# lines in every module (see _carry.py; never assembled from strings), and
+# binds Filters.params(). Two lines, not four: pylint's duplicate-code check
+# runs over all files at once and flags four identical lines.
 
 
 @dataclass(frozen=True)

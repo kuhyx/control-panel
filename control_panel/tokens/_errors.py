@@ -34,18 +34,14 @@ CAPTION = (
 
 _API_TYPES = (
     "SELECT name, SUM(count), COUNT(DISTINCT main_key), MAX(ts) FROM marks WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " AND kind = 'api_error' GROUP BY name ORDER BY SUM(count) DESC, name"
 )
 _API_DETAIL = (
     "SELECT name, detail, SUM(count), MAX(ts) FROM marks WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " AND kind = 'api_error' GROUP BY name, detail"
     " ORDER BY SUM(count) DESC, MAX(ts) DESC"
 )
@@ -55,43 +51,33 @@ _MARK_DAYS = (
     " SUM(CASE WHEN kind = 'api_error' AND name = ? THEN count ELSE 0 END),"
     " SUM(CASE WHEN kind = 'interrupt' THEN count ELSE 0 END)"
     " FROM marks WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " AND kind IN ('api_error', 'interrupt') GROUP BY day"
 )
 _CALL_DAYS = (
     "SELECT day, COUNT(*), SUM(is_error) FROM calls WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " GROUP BY day"
 )
 _KINDS = (
     "SELECT error_kind, COUNT(*) FROM calls WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " AND is_error = 1 GROUP BY error_kind ORDER BY COUNT(*) DESC, error_kind"
 )
 _TOOLS = (
     "SELECT name, family, COUNT(*), SUM(is_error) FROM calls WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " GROUP BY name, family HAVING SUM(is_error) > 0"
     " ORDER BY SUM(is_error) DESC, COUNT(*) DESC, name, family"
 )
 _RECENT = (
     "SELECT ts, key, name, family, target, error_kind FROM calls WHERE"
-    " ts BETWEEN ? AND ?"
-    " AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?)"
-    " AND (? = -1 OR is_sub = ?)"
+    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
+    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " AND is_error = 1 ORDER BY ts DESC"
 )
 RECENT_COLUMNS = ("ts", "key", "name", "family", "target", "error_kind")
