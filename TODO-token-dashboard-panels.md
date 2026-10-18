@@ -82,7 +82,7 @@ local parsing only, no LLM.
 - [ ] **K. Output**: thinking / text / tool_use output split; output $ share;
       longest replies.
 - [ ] **L. Efficiency**: cost per user prompt.
-- [ ] **M. Levers**: task-size estimator verdicts and misses panel
+- [x] **M. Levers**: task-size estimator verdicts and misses panel
       (`estimates` + `events` tables hold the data).
 - [ ] **N. Anomalies**: day-over-day spikes, sessions over $X, runaway loops,
       polling / lint-test / VCS turns (session-autopsy categories).
