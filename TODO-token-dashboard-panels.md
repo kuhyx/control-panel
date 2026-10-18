@@ -55,7 +55,7 @@ local parsing only, no LLM.
 - [ ] **A. Spend**: per-month totals and cumulative month; spend by model and
       by repo/cwd as charts; hour-of-day x weekday heatmap; Max-plan 5-hour
       window burn per block; rate-limit / usage-limit errors seen.
-- [ ] **B. Token classes**: input / cache write (5m vs 1h from the split) /
+- [x] **B. Token classes**: input / cache write (5m vs 1h from the split) /
       cache read / output over time; cache hit ratio; cache-write waste
       (writes never re-read); cold starts; compaction events and cost.
 - [ ] **C. Context**: per-call context size distribution; growth curve per
@@ -70,7 +70,7 @@ local parsing only, no LLM.
 - [x] **F. Hooks**: fires, injected tokens, blocks/denials + cost of the
       retry, runtime (hook budget-gate log under ~/.claude/logs), Stop-hook
       status-tag bounces and their cost.
-- [ ] **G. Tools**: error rate, result-token p50/p95, failed/denied,
+- [x] **G. Tools**: error rate, result-token p50/p95, failed/denied,
       time-cap kills (`events` table already has time-cap rows), repeated
       identical commands (loops), batching rate.
 - [ ] **H. Subagents**: by type/model/description; leverage ratio (tokens
@@ -86,7 +86,7 @@ local parsing only, no LLM.
       (`estimates` + `events` tables hold the data).
 - [ ] **N. Anomalies**: day-over-day spikes, sessions over $X, runaway loops,
       polling / lint-test / VCS turns (session-autopsy categories).
-- [ ] **O. Errors**: API errors (overloaded, 5xx, rate limit), retries, tool
+- [x] **O. Errors**: API errors (overloaded, 5xx, rate limit), retries, tool
       errors by type.
 - [ ] **P. Prompt habits**: prompt length vs session cost; LONG:/OPUS:/HERE:/
       override/SOLVE: prefix counts; sessions started from ~.
