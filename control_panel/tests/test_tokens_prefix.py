@@ -11,7 +11,8 @@ from control_panel.tokens import _api, _db
 if TYPE_CHECKING:
     from pathlib import Path
 
-WEEK_CALLS = 4 / 7  # the fixture's four turns, over the 7 days before "now"
+RANGE_CALLS = 4 / 30  # the fixture's four turns, over the default 30 days
+TWO_DAYS = (2 * fx.DAY - 1) / fx.DAY  # from=2026-09-28&to=2026-09-29
 PRICE = 0.2
 
 
@@ -45,14 +46,15 @@ def _surfaces(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
 
 
 def test_surfaces_start_end_and_cost(store: Path) -> None:
-    payload = _prefix("from=2026-09-28")
+    payload = _prefix("from=2026-09-28&to=2026-09-29")
     rows = _surfaces(payload)
     assert set(rows) == {"global CLAUDE.md", "auto-memory index", "rules"}
     claude = rows["global CLAUDE.md"]
     assert (claude["start_tokens"], claude["tokens"]) == (1000, 500)
     assert claude["delta_tokens"] == -500
     assert claude["files"] == 1
-    assert claude["usd_per_day"] == pytest.approx(500 * WEEK_CALLS * PRICE / 1e6)
+    assert payload["totals"]["calls_per_day"] == pytest.approx(4 / TWO_DAYS)
+    assert claude["usd_per_day"] == pytest.approx(500 * 4 / TWO_DAYS * PRICE / 1e6)
     assert rows["rules"]["files"] == 0
     assert payload["surfaces"][0]["surface"] == "global CLAUDE.md"
 
@@ -81,9 +83,11 @@ def test_totals_price_the_audit_estimate_and_the_files(store: Path) -> None:
     totals = _prefix()["totals"]
     assert totals["audit_tokens"] == 5000
     assert totals["files_tokens"] == 700
-    assert totals["calls_per_day"] == pytest.approx(WEEK_CALLS)
-    assert totals["audit_usd_per_day"] == pytest.approx(5000 * WEEK_CALLS * PRICE / 1e6)
-    assert totals["files_usd_per_day"] == pytest.approx(700 * WEEK_CALLS * PRICE / 1e6)
+    assert totals["calls_per_day"] == pytest.approx(RANGE_CALLS)
+    assert totals["audit_usd_per_day"] == pytest.approx(
+        5000 * RANGE_CALLS * PRICE / 1e6
+    )
+    assert totals["files_usd_per_day"] == pytest.approx(700 * RANGE_CALLS * PRICE / 1e6)
     assert totals["pruned_bytes"] == 2400
 
 
@@ -109,13 +113,14 @@ def test_prune_timeline_has_deltas_vs_the_previous_point(store: Path) -> None:
         ("model=claude-sonnet-5-5", 1),
         ("scope=main", 3),
         ("scope=sub", 1),
+        ("from=2026-09-29&to=2026-09-29", 1 * 30 * fx.DAY / (fx.DAY - 1)),
     ],
 )
 def test_filters_move_calls_per_day_not_the_sizes(
-    store: Path, query: str, calls: int
+    store: Path, query: str, calls: float
 ) -> None:
     payload = _prefix(query)
-    assert payload["totals"]["calls_per_day"] == pytest.approx(calls / 7)
+    assert payload["totals"]["calls_per_day"] == pytest.approx(calls / 30)
     assert payload["totals"]["files_tokens"] == 700
     assert "date range" in payload["filtered_by"]
 

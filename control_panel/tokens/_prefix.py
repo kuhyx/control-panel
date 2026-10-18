@@ -25,7 +25,6 @@ if TYPE_CHECKING:
     from control_panel.tokens._db import Filters
 
 BYTES_PER_TOKEN = 4  # token_audit.surfaces.BYTES_PER_TOKEN
-WINDOW_DAYS = 7  # the calls/day window, as the context-files panel uses
 TOP = 25
 FILTERED_BY = (
     "date range only for sizes, prunes and snapshots (they are global);"
@@ -35,8 +34,8 @@ CAPTION = (
     "Standing prefix = context loaded on every API call. Per-surface tokens"
     " replay the stored size history (git + prune runs) of the always-loaded"
     " files, bytes/4; the audit estimate is token_audit's standing_tokens_est"
-    " (all surfaces, from disk). $/day = tokens x API calls/day (the 7 days"
-    " before the range end, under cwd/model/scope) x the cache-read price; it"
+    " (all surfaces, from disk). $/day = tokens x API calls/day (calls in the"
+    " range under every filter / range days) x the cache-read price; it"
     " assumes every call, subagents included, carries the whole prefix."
     " Skill/agent descriptions and repo CLAUDE.md files are not in the"
     " per-surface view: their history is whole-file bytes, or only loads in"
@@ -71,9 +70,13 @@ _SNAPSHOTS = (
 
 
 def _calls_per_day(conn: sqlite3.Connection, filters: Filters) -> float:
-    """API calls per day over the week before the range end, under the filters."""
-    params = (filters.until - WINDOW_DAYS * 86400, *filters.params()[1:])
-    return float(conn.execute(_CALLS, params).fetchone()[0]) / WINDOW_DAYS
+    """API calls per day over the whole range, under every filter.
+
+    Calls / range days, as token_audit's ``calls_per_day``: a range reaching
+    past the store's first or last call understates the rate.
+    """
+    days = max(filters.until - filters.since, 1.0) / 86400
+    return float(conn.execute(_CALLS, filters.params()).fetchone()[0]) / days
 
 
 def _by_kind(state: dict[str, tuple[str, int]]) -> dict[str, list[int]]:
