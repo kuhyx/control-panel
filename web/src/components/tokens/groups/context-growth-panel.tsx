@@ -10,6 +10,8 @@ import {
 } from "./context-growth-tables.tsx";
 
 interface Curve {
+  // Curves of one chart share their sampled call indices (see _context_growth).
+  chart: number;
   key: string;
   max_context: number;
   points: { call: number; context: number }[];
@@ -27,17 +29,24 @@ export interface ContextGrowthData {
   percentiles: Record<"p50" | "p90" | "p99", null | number>;
 }
 
-// Three series per chart at most (the three-colour categorical palette).
-const PER_CHART = 3;
 // The chart's x axis sorts as text: pad call indices so 10 follows 9.
 const PAD = 6;
 
-function chunks(curves: Curve[]): Curve[][] {
-  const out: Curve[][] = [];
-  for (let start = 0; start < curves.length; start += PER_CHART) {
-    out.push(curves.slice(start, start + PER_CHART));
+// The backend groups curves three per chart (one colour each) on a shared grid.
+function charts(curves: Curve[]): { curves: Curve[]; first: number }[] {
+  const groups = new Map<number, Curve[]>();
+  for (const curve of curves) {
+    groups.set(curve.chart, [...(groups.get(curve.chart) ?? []), curve]);
   }
-  return out;
+  let first = 1;
+  return groups
+    .values()
+    .map((group) => {
+      const chart = { curves: group, first };
+      first += group.length;
+      return chart;
+    })
+    .toArray();
 }
 
 function curveLabel(curve: Curve): string {
@@ -49,6 +58,7 @@ export function ContextGrowthPanel({
   data,
 }: Readonly<{ data: ContextGrowthData }>): React.JSX.Element {
   const p = data.percentiles;
+  const groups = charts(data.growth);
   return (
     <section className="card" id="context-growth">
       <h2>Context size</h2>
@@ -72,8 +82,7 @@ export function ContextGrowthPanel({
         label="Calls per context size"
         titled
       />
-      {chunks(data.growth).map((group, index) => {
-        const first = index * PER_CHART + 1;
+      {groups.map(({ curves: group, first }) => {
         const name = `Context growth, sessions ${String(first)}-${String(first + group.length - 1)}`;
         return (
           <LineChart

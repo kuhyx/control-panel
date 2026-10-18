@@ -78,6 +78,12 @@ const DAY_COLUMNS: ColumnSpec<ClassDay>[] = [
   count("unsplit", "write unsplit", (r) => r.unsplit),
   count("cache_read", "cache read", (r) => r.cache_read),
   count("output", "output", (r) => r.output),
+  usd("input_usd", "input $", (r) => r.input_usd),
+  usd("cw_5m_usd", "write 5m $", (r) => r.cw_5m_usd),
+  usd("cw_1h_usd", "write 1h $", (r) => r.cw_1h_usd),
+  usd("unsplit_usd", "write unsplit $", (r) => r.unsplit_usd),
+  usd("cache_read_usd", "cache read $", (r) => r.cache_read_usd),
+  usd("output_usd", "output $", (r) => r.output_usd),
   usd("usd", "classes $", (r) => r.usd),
   usd("spend_usd", "recorded $", (r) => r.spend_usd),
   {

@@ -91,6 +91,7 @@ describe("TokenClassesPanel", () => {
     }
     expect(screen.getByText("Waste = no call within 1 h.")).toBeInTheDocument();
     expect(screen.getByText("s3")).toBeInTheDocument();
+    expect(screen.getByText("write 1h $")).toBeInTheDocument();
     expect(screen.getByText("auto")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Per day, every class" }),

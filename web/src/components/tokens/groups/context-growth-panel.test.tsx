@@ -7,6 +7,7 @@ import { INDEX } from "../../../test/tokens-fixture.ts";
 import { view } from "../panels/context-growth-view.tsx";
 
 const CURVE = {
+  chart: 1,
   key: "s1",
   max_context: 310_000,
   points: [
@@ -45,7 +46,7 @@ const DATA: ContextGrowthData = {
     CURVE,
     { ...CURVE, key: "s2", title: "" },
     { ...CURVE, key: "s4" },
-    { ...CURVE, key: "s5" },
+    { ...CURVE, chart: 2, key: "s5" },
   ],
   handoffs: [
     {

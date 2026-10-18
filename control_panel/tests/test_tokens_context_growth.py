@@ -120,7 +120,7 @@ def test_an_empty_range_has_no_rows(store: Path) -> None:
 
 
 def test_long_sessions_are_thinned_but_keep_their_last_call() -> None:
-    points = _context_growth.thin(list(range(1, 1002)))
+    points = _context_growth.thin(list(range(1, 1002)), 1001)
     assert len(points) <= _context_growth.MAX_POINTS + 1
     assert points[-1] == {"call": 1001, "context": 1001}
     assert points[0] == {"call": 1, "context": 1}
@@ -129,3 +129,15 @@ def test_long_sessions_are_thinned_but_keep_their_last_call() -> None:
 def test_percentile_is_nearest_rank() -> None:
     assert _context_growth_stats.percentile([3, 1, 2], 0.5) == 2
     assert _context_growth_stats.percentile([], 0.5) is None
+
+
+def test_curves_drawn_together_share_their_call_grid() -> None:
+    rows = [{"key": k, "title": "", "usd": 1.0, "max_context": 1} for k in "abcd"]
+    series = {"a": [1] * 1001, "b": [1] * 300, "c": [1] * 5, "d": [1] * 300}
+    out = _context_growth.curves(rows, series)
+    calls = {c["key"]: [p["call"] for p in c["points"]] for c in out}
+    assert calls["b"][:-1] == calls["a"][: len(calls["b"]) - 1]
+    assert calls["b"][-1] == 300
+    assert calls["c"] == [1, 5]
+    assert [c["chart"] for c in out] == [1, 1, 1, 2]
+    assert calls["d"][:3] == [1, 4, 7]  # chart 2 has its own, finer grid
