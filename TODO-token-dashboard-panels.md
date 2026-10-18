@@ -79,7 +79,7 @@ local parsing only, no LLM.
       count; interruptions; concurrent sessions over time; sessions/day.
 - [ ] **J. Latency**: per-call model latency, tool execution time, user
       think-time gaps.
-- [ ] **K. Output**: thinking / text / tool_use output split; output $ share;
+- [x] **K. Output**: thinking / text / tool_use output split; output $ share;
       longest replies.
 - [x] **L. Efficiency**: cost per user prompt.
 - [x] **M. Levers**: task-size estimator verdicts and misses panel
