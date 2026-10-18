@@ -48,7 +48,7 @@ local parsing only, no LLM.
 - A/B judgment subagents, banner on every view, `/api/tokens/ab` for the tray.
 - Context files inspector (E, partly): per-file live size/tokens/$ per day,
   size history (git + prune sizes), limits, content + git log.
-- CSV export (Q) on the session, lever and context tables.
+- [x] **Q. CSV export**: every table (DataTable: CSV, Copy for Claude, JSON) plus the raw-rows `export` panel.
 
 ## Remaining groups
 
@@ -90,8 +90,8 @@ local parsing only, no LLM.
       errors by type.
 - [ ] **P. Prompt habits**: prompt length vs session cost; LONG:/OPUS:/HERE:/
       override/SOLVE: prefix counts; sessions started from ~.
-- [ ] Filters: efficiency and A/B panels ignore cwd/model/scope (precomputed);
-      context calls/day and the sessions list now honour them.
+- [x] Filters: efficiency (live), A/B (arms recounted from ab_rows), context
+      calls/day and the sessions list honour cwd/model/scope.
 
 References for panel choice: Grafana Claude Code OTel dashboards 25052 /
 25255; Helicone / Langfuse (latency percentiles, cost per feature, week-over-week
