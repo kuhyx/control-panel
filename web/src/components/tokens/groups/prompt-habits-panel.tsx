@@ -101,6 +101,7 @@ export function PromptHabitsPanel({
         columns={data.length_buckets.map((row) => meanColumn(row))}
         format={formatUsd}
         label="Mean session cost by opening prompt length"
+        titled
       />
       <DataTable<BucketRow>
         columns={BUCKET_COLUMNS}

@@ -52,7 +52,7 @@ local parsing only, no LLM.
 
 ## Remaining groups
 
-- [ ] **A. Spend**: per-month totals and cumulative month; spend by model and
+- [x] **A. Spend**: per-month totals and cumulative month; spend by model and
       by repo/cwd as charts; hour-of-day x weekday heatmap; Max-plan 5-hour
       window burn per block; rate-limit / usage-limit errors seen.
 - [x] **B. Token classes**: input / cache write (5m vs 1h from the split) /
@@ -88,7 +88,7 @@ local parsing only, no LLM.
       polling / lint-test / VCS turns (session-autopsy categories).
 - [x] **O. Errors**: API errors (overloaded, 5xx, rate limit), retries, tool
       errors by type.
-- [ ] **P. Prompt habits**: prompt length vs session cost; LONG:/OPUS:/HERE:/
+- [x] **P. Prompt habits**: prompt length vs session cost; LONG:/OPUS:/HERE:/
       override/SOLVE: prefix counts; sessions started from ~.
 - [x] Filters: efficiency (live), A/B (arms recounted from ab_rows), context
       calls/day and the sessions list honour cwd/model/scope.
