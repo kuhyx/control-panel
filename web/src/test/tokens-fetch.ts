@@ -103,7 +103,12 @@ export function stubTokensFetch(
 ): Mock<(path: string) => Promise<Response>> {
   const spy = vi.fn((path: string) => {
     const isFailing = failing.some((part) => path.includes(part));
-    return Promise.resolve(respond(isFailing ? null : route(path, index), !isFailing));
+    const body = isFailing ? null : route(path, index);
+    // A panel group without a fixture here stays "Reading…" (never answers),
+    // so page tests need no edit for every new group.
+    return body === undefined
+      ? new Promise<Response>(() => null)
+      : Promise.resolve(respond(body, !isFailing));
   });
   vi.stubGlobal("fetch", spy);
   return spy;

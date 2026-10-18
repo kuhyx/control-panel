@@ -137,9 +137,7 @@ describe("TokensPage", () => {
     const spy = stubTokensFetch();
     render(<TokensPage route={{ id: "sess-1", name: "tokens-session" }} />);
     expect(await screen.findByText("← all sessions")).toBeInTheDocument();
-    fireEvent.click(
-      screen.getAllByRole("button", { name: "USD" })[0]!,
-    );
+    fireEvent.click(screen.getAllByRole("button", { name: "USD" })[0]!);
     expect(globalThis.location.hash).toBe(
       "#/tokens/s/sess-1?t.session%2Fprompts.sort=-usd",
     );
@@ -187,5 +185,18 @@ describe("FilterBar", () => {
       });
     }
     fireEvent.submit(screen.getByRole("form", { name: "Token filters" }));
+  });
+
+  it("shows one panel alone on its own route, keeping its hash", async () => {
+    stubTokensFetch();
+    render(<TokensPage route={{ id: "levers", name: "tokens-panel" }} />);
+    expect(
+      await screen.findByRole("heading", { name: "Levers" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Spend" })).toBeNull();
+    fireEvent.change(screen.getByLabelText("scope"), {
+      target: { value: "sub" },
+    });
+    expect(globalThis.location.hash).toBe("#/tokens/p/levers?scope=sub");
   });
 });

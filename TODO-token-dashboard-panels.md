@@ -26,11 +26,14 @@ local parsing only, no LLM.
    comment in `_db.py`) and bind `filters.params()`, so date range, cwd, model
    and main/subagent scope apply. No SQL built from strings, no `noqa`.
    Tests: extend `control_panel/tests/_fixture_tokens.py`; 100% coverage.
-3. **Frontend**: `web/src/components/tokens/<group>-panel.tsx`, types in
-   `web/src/lib/tokens-types.ts`, fetch it in `tokens-page.tsx`
-   `loadPanels`. Charts: `LineChart` / `ColumnChart` (dataviz rules: cat-2,
-   cat-3, cat-5 in that order; never dual-axis; legend for >= 2 series).
-   CSV via `CsvButton`. Every file <= 250 lines.
+3. **Frontend**: `web/src/components/tokens/groups/<group>-panel.tsx`
+   (component + its types) and `panels/<group>-view.tsx` exporting `view`
+   (self-registered, fetched by LazyPanel; `#/tokens/p/<name>` shows it
+   alone). Every table is a `DataTable` (search/filter/sort in the hash,
+   Copy for Claude, CSV). Charts: `LineChart` / `ColumnChart` (dataviz:
+   cat-2, cat-3, cat-5 in that order; never dual-axis; legend for >= 2
+   series). Raw detail rows: `calls`, `marks`, `turn_detail` tables
+   (testsAndMisc `detail*.py`, `marks.py`). Every file <= 250 lines.
 
 ## Done so far
 
@@ -57,7 +60,7 @@ local parsing only, no LLM.
       (writes never re-read); cold starts; compaction events and cost.
 - [ ] **C. Context**: per-call context size distribution; growth curve per
       session; sessions crossing 250k/300k; handoffs generated.
-- [ ] **D. Carry-cost attribution** (KEY METRIC; `tool_use.carry_usd` already
+- [x] **D. Carry-cost attribution** (KEY METRIC; `tool_use.carry_usd` already
       stored per prompt+tool): by Bash command family, MCP server/tool,
       skill load, hook-injected context per hook, memory/rules/CLAUDE.md
       reads, images (count, tokens, carry), top re-read paths,
@@ -87,8 +90,8 @@ local parsing only, no LLM.
       errors by type.
 - [ ] **P. Prompt habits**: prompt length vs session cost; LONG:/OPUS:/HERE:/
       override/SOLVE: prefix counts; sessions started from ~.
-- [ ] Filters: efficiency, A/B and context panels ignore cwd/model/scope
-      (precomputed or global by nature) -- decide per panel.
+- [ ] Filters: efficiency and A/B panels ignore cwd/model/scope (precomputed);
+      context calls/day and the sessions list now honour them.
 
 References for panel choice: Grafana Claude Code OTel dashboards 25052 /
 25255; Helicone / Langfuse (latency percentiles, cost per feature, week-over-week

@@ -125,6 +125,8 @@ def test_schema_describes_endpoints_params_and_panel_tables(store: Path) -> None
 
 
 def test_long_repeated_values_filter_as_text_not_enum() -> None:
-    rows = [{"lever": "x" * 50}, {"lever": "x" * 50}]
+    rows = [{"lever": "x" * 50, "one": ""}, {"lever": "x" * 50, "one": ""}]
     meta = _tables.apply({"rows": rows}, "")["_tables"]["rows"]
     assert meta["columns"]["lever"] == {"kind": "text"}
+    # A single repeated value is no choice at all.
+    assert meta["columns"]["one"] == {"kind": "text"}

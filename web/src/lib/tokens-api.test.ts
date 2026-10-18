@@ -70,12 +70,12 @@ describe("token fetchers", () => {
     const spy = stubTokensFetch();
     const controller = new AbortController();
     await fetchTokensIndex(controller.signal);
-    await fetchPanel("a/b", { ...EMPTY_QUERY, model: "m" });
+    await fetchPanel("levers", { ...EMPTY_QUERY, model: "m" });
     await fetchSession("s 1");
     await fetchContextFile("/a/b.md");
     expect(spy.mock.calls.map((call) => call[0])).toEqual([
       "/api/tokens",
-      "/api/tokens/panel/a%2Fb?model=m",
+      "/api/tokens/panel/levers?model=m",
       "/api/tokens/session/s%201",
       "/api/tokens/context-file?path=%2Fa%2Fb.md",
     ]);

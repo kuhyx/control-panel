@@ -37,14 +37,10 @@ def test_missing_store_is_service_unavailable() -> None:
 def test_index_lists_panels_options_and_coverage(store: Path) -> None:
     status, payload = _get("/api/tokens")
     assert status == HTTPStatus.OK
-    assert [p["name"] for p in payload["panels"]] == [
-        "overview",
-        "sessions",
-        "efficiency",
-        "ab",
-        "levers",
-        "context",
-    ]
+    names = [p["name"] for p in payload["panels"]]
+    # The core panels, in order; later groups register themselves after them.
+    core = ["overview", "sessions", "efficiency", "ab", "levers", "context"]
+    assert names[: len(core)] == core
     assert payload["options"]["models"] == ["claude-opus-5-5", "claude-sonnet-5-5"]
     coverage = payload["coverage"]
     assert coverage["any_from"] == "2026-03-11"

@@ -58,6 +58,10 @@ describe("token routes", () => {
       name: "tokens-file",
     });
     expect(parseHash("#/tokens/x/y")).toEqual({ id: "", name: "tokens" });
+    expect(parseHash("#/tokens/p/carry?t.carry%2Fmcp.limit=0")).toEqual({
+      id: "carry",
+      name: "tokens-panel",
+    });
   });
 
   it("routes one session", () => {

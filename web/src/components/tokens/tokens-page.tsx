@@ -49,11 +49,17 @@ function ContextFileRoute({
   return <ContextFile data={context.value} path={path} />;
 }
 
+const ROUTE_PREFIX: Record<string, string> = {
+  "tokens-panel": "#/tokens/p/",
+  "tokens-session": "#/tokens/s/",
+};
+
 // Where the query is written back (the file view has no tables to change).
 function hashBase(route: { id: string; name: string }): string {
-  return route.name === "tokens-session"
-    ? `#/tokens/s/${encodeURIComponent(route.id)}`
-    : "#/tokens";
+  const prefix = ROUTE_PREFIX[route.name];
+  return prefix === undefined
+    ? "#/tokens"
+    : `${prefix}${encodeURIComponent(route.id)}`;
 }
 
 export function TokensPage({
@@ -102,7 +108,9 @@ export function TokensPage({
       )}
       {loaded === null
         ? index.error === null && <p className="empty">Reading…</p>
-        : VIEWS.map((view) => {
+        : VIEWS.filter(
+            (view) => route.name !== "tokens-panel" || view.name === route.id,
+          ).map((view) => {
             return (
               <LazyPanel
                 index={loaded}

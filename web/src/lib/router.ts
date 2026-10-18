@@ -8,6 +8,7 @@ export interface Route {
     | "overview"
     | "tokens"
     | "tokens-file"
+    | "tokens-panel"
     | "tokens-session";
 }
 
@@ -28,6 +29,7 @@ export function parseHash(hash: string): Route {
   if (head === "tokens") {
     if (rest === "") return { id: "", name: "tokens" };
     if (tail === "f") return { id: decodeURIComponent(rest), name: "tokens-file" };
+    if (tail === "p") return { id: decodeURIComponent(rest), name: "tokens-panel" };
     return tail === "s"
       ? { id: decodeURIComponent(rest), name: "tokens-session" }
       : { id: "", name: "tokens" };

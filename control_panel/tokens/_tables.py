@@ -23,6 +23,7 @@ import json
 from typing import Any
 from urllib.parse import parse_qs
 
+ENUM_MIN = 2  # one repeated value offers no choice
 ENUM_MAX = 30
 ENUM_CHARS = 40  # longer values make a useless pick list: filter as text
 PREFIX = "t."
@@ -139,7 +140,7 @@ def _kind(values: list[object]) -> dict[str, Any]:
         return {"kind": "object"}
     distinct = sorted({_text(v) if not isinstance(v, str) else v for v in present})
     short = all(len(v) <= ENUM_CHARS for v in distinct)
-    if short and len(distinct) <= ENUM_MAX and len(distinct) < max(len(present), 2):
+    if short and ENUM_MIN <= len(distinct) <= ENUM_MAX and len(distinct) < len(present):
         return {"kind": "enum", "values": distinct}
     return {"kind": "text"}
 
