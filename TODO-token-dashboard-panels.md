@@ -65,7 +65,7 @@ local parsing only, no LLM.
       skill load, hook-injected context per hook, memory/rules/CLAUDE.md
       reads, images (count, tokens, carry), top re-read paths,
       WebFetch/WebSearch. Needs per-call rows (command text, path) in walk.
-- [ ] **E. Standing prefix**: per-surface totals over time from
+- [x] **E. Standing prefix**: per-surface totals over time from
       `token_audit.checkup` + prune sizes, $/day; prune history timeline.
 - [x] **F. Hooks**: fires, injected tokens, blocks/denials + cost of the
       retry, runtime (hook budget-gate log under ~/.claude/logs), Stop-hook
