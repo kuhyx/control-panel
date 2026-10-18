@@ -77,7 +77,7 @@ local parsing only, no LLM.
       returned to parent vs spent); routing-hook decisions; worktree agents.
 - [ ] **I. Sessions**: $/session histogram; cost by call position; user-turn
       count; interruptions; concurrent sessions over time; sessions/day.
-- [ ] **J. Latency**: per-call model latency, tool execution time, user
+- [x] **J. Latency**: per-call model latency, tool execution time, user
       think-time gaps.
 - [x] **K. Output**: thinking / text / tool_use output split; output $ share;
       longest replies.
