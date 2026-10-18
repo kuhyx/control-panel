@@ -58,7 +58,7 @@ local parsing only, no LLM.
 - [x] **B. Token classes**: input / cache write (5m vs 1h from the split) /
       cache read / output over time; cache hit ratio; cache-write waste
       (writes never re-read); cold starts; compaction events and cost.
-- [ ] **C. Context**: per-call context size distribution; growth curve per
+- [x] **C. Context**: per-call context size distribution; growth curve per
       session; sessions crossing 250k/300k; handoffs generated.
 - [x] **D. Carry-cost attribution** (KEY METRIC; `tool_use.carry_usd` already
       stored per prompt+tool): by Bash command family, MCP server/tool,
@@ -73,7 +73,7 @@ local parsing only, no LLM.
 - [x] **G. Tools**: error rate, result-token p50/p95, failed/denied,
       time-cap kills (`events` table already has time-cap rows), repeated
       identical commands (loops), batching rate.
-- [ ] **H. Subagents**: by type/model/description; leverage ratio (tokens
+- [x] **H. Subagents**: by type/model/description; leverage ratio (tokens
       returned to parent vs spent); routing-hook decisions; worktree agents.
 - [ ] **I. Sessions**: $/session histogram; cost by call position; user-turn
       count; interruptions; concurrent sessions over time; sessions/day.
@@ -81,7 +81,7 @@ local parsing only, no LLM.
       think-time gaps.
 - [ ] **K. Output**: thinking / text / tool_use output split; output $ share;
       longest replies.
-- [ ] **L. Efficiency**: cost per user prompt.
+- [x] **L. Efficiency**: cost per user prompt.
 - [x] **M. Levers**: task-size estimator verdicts and misses panel
       (`estimates` + `events` tables hold the data).
 - [ ] **N. Anomalies**: day-over-day spikes, sessions over $X, runaway loops,
