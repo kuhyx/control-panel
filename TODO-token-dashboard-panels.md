@@ -75,7 +75,7 @@ local parsing only, no LLM.
       identical commands (loops), batching rate.
 - [x] **H. Subagents**: by type/model/description; leverage ratio (tokens
       returned to parent vs spent); routing-hook decisions; worktree agents.
-- [ ] **I. Sessions**: $/session histogram; cost by call position; user-turn
+- [x] **I. Sessions**: $/session histogram; cost by call position; user-turn
       count; interruptions; concurrent sessions over time; sessions/day.
 - [x] **J. Latency**: per-call model latency, tool execution time, user
       think-time gaps.
@@ -84,7 +84,7 @@ local parsing only, no LLM.
 - [x] **L. Efficiency**: cost per user prompt.
 - [x] **M. Levers**: task-size estimator verdicts and misses panel
       (`estimates` + `events` tables hold the data).
-- [ ] **N. Anomalies**: day-over-day spikes, sessions over $X, runaway loops,
+- [x] **N. Anomalies**: day-over-day spikes, sessions over $X, runaway loops,
       polling / lint-test / VCS turns (session-autopsy categories).
 - [x] **O. Errors**: API errors (overloaded, 5xx, rate limit), retries, tool
       errors by type.

@@ -37,6 +37,9 @@ class Filters:
     cwd: str = ""
     model: str = ""
     scope: str = "all"
+    # The request's raw query string, for panel-specific parameters (e.g.
+    # anomalies' ``over``); never part of the shared SQL clause.
+    query: str = ""
 
     def params(self) -> tuple[object, ...]:
         """Bind values for the shared turns filter clause, in order."""
@@ -117,6 +120,7 @@ def parse_filters(conn: sqlite3.Connection, raw: str, now: float) -> Filters:
         cwd=_first(query, "cwd").rstrip("/"),
         model=_first(query, "model"),
         scope=scope if scope in SCOPES else "all",
+        query=raw,
     )
 
 
