@@ -44,7 +44,7 @@ _BATCHING = (
     "SELECT day, COUNT(*), SUM(batch > 1) FROM calls WHERE"
     " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
     " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
-    " GROUP BY day ORDER BY day"
+    " GROUP BY day ORDER BY day DESC"
 )
 _EVENTS = "SELECT ts, kind FROM events WHERE source = 'time-cap' AND ts BETWEEN ? AND ?"
 
@@ -138,7 +138,13 @@ def _event_totals(
 TABLES = ("tools", "families", "loops", "time_cap", "batching")
 
 
-@panel("tools", "Tools", order=70, tables={t: {"limit": str(TOP)} for t in TABLES})
+# batching feeds the per-day line chart: never cut it.
+@panel(
+    "tools",
+    "Tools",
+    order=70,
+    tables={**{t: {"limit": str(TOP)} for t in TABLES}, "batching": {"limit": "0"}},
+)
 def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
     """Per-tool and per-family behaviour, loops, time-cap kills, batching."""
     names, families, total = _tallies(conn, filters)

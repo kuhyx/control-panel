@@ -1,4 +1,4 @@
-import { formatCount, formatUsd } from "../../../lib/tokens-api.ts";
+import { formatUsd } from "../../../lib/tokens-api.ts";
 
 // Weekday x hour grid of spend. One sequential hue (the first series colour,
 // cat-2) with opacity rising with the value: the design tokens have no
@@ -27,10 +27,9 @@ export function cellOpacity(usd: number, max: number): number {
 }
 
 export function Heatmap({
-  cells,
-}: Readonly<{ cells: HeatCell[] }>): React.JSX.Element {
-  const byCell = new Map(cells.map((c) => [`${c.weekday}|${c.hour}`, c]));
-  const max = Math.max(0, ...cells.map((c) => c.usd));
+  grid,
+}: Readonly<{ grid: number[][] }>): React.JSX.Element {
+  const max = Math.max(0, ...grid.flat());
   const width = LEFT + HOURS.length * CELL_W;
   const height = TOP + WEEKDAYS.length * CELL_H;
   return (
@@ -63,8 +62,7 @@ export function Heatmap({
         </g>
         {WEEKDAYS.flatMap((name, day) => {
           return HOURS.map((hour) => {
-            const cell = byCell.get(`${day}|${hour}`);
-            const usd = cell?.usd ?? 0;
+            const usd = grid[day]?.[hour] ?? 0;
             return (
               <rect
                 fill="var(--cat-2)"
@@ -77,7 +75,7 @@ export function Heatmap({
                 y={TOP + day * CELL_H}
               >
                 <title>
-                  {`${name} ${String(hour).padStart(2, "0")}:00 — ${formatUsd(usd)} (${formatCount(cell?.calls ?? 0)} calls)`}
+                  {`${name} ${String(hour).padStart(2, "0")}:00 — ${formatUsd(usd)}`}
                 </title>
               </rect>
             );

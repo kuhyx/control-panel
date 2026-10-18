@@ -66,11 +66,12 @@ _TURNS = (
     "SELECT main_key, ts, day, usd FROM turns WHERE"
     " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
     " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
-    " ORDER BY ts"
+    " ORDER BY ts, main_key"
 )
 _POSITION = (
     "SELECT pos, COUNT(*), AVG(usd) FROM (SELECT ts, cwd, model, is_sub, usd,"
-    " ROW_NUMBER() OVER (PARTITION BY key ORDER BY ts) AS pos FROM turns) WHERE"
+    " ROW_NUMBER() OVER (PARTITION BY key ORDER BY ts) AS pos FROM turns)"
+    " WHERE"
     " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
     " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " AND pos <= ? GROUP BY pos"
@@ -136,7 +137,7 @@ def _daily(turns: list[tuple[Any, ...]]) -> list[dict[str, Any]]:
     "session_stats",
     "Session stats",
     order=76,
-    tables={"daily": {"limit": "60"}, "position": {"limit": "0"}},
+    tables={"daily": {"limit": "0"}, "position": {"limit": "0"}},
 )
 def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
     """Cost, length, interruption and concurrency distributions of sessions."""

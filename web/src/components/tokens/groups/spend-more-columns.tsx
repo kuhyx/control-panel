@@ -63,10 +63,17 @@ export interface SpendMoreData {
   by_model: ModelRow[];
   caption: string;
   cumulative: CumulativeRow[];
+  // 7 x 24 USD, Monday first: the whole grid, never cut by the table layer.
+  grid: number[][];
   heatmap: HeatCell[];
   months: MonthRow[];
   rate_limits: RateLimitRow[];
-  totals: { blocks: number; usd: number };
+  totals: {
+    blocks: number;
+    peak_block_usd: number;
+    rate_limit_errors: number;
+    usd: number;
+  };
 }
 
 export const MONTH_COLUMNS: ColumnSpec<MonthRow>[] = [

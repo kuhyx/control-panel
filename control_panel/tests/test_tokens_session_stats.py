@@ -8,6 +8,7 @@ from control_panel.tests import _fixture_detail as fd
 from control_panel.tests import _fixture_subagents as fs
 from control_panel.tests import _fixture_tokens as fx
 from control_panel.tokens import _api, _db
+from control_panel.tokens import _registry as registry
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -105,3 +106,10 @@ def test_an_empty_range_has_no_rows(store: Path) -> None:
     assert payload["daily"] == []
     assert _hist(payload["cost_hist"]) == {}
     assert payload["totals"]["usd_per_session"] is None
+
+
+def test_the_daily_chart_list_is_never_cut() -> None:
+    assert registry.PANELS["session_stats"].tables == {
+        "daily": {"limit": "0"},
+        "position": {"limit": "0"},
+    }

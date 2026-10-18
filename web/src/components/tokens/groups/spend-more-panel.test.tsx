@@ -5,7 +5,7 @@ import type { SpendMoreData } from "./spend-more-panel.tsx";
 
 import { INDEX } from "../../../test/tokens-fixture.ts";
 import { view } from "../panels/spend-more-view.tsx";
-import { cellOpacity } from "./spend-more-heatmap.tsx";
+import { cellOpacity, Heatmap } from "./spend-more-heatmap.tsx";
 import { monthSeries } from "./spend-more-panel.tsx";
 
 const DATA: SpendMoreData = {
@@ -33,13 +33,16 @@ const DATA: SpendMoreData = {
     { cum_usd: 6.5, dom: 28, month: "2026-09", usd: 6.5 },
     { cum_usd: 10.5, dom: 29, month: "2026-09", usd: 4 },
   ],
+  grid: Array.from({ length: 7 }, (_, day) =>
+    Array.from({ length: 24 }, (_, hour) => (day === 0 && hour === 14 ? 5 : 0)),
+  ),
   heatmap: [{ calls: 2, hour: 14, usd: 5, weekday: 0 }],
   months: [
     { calls: 4, month: "2026-09", usd: 10.5 },
     { calls: 1, month: "2026-08", usd: 5 },
   ],
   rate_limits: [{ day: "2026-09-28", errors: 3 }],
-  totals: { blocks: 3, usd: 15.5 },
+  totals: { blocks: 3, peak_block_usd: 6, rate_limit_errors: 3, usd: 15.5 },
 };
 
 describe("SpendMorePanel", () => {
@@ -62,7 +65,7 @@ describe("SpendMorePanel", () => {
     ]) {
       expect(screen.getByRole("img", { name })).toBeInTheDocument();
     }
-    expect(screen.getByText("Mon 14:00 — $5.00 (2 calls)")).toBeInTheDocument();
+    expect(screen.getByText("Mon 14:00 — $5.00")).toBeInTheDocument();
     expect(screen.getAllByText("Mon")).toHaveLength(2);
     expect(
       screen.getByRole("heading", { name: "5-hour blocks" }),
@@ -83,5 +86,10 @@ describe("SpendMorePanel", () => {
     expect(cellOpacity(0, 5)).toBeCloseTo(0.04);
     expect(cellOpacity(5, 0)).toBeCloseTo(0.04);
     expect(cellOpacity(5, 5)).toBeCloseTo(1);
+  });
+
+  it("draws an empty grid as faint cells", () => {
+    render(<Heatmap grid={[]} />);
+    expect(screen.getByText("Sun 23:00 — $0.00")).toBeInTheDocument();
   });
 });

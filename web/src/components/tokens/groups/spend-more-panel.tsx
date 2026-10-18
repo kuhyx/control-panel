@@ -80,7 +80,7 @@ function Charts({
         label="Spend by repo / cwd"
         titled
       />
-      <Heatmap cells={data.heatmap} />
+      <Heatmap grid={data.grid} />
       <LineChart
         format={formatUsd}
         label="Costliest 5-hour block per day"
@@ -116,8 +116,6 @@ export function SpendMorePanel({
   data,
 }: Readonly<{ data: SpendMoreData }>): React.JSX.Element {
   const tables = data._tables;
-  const peak = Math.max(0, ...data.blocks.map((b) => b.usd));
-  const limits = data.rate_limits.reduce((sum, d) => sum + d.errors, 0);
   return (
     <section className="card" id="spend-more">
       <h2>Spend breakdown</h2>
@@ -127,13 +125,17 @@ export function SpendMorePanel({
           <span className="tile-label">spend in range</span>
         </li>
         <li className="tile">
-          <span className="tile-count">{formatUsd(peak)}</span>
+          <span className="tile-count">
+            {formatUsd(data.totals.peak_block_usd)}
+          </span>
           <span className="tile-label">
             costliest of {formatCount(data.totals.blocks)} 5-hour blocks
           </span>
         </li>
         <li className="tile">
-          <span className="tile-count">{formatCount(limits)}</span>
+          <span className="tile-count">
+            {formatCount(data.totals.rate_limit_errors)}
+          </span>
           <span className="tile-label">rate-limit errors</span>
         </li>
       </ul>

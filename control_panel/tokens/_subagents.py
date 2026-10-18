@@ -32,13 +32,15 @@ CAPTION = (
     "stays out of the parent's context); a high value means a big answer that "
     "lands in the parent's context anyway. USD and calls are the agent's calls "
     "inside the filters; wall / active time is the whole agent's. The return "
-    "lookup ignores the model and scope filters (the parent's model differs)."
+    "lookup, worktree spawns and routing-hook counts are the parent's calls, "
+    "so they ignore the model and scope filters (the parent's model differs); "
+    "worktree rows list only spawns whose agent is inside the filters."
 )
 
 _AGENTS = (
     "WITH t AS (SELECT key, MAX(model) AS model, SUM(usd) AS usd,"
     " COUNT(*) AS n, SUM(input + cache_read + cache_write + output) AS tok"
-    " FROM turns WHERE"
+    " FROM turns AS spent WHERE"
     " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
     " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " AND is_sub = 1 GROUP BY key)"
@@ -108,19 +110,20 @@ def _grouped(rows: list[dict[str, Any]], at: int) -> list[dict[str, Any]]:
 def _worktree(
     conn: sqlite3.Connection, filters: Filters, usd: dict[str, float]
 ) -> list[dict[str, Any]]:
-    """Agent spawns into a git worktree, with the spawned agent's cost."""
+    """Spawns into a git worktree whose agent is inside the filters."""
+    unscoped = dataclasses.replace(filters, model="", scope="all")
     rows = [
         {
             "day": day,
             "key": key,
             "target": target,
-            "sub_key": sub_key or "",
-            "usd": usd.get(sub_key or ""),
+            "sub_key": sub_key,
+            "usd": usd[sub_key],
         }
-        for sub_key, key, day, target, _ in conn.execute(_SPAWNS, filters.params())
-        if target.endswith("[worktree]")
+        for sub_key, key, day, target, _ in conn.execute(_SPAWNS, unscoped.params())
+        if target.endswith("[worktree]") and sub_key in usd
     ]
-    return sorted(rows, key=lambda r: (-(r["usd"] or 0.0), r["day"]))
+    return sorted(rows, key=lambda r: (-r["usd"], r["day"]))
 
 
 TABLES = ("by_type", "by_model", "by_description", "worktree", "routing.ab")
@@ -141,5 +144,5 @@ def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
         "totals": {**_sum(agents), "worktree_agents": len(worktree)},
         **{name: _grouped(agents, at) for name, at in _GROUPS.items()},
         "worktree": worktree,
-        "routing": routing(conn, filters),
+        "routing": routing(conn, dataclasses.replace(filters, model="", scope="all")),
     }

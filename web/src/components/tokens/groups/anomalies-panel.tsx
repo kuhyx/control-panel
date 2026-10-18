@@ -44,6 +44,13 @@ export interface AnomaliesPanelData {
   loops: LoopRow[];
   over: number;
   spikes: SpikeRow[];
+  // Counts before the table layer cut the lists.
+  totals: {
+    expensive: number;
+    expensive_usd: number;
+    loops: number;
+    spikes: number;
+  };
 }
 
 const SPIKE_COLUMNS: ColumnSpec<SpikeRow>[] = [
@@ -91,20 +98,21 @@ export function AnomaliesPanel({
       <ul aria-label="Anomalies summary" className="tiles">
         <li className="tile">
           <span className="tile-count hero">
-            {formatCount(data.spikes.length)}
+            {formatCount(data.totals.spikes)}
           </span>
           <span className="tile-label">spend-spike days</span>
         </li>
         <li className="tile">
           <span className="tile-count">
-            {formatCount(data.expensive.length)}
+            {formatCount(data.totals.expensive)}
           </span>
           <span className="tile-label">
-            sessions over {formatUsd(data.over)}
+            sessions over {formatUsd(data.over)} (
+            {formatUsd(data.totals.expensive_usd)})
           </span>
         </li>
         <li className="tile">
-          <span className="tile-count">{formatCount(data.loops.length)}</span>
+          <span className="tile-count">{formatCount(data.totals.loops)}</span>
           <span className="tile-label">runaway loops</span>
         </li>
       </ul>

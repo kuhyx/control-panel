@@ -167,21 +167,24 @@ def test_routing_reads_the_ab_log_in_range(store: Path, sysroot: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    ("query", "keys", "returned"),
+    ("query", "keys", "returned", "worktree"),
     [
-        ("cwd=/home/tester/src", 2, 300),
-        (f"model={SONNET}", 1, 200),
-        ("scope=main", 0, 0),
-        ("scope=sub", 3, 300),
-        ("from=2026-09-29&to=2026-09-29", 1, 0),
+        ("cwd=/home/tester/src", 2, 300, 1),
+        (f"model={SONNET}", 1, 200, 0),
+        ("scope=main", 0, 0, 0),
+        ("scope=sub", 3, 300, 1),
+        ("from=2026-09-29&to=2026-09-29", 1, 0, 0),
     ],
 )
 def test_every_filter_applies(
-    store: Path, query: str, keys: int, returned: int
+    store: Path, query: str, keys: int, returned: int, worktree: int
 ) -> None:
-    totals = _subagents(query)["totals"]
+    payload = _subagents(query)
+    totals = payload["totals"]
     assert totals["agents"] == keys
     assert totals["returned_tokens"] == returned
+    assert totals["worktree_agents"] == worktree
+    assert payload["routing"]["hook_runs"] == (0 if "from=" in query else 2)
 
 
 def test_an_empty_range_has_no_rows(store: Path) -> None:

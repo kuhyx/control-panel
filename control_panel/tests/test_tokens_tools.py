@@ -9,6 +9,7 @@ import pytest
 from control_panel.tests import _fixture_detail as fd
 from control_panel.tests import _fixture_tokens as fx
 from control_panel.tokens import _api, _db
+from control_panel.tokens import _registry as registry
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -128,7 +129,7 @@ def test_loops_are_identical_calls_repeated_more_than_twice(store: Path) -> None
 
 
 def test_batching_rate_per_day(store: Path) -> None:
-    first, second = _tools()["batching"]
+    second, first = _tools()["batching"]
     assert (first["day"], first["calls"], first["batched"]) == ("2026-09-28", 8, 2)
     assert first["share"] == pytest.approx(0.25)
     assert (second["day"], second["share"]) == ("2026-09-29", 0.0)
@@ -161,3 +162,12 @@ def test_an_empty_range_has_no_rows(store: Path) -> None:
     assert payload["batching"] == []
     assert payload["totals"]["batched_share"] is None
     assert payload["totals"]["error_rate"] is None
+
+
+def test_the_batching_chart_list_is_never_cut(store: Path) -> None:
+    payload = _tools("t.tools.limit=1")
+    assert payload["_tables"]["batching"]["shown"] == len(payload["batching"]) == 2
+    assert registry.PANELS["tools"].tables == {
+        **{t: {"limit": "25"} for t in ("tools", "families", "loops", "time_cap")},
+        "batching": {"limit": "0"},
+    }

@@ -79,6 +79,9 @@ def test_heatmap_by_local_weekday_and_hour(store: Path) -> None:
     cell = cells[local.weekday(), local.hour]
     assert cell["usd"] == pytest.approx(5.0)
     assert cell["calls"] == 2
+    grid = _spend()["grid"]
+    assert (len(grid), len(grid[0])) == (7, 24)
+    assert grid[local.weekday()][local.hour] == pytest.approx(5.0)
     assert _spend()["heatmap"][0]["usd"] == pytest.approx(5.0)
 
 
@@ -99,7 +102,11 @@ def test_five_hour_blocks(store: Path) -> None:
 
 
 def test_rate_limit_errors_per_day(store: Path) -> None:
-    assert _spend()["rate_limits"] == [{"day": "2026-09-28", "errors": 3}]
+    payload = _spend("t.blocks.limit=1")
+    assert payload["rate_limits"] == [{"day": "2026-09-28", "errors": 3}]
+    assert payload["totals"]["rate_limit_errors"] == 3
+    assert payload["totals"]["peak_block_usd"] == 6.0
+    assert len(payload["blocks"]) == 1
 
 
 @pytest.mark.parametrize(

@@ -83,6 +83,19 @@ def test_expensive_sessions_take_the_over_param(store: Path) -> None:
         3,
     )
     assert _anomalies("over=lots")["over"] == 20.0
+    assert _anomalies("over=inf")["over"] == 20.0
+    assert _anomalies("over=-3")["over"] == 0.0
+
+
+def test_totals_count_before_the_table_limit(store: Path) -> None:
+    payload = _anomalies("t.spikes.limit=1&over=5")
+    assert len(payload["spikes"]) == 1
+    assert payload["totals"] == {
+        "spikes": 2,
+        "expensive": 3,
+        "loops": 0,
+        "expensive_usd": 38.0,
+    }
 
 
 def test_categories_classify_polling_lint_test_and_vcs(store: Path) -> None:

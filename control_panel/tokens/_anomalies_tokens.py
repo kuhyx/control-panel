@@ -9,12 +9,14 @@ from __future__ import annotations
 
 from collections import defaultdict
 import dataclasses
+import math
 from typing import TYPE_CHECKING, Any
 from urllib.parse import parse_qs
 
 from control_panel.tokens._anomalies_tokens_rules import TRAILING_DAYS, category, spikes
 from control_panel.tokens._db import day_of
 from control_panel.tokens._registry import panel
+from control_panel.tokens._spend_more import DAILY_SPEND
 from control_panel.tokens._tools_loops import CAPTION as LOOP_CAPTION
 from control_panel.tokens._tools_loops import loops
 
@@ -36,12 +38,6 @@ CAPTION = (
     "-- with their context cost (creation + carry). " + LOOP_CAPTION
 )
 
-_DAILY = (
-    "SELECT day, SUM(usd) FROM turns WHERE"
-    " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
-    " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
-    " GROUP BY day"
-)
 _SESSIONS = (
     "SELECT main_key, MIN(day), SUM(usd), COUNT(*) FROM turns WHERE"
     " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
@@ -50,7 +46,7 @@ _SESSIONS = (
 )
 _FAMILIES = (
     "SELECT main_key, family, COUNT(*), SUM(create_usd + carry_usd)"
-    " FROM calls WHERE"
+    " FROM calls AS c WHERE"
     " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
     " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " GROUP BY main_key, family"
@@ -62,15 +58,16 @@ def over_of(filters: Filters) -> float:
     """The ``over`` query parameter (dollars), :data:`OVER` when unusable."""
     raw = parse_qs(filters.query).get("over", [""])[0]
     try:
-        return max(0.0, float(raw))
+        value = float(raw)
     except ValueError:
         return OVER
+    return max(0.0, value) if math.isfinite(value) else OVER
 
 
 def _spikes(conn: sqlite3.Connection, filters: Filters) -> list[dict[str, Any]]:
     """Spend spikes inside the range, judged against the week before it."""
     early = dataclasses.replace(filters, since=filters.since - TRAILING_DAYS * DAY_S)
-    daily = dict(conn.execute(_DAILY, early.params()).fetchall())
+    daily = dict(conn.execute(DAILY_SPEND, early.params()).fetchall())
     return spikes(daily, day_of(filters.since), day_of(filters.until))
 
 
@@ -131,12 +128,20 @@ def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
     """Spend spikes, expensive sessions, runaway loops, call categories."""
     over = over_of(filters)
     categories, category_totals = _categories(conn, filters)
-    return {
-        "caption": CAPTION,
-        "over": over,
+    found = {
         "spikes": _spikes(conn, filters),
         "expensive": _expensive(conn, filters, over),
         "loops": loops(conn, filters),
+    }
+    return {
+        "caption": CAPTION,
+        "over": over,
+        # Counts before the table layer cuts the lists to their limit.
+        "totals": {
+            **{name: len(rows) for name, rows in found.items()},
+            "expensive_usd": sum(r["usd"] for r in found["expensive"]),
+        },
+        **found,
         "categories": categories,
         "category_totals": category_totals,
     }

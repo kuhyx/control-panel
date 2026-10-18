@@ -37,11 +37,11 @@ _MONTHS = (
     " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
     " GROUP BY 1 ORDER BY 1 DESC"
 )
-_DAYS = (
+DAILY_SPEND = (
     "SELECT day, SUM(usd) FROM turns WHERE"
     " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
     " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
-    " GROUP BY day ORDER BY day"
+    " GROUP BY day ORDER BY 1"
 )
 _BY_MODEL = (
     "SELECT model, SUM(usd), COUNT(*) FROM turns WHERE"
@@ -68,13 +68,13 @@ _RATE_LIMITS = (
     " AND name LIKE '%limit%' AND"
     " ts BETWEEN ? AND ? AND (? = '' OR cwd = ? OR cwd LIKE ? || '/%')"
     " AND (? = '' OR model = ?) AND (? = -1 OR is_sub = ?)"
-    " GROUP BY day ORDER BY day"
+    " GROUP BY day ORDER BY MIN(ts)"
 )
 
 
 def _cumulative(conn: sqlite3.Connection, filters: Filters) -> list[dict[str, Any]]:
     """Running total within each of the last months, per day of month."""
-    days = conn.execute(_DAYS, filters.params()).fetchall()
+    days = conn.execute(DAILY_SPEND, filters.params()).fetchall()
     months = sorted({day[:7] for day, _ in days})[-CUMULATIVE_MONTHS:]
     totals: defaultdict[str, float] = defaultdict(float)
     rows = []
@@ -111,6 +111,14 @@ def _heatmap(conn: sqlite3.Connection, filters: Filters) -> list[dict[str, Any]]
     return sorted(cells, key=lambda c: -c["usd"])
 
 
+def _grid(cells: list[dict[str, Any]]) -> list[list[float]]:
+    """The heatmap as 7 x 24 USD (Monday first): a matrix, never table-cut."""
+    grid = [[0.0] * 24 for _ in range(7)]
+    for cell in cells:
+        grid[cell["weekday"]][cell["hour"]] = cell["usd"]
+    return grid
+
+
 TABLES = (
     "months",
     "by_model",
@@ -129,6 +137,8 @@ TABLES = (
     tables={
         **{t: {"limit": str(TOP)} for t in TABLES},
         "blocks": {"limit": str(TOP), "sort": "-usd"},
+        # Lists that feed a time-axis chart are never cut.
+        **{t: {"limit": "0"} for t in ("months", "block_daily", "rate_limits")},
         "cumulative": {"limit": "0"},
     },
 )
@@ -140,9 +150,20 @@ def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
     ]
     total = sum(m["usd"] for m in months)
     blocks = _spend_more_blocks.blocks(conn, filters)
+    heatmap = _heatmap(conn, filters)
+    limits = [
+        {"day": day, "errors": n}
+        for day, n in conn.execute(_RATE_LIMITS, filters.params())
+    ]
     return {
         "caption": CAPTION,
-        "totals": {"usd": total, "blocks": len(blocks)},
+        "totals": {
+            "usd": total,
+            "blocks": len(blocks),
+            "peak_block_usd": max((b["usd"] for b in blocks), default=0.0),
+            "rate_limit_errors": sum(r["errors"] for r in limits),
+        },
+        "grid": _grid(heatmap),
         "months": months,
         "cumulative": _cumulative(conn, filters),
         "by_model": _shares(
@@ -151,11 +172,8 @@ def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
         "by_cwd": _shares(
             conn.execute(_BY_CWD, filters.params()).fetchall(), "cwd", total
         ),
-        "heatmap": _heatmap(conn, filters),
+        "heatmap": heatmap,
         "blocks": blocks,
         "block_daily": _spend_more_blocks.daily(blocks),
-        "rate_limits": [
-            {"day": day, "errors": n}
-            for day, n in conn.execute(_RATE_LIMITS, filters.params())
-        ],
+        "rate_limits": limits,
     }

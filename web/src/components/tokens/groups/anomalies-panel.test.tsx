@@ -28,6 +28,7 @@ const DATA: AnomaliesPanelData = {
   ],
   over: 20,
   spikes: [{ day: "2026-10-09", median_usd: 56.87, ratio: 7.158, usd: 407.12 }],
+  totals: { expensive: 1, expensive_usd: 572.39, loops: 30, spikes: 4 },
 };
 
 describe("AnomaliesPanel", () => {
@@ -36,8 +37,9 @@ describe("AnomaliesPanel", () => {
     const tiles = within(
       screen.getByRole("list", { name: "Anomalies summary" }),
     );
-    expect(tiles.getByText("sessions over $20.00")).toBeInTheDocument();
-    expect(tiles.getAllByText("1")).toHaveLength(3);
+    expect(tiles.getByText(/sessions over \$20\.00/)).toBeInTheDocument();
+    expect(tiles.getByText("4")).toBeInTheDocument();
+    expect(tiles.getByText("30")).toBeInTheDocument();
     expect(screen.getByText("7.2×")).toBeInTheDocument();
     expect(screen.getByText("$572")).toBeInTheDocument();
     expect(
