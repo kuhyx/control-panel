@@ -3,11 +3,13 @@ import { useState } from "react";
 import type { MutationResult } from "../../lib/types.ts";
 
 import {
-  markSession,
-  resumeSession,
+  deleteSession,
+  markSessions,
+  resumeSessions,
   type SessionEntry,
 } from "../../lib/sessions-api.ts";
 import { MutationOutcome } from "../tighten-curfew.tsx";
+import { ConfirmDelete } from "./confirm-delete.tsx";
 
 // Which mark a click would send, or undefined for no button. Only a manual
 // mark can be undone: a session that reported DONE itself has nothing to
@@ -17,7 +19,7 @@ function nextMark(session: SessionEntry): "done" | null | undefined {
   return session.done ? undefined : "done";
 }
 
-// Resume / Copy / Mark done for one session. The server decides what
+// Resume / Copy / Mark done / Delete for one session. The server decides what
 // resuming means (it opens a terminal); its answer is shown verbatim.
 export function SessionActions({
   onChanged,
@@ -59,7 +61,7 @@ export function SessionActions({
       <button
         aria-label={`Resume ${session.id}`}
         disabled={busy}
-        onClick={() => void send(() => resumeSession(session.id), false)}
+        onClick={() => void send(() => resumeSessions([session.id]), false)}
         type="button"
       >
         Resume
@@ -77,12 +79,18 @@ export function SessionActions({
           aria-label={mark === null ? `Unmark ${session.id}` : `Mark ${session.id} done`}
           className="quiet"
           disabled={busy}
-          onClick={() => void send(() => markSession(session.id, mark), true)}
+          onClick={() => void send(() => markSessions([session.id], mark), true)}
           type="button"
         >
           {mark === null ? "Unmark" : "Mark done"}
         </button>
       )}
+      <ConfirmDelete
+        count={1}
+        isDisabled={busy}
+        label={`Delete ${session.id}`}
+        onConfirm={() => void send(() => deleteSession(session.id), true)}
+      />
       {copied !== "" && <span className="category">{copied}</span>}
       {error !== null && (
         <span className="empty" role="alert">

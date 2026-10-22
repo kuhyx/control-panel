@@ -71,3 +71,76 @@
   margin: 0 0 var(--space-2);
   white-space: pre-wrap;
 }
+
+/* Filters: status chips wrap as one group; the age number and its unit sit
+   side by side under one caption. */
+.status-chips {
+  border: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  margin: 0;
+  padding: 0;
+}
+
+.status-chips legend {
+  color: var(--text-muted);
+  font-size: var(--text-caption);
+  padding: 0;
+}
+
+.filter-bar label.chip {
+  align-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  flex-direction: row;
+  padding: var(--space-1) var(--space-2);
+}
+
+.age-filter {
+  align-items: end;
+  display: flex;
+  gap: var(--space-1);
+}
+
+.age-filter input {
+  width: 5rem;
+}
+
+/* Sticky above the table (outside .table-scroll, whose overflow would
+   otherwise be what it sticks to). */
+.bulk-bar {
+  align-items: center;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.bulk-bar .outcome {
+  flex-basis: 100%;
+}
+
+.sessions-table .select-cell {
+  cursor: auto;
+  width: 1%;
+}
+
+button.danger {
+  background: var(--danger);
+}
+
+.confirm-note {
+  color: var(--text-muted);
+  font-size: var(--text-caption);
+  white-space: normal;
+}

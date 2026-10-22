@@ -1,0 +1,168 @@
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { NOW_MS, stubSessionsFetch } from "../../test/sessions-fixture.ts";
+import { SessionsPage } from "./sessions-page.tsx";
+
+const now = (): number => NOW_MS;
+
+// Row ids in display order, read off each row's selection checkbox.
+function rowIds(): string[] {
+  return screen
+    .queryAllByRole("checkbox", { name: /^Select (?!all)/ })
+    .map((box) => (box.getAttribute("aria-label") ?? "").replace("Select ", ""));
+}
+
+async function open(hash = "#/tokens/sessions"): Promise<void> {
+  globalThis.history.replaceState(null, "", hash);
+  stubSessionsFetch();
+  render(<SessionsPage now={now} />);
+  await screen.findByRole("checkbox", { name: "Select all shown sessions" });
+}
+
+const header = (name: string): HTMLElement =>
+  screen.getByRole("columnheader", { name });
+
+beforeEach(() => {
+  globalThis.history.replaceState(null, "", "#/tokens/sessions");
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+describe("SessionsPage sorting", () => {
+  it.each([
+    ["Status", "status", "alpha", "golf"],
+    ["Age", "age", "delta", "foxtrot"],
+    ["Project", "project", "delta", "charlie"],
+    ["Title", "title", "charlie", "golf"],
+    ["Mark", "mark", "foxtrot", "alpha"],
+  ])("cycles %s ascending, descending, off", async (label, key, first, descFirst) => {
+    await open("#/tokens/sessions?done=1");
+    const th = header(label);
+    const button = within(th).getByRole("button", { name: label });
+    expect(th).toHaveAttribute("aria-sort", "none");
+    fireEvent.click(button);
+    expect(th).toHaveAttribute("aria-sort", "ascending");
+    expect(within(th).getByText("▲")).toBeInTheDocument();
+    expect(rowIds()[0]).toBe(first);
+    expect(globalThis.location.hash).toBe(`#/tokens/sessions?done=1&sort=${key}%3Aasc`);
+    fireEvent.click(button);
+    expect(th).toHaveAttribute("aria-sort", "descending");
+    expect(within(th).getByText("▼")).toBeInTheDocument();
+    expect(rowIds()[0]).toBe(descFirst);
+    fireEvent.click(button);
+    expect(th).toHaveAttribute("aria-sort", "none");
+    expect(rowIds()).toEqual([
+      "alpha",
+      "bravo",
+      "charlie",
+      "delta",
+      "echo",
+      "foxtrot",
+      "golf",
+    ]);
+    expect(globalThis.location.hash).toBe("#/tokens/sessions?done=1");
+  });
+
+  it("shows how each row became done in the Mark column", async () => {
+    await open("#/tokens/sessions?done=1");
+    const cell = (id: string): HTMLElement =>
+      screen.getByRole("checkbox", { name: `Select ${id}` }).closest("tr") as HTMLElement;
+    expect(within(cell("foxtrot")).getByText("by hand")).toBeInTheDocument();
+    expect(within(cell("echo")).getByText("by tag")).toBeInTheDocument();
+    expect(within(cell("alpha")).getByText("—")).toBeInTheDocument();
+  });
+});
+
+describe("SessionsPage filters", () => {
+  it("filters by status chips with counts; a done chip shows its rows", async () => {
+    await open();
+    const status = screen.getByRole("group", { name: "Status" });
+    fireEvent.click(within(status).getByRole("checkbox", { name: "question (1)" }));
+    fireEvent.click(within(status).getByRole("checkbox", { name: "running (1)" }));
+    expect(rowIds()).toEqual(["bravo", "delta"]);
+    expect(globalThis.location.hash).toBe(
+      "#/tokens/sessions?status=question&status=running",
+    );
+    fireEvent.click(within(status).getByRole("checkbox", { name: "done (2)" }));
+    expect(rowIds()).toEqual(["bravo", "delta", "echo", "foxtrot"]);
+    fireEvent.click(within(status).getByRole("checkbox", { name: "question (1)" }));
+    expect(rowIds()).toEqual(["delta", "echo", "foxtrot"]);
+  });
+
+  it("filters by project from a sorted dropdown", async () => {
+    await open();
+    const project = screen.getByLabelText("Project");
+    expect(
+      within(project).getAllByRole("option").map((o) => o.textContent),
+    ).toEqual(["All projects", "delta", "foxtrot", "golf", "panel", "router"]);
+    fireEvent.change(project, { target: { value: "panel" } });
+    expect(rowIds()).toEqual(["alpha", "bravo"]);
+    expect(globalThis.location.hash).toBe("#/tokens/sessions?project=panel");
+    fireEvent.change(project, { target: { value: "" } });
+    expect(rowIds()).toHaveLength(4);
+  });
+
+  it("filters to rows older than N hours, days or weeks", async () => {
+    await open();
+    fireEvent.change(screen.getByLabelText("Age unit"), { target: { value: "h" } });
+    expect(rowIds()).toHaveLength(4);
+    fireEvent.change(screen.getByLabelText("Older than"), { target: { value: "2" } });
+    expect(rowIds()).toEqual(["alpha", "charlie"]);
+    expect(globalThis.location.hash).toBe("#/tokens/sessions?older=2h");
+    fireEvent.change(screen.getByLabelText("Age unit"), { target: { value: "w" } });
+    expect(rowIds()).toEqual([]);
+    expect(screen.getByText("No sessions match.")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Older than"), { target: { value: "" } });
+    expect(rowIds()).toHaveLength(4);
+    expect(globalThis.location.hash).toBe("#/tokens/sessions");
+  });
+
+  it("filters by mark; a done mark shows done rows without Show done", async () => {
+    await open();
+    const mark = screen.getByLabelText("Mark");
+    fireEvent.change(mark, { target: { value: "manual" } });
+    expect(rowIds()).toEqual(["foxtrot"]);
+    fireEvent.change(mark, { target: { value: "tag" } });
+    expect(rowIds()).toEqual(["echo", "golf"]);
+    fireEvent.change(mark, { target: { value: "open" } });
+    expect(rowIds()).toEqual(["alpha", "bravo", "charlie", "delta"]);
+    expect(globalThis.location.hash).toBe("#/tokens/sessions?mark=open");
+    fireEvent.change(mark, { target: { value: "all" } });
+    expect(globalThis.location.hash).toBe("#/tokens/sessions");
+  });
+
+  it("restores every filter and the sort from the hash, combined", async () => {
+    await open(
+      "#/tokens/sessions?status=done&status=continuing&project=panel&older=1d&mark=tag&sort=age:asc",
+    );
+    expect(rowIds()).toEqual(["echo"]);
+    expect(screen.getByRole("checkbox", { name: "done (2)" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "continuing (1)" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "running (1)" })).not.toBeChecked();
+    expect(screen.getByLabelText("Project")).toHaveValue("panel");
+    expect(screen.getByLabelText("Older than")).toHaveValue(1);
+    expect(screen.getByLabelText("Age unit")).toHaveValue("d");
+    expect(screen.getByLabelText("Mark")).toHaveValue("tag");
+    expect(header("Age")).toHaveAttribute("aria-sort", "ascending");
+    fireEvent.change(screen.getByLabelText("Project"), { target: { value: "" } });
+    expect(rowIds()).toEqual(["echo"]);
+    fireEvent.change(screen.getByLabelText("Older than"), { target: { value: "" } });
+    expect(rowIds()).toEqual(["golf", "echo"]);
+  });
+
+  it("keeps a hashed project that vanished, and ignores impossible values", async () => {
+    await open("#/tokens/sessions?project=gone&mark=tag&older=2d");
+    expect(screen.getByLabelText("Project")).toHaveValue("gone");
+    expect(screen.getByText("No sessions match.")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Mark"), { target: { value: "bogus" } });
+    fireEvent.change(screen.getByLabelText("Age unit"), { target: { value: "bogus" } });
+    // Neither change reached the query: the hash is still the one loaded.
+    expect(globalThis.location.hash).toBe(
+      "#/tokens/sessions?project=gone&mark=tag&older=2d",
+    );
+    expect(screen.getByLabelText("Mark")).toHaveValue("tag");
+  });
+});

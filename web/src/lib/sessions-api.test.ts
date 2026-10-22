@@ -6,54 +6,16 @@ import {
   stubSessionsFetch,
 } from "../test/sessions-fixture.ts";
 import {
+  deleteSession,
+  deleteSessions,
   fetchSessions,
-  markSession,
-  resumeSession,
-  sessionsFromSearch,
-  sessionsToSearch,
+  markSessions,
+  resumeSessions,
   statusCounts,
-  visibleSessions,
 } from "./sessions-api.ts";
 
 afterEach(() => {
   vi.unstubAllGlobals();
-});
-
-const ids = (query: { q: string; showDone: boolean }): string[] =>
-  visibleSessions(SESSIONS.sessions, query).map((s) => s.id);
-
-describe("sessions query", () => {
-  it("defaults to done hidden and no filter", () => {
-    expect(sessionsFromSearch("")).toEqual({ q: "", showDone: false });
-    expect(sessionsToSearch({ q: "", showDone: false })).toBe("");
-  });
-
-  it("round-trips through the hash query", () => {
-    const query = { q: "Fix router", showDone: true };
-    const search = sessionsToSearch(query);
-    expect(search).toBe("done=1&q=Fix+router");
-    expect(sessionsFromSearch(search)).toEqual(query);
-  });
-});
-
-describe("visibleSessions", () => {
-  it("hides done rows unless asked, keeping the server order", () => {
-    expect(ids({ q: "", showDone: false })).toEqual([
-      "alpha",
-      "bravo",
-      "charlie",
-      "delta",
-    ]);
-    expect(ids({ q: "", showDone: true })).toHaveLength(7);
-  });
-
-  it("matches project, title and cwd case-insensitively", () => {
-    expect(ids({ q: "ROUTER", showDone: false })).toEqual(["charlie"]);
-    expect(ids({ q: "delta-box", showDone: false })).toEqual(["delta"]);
-    expect(ids({ q: "  bravo ", showDone: false })).toEqual(["bravo"]);
-    expect(ids({ q: "golf", showDone: false })).toEqual([]);
-    expect(ids({ q: "golf", showDone: true })).toEqual(["golf"]);
-  });
 });
 
 describe("statusCounts", () => {
@@ -75,15 +37,23 @@ describe("sessions endpoints", () => {
     await expect(fetchSessions()).resolves.toEqual(SESSIONS);
   });
 
-  it("posts the resume and mark bodies", async () => {
+  it("posts the bulk bodies, and a single delete by id", async () => {
     const spy = stubSessionsFetch();
-    await resumeSession("alpha");
-    await markSession("alpha", "done");
-    await markSession("alpha", null);
-    expect(postedBodies(spy, "session-resume")).toEqual([{ id: "alpha" }]);
+    await markSessions(["alpha", "bravo"], "done");
+    await markSessions(["alpha"], null);
+    await resumeSessions(["alpha", "bravo"]);
+    await deleteSessions(["echo", "golf"]);
+    await deleteSession("echo");
     expect(postedBodies(spy, "session-mark")).toEqual([
-      { id: "alpha", mark: "done" },
-      { id: "alpha", mark: null },
+      { ids: ["alpha", "bravo"], mark: "done" },
+      { ids: ["alpha"], mark: null },
+    ]);
+    expect(postedBodies(spy, "session-resume")).toEqual([
+      { ids: ["alpha", "bravo"] },
+    ]);
+    expect(postedBodies(spy, "session-delete")).toEqual([
+      { ids: ["echo", "golf"] },
+      { id: "echo" },
     ]);
   });
 });
