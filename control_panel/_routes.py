@@ -21,6 +21,7 @@ from control_panel._types import to_payload
 from control_panel.mutations import (
     _hosts_add,
     _restart,
+    _session_delete,
     _session_mark,
     _session_resume,
     _shutdown_hours,
@@ -37,7 +38,7 @@ API_PREFIX = "/api/"
 # /api/journal/<source>/<name>: a scope or "docker", then a unit or container.
 _JOURNAL_SEGMENTS = 2
 # Mutations that cannot change fleet state, so they skip the ~2 s re-collect.
-_FLEET_NEUTRAL = frozenset({"session-resume", "session-mark"})
+_FLEET_NEUTRAL = frozenset({"session-resume", "session-mark", "session-delete"})
 
 
 class Router:
@@ -110,7 +111,7 @@ class Router:
     # POST bodies are dispatched here. The table is explicit rather than
     # derived from the path, so a typo cannot invent an endpoint.
     def mutate(self, name: str, body: object) -> tuple[HTTPStatus, dict[str, Any]]:
-        """Apply one of the five approved changes, or refuse to know it."""
+        """Apply one of the six approved changes, or refuse to know it."""
         handlers = {
             "shutdown-hours": _shutdown_hours.apply,
             "hosts-add": _hosts_add.apply,
@@ -118,6 +119,7 @@ class Router:
             # Approved by kuhy on 2026-10-22 for the sessions tab.
             "session-resume": _session_resume.apply,
             "session-mark": _session_mark.apply,
+            "session-delete": _session_delete.apply,
         }
         handler = handlers.get(name)
         if handler is None:

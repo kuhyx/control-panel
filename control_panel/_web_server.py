@@ -140,7 +140,7 @@ class Handler(BaseHTTPRequestHandler):
         """Dispatch a mutation. The only write verb here.
 
         There is no PUT, DELETE or PATCH, and a pre-commit hook keeps it that
-        way: the approved knobs (five since kuhy approved the two session
+        way: the approved knobs (six since kuhy approved the three session
         mutations on 2026-10-22) need one verb between them.
         """
         path = urlsplit(self.path).path

@@ -152,7 +152,7 @@ def test_mark_done_then_clear(transcript: Path) -> None:
     assert not list(transcript.parent.glob("*.tmp"))
 
 
-@pytest.mark.parametrize("name", ["session-resume", "session-mark"])
+@pytest.mark.parametrize("name", ["session-resume", "session-mark", "session-delete"])
 def test_router_dispatches_session_mutations(name: str) -> None:
     status, payload = _routes.Router(FakeRunner({}), 8770).mutate(name, {"id": "x"})
     assert status is HTTPStatus.OK

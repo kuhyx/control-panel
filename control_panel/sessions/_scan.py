@@ -40,6 +40,21 @@ class Scanner:
         self._cache[path] = (key, session)
         return session
 
+    def cached(self) -> list[str]:
+        """The transcript paths this cache currently holds a parse for."""
+        with self._lock:
+            return list(self._cache)
+
+    def forget(self, session_ids: set[str]) -> None:
+        """Drop every cached transcript of these sessions, in memory only.
+
+        The delete mutation calls this after moving the files away, so no
+        reader is ever handed a session whose transcript is in the trash.
+        """
+        with self._lock:
+            for path in [p for p in self._cache if Path(p).stem in session_ids]:
+                del self._cache[path]
+
     def scan(self, projects: Path) -> tuple[dict[str, _parse.Session], int]:
         """Return interactive sessions by id, and how many files were examined.
 

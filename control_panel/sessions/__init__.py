@@ -9,7 +9,8 @@ SQLite store refreshed every 30 minutes, and a session list that lags half an
 hour behind the terminal is wrong in exactly the case it exists for. This one
 reads the JSONL transcripts directly, cached per file version.
 
-This package only reads. The two mutations that act on sessions (resume in a
-terminal, manual mark-done) live in :mod:`control_panel.mutations`, like
-every other write.
+This package only reads. The three mutations that act on sessions (resume in
+a terminal, manual mark-done, move to a recoverable trash) live in
+:mod:`control_panel.mutations`, like every other write; the delete only asks
+the scanner to forget its in-memory parse of what it moved.
 """

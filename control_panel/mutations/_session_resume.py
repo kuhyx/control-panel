@@ -1,4 +1,4 @@
-"""Reopen a Claude Code session in a new terminal window.
+"""Reopen Claude Code sessions in new terminal windows, at most five at once.
 
 Approved by kuhy on 2026-10-22 for the sessions tab, as a second narrow
 exception beside :mod:`._restart`: it *starts* a unit, but only a transient
@@ -19,15 +19,18 @@ import time
 from typing import TYPE_CHECKING
 
 from control_panel import _sysroot
-from control_panel.mutations._session_lookup import known_session
+from control_panel.mutations._session_lookup import is_bulk, known_sessions, plural
 from control_panel.mutations._types import MutationResult
 from control_panel.sessions import _api
 
 if TYPE_CHECKING:
     from control_panel._runner import CommandRunner
+    from control_panel.sessions._parse import Session
 
 # systemd-run returns once the unit has started; it never waits on the window.
 TIMEOUT = 15.0
+# One click opens at most this many windows; more is a refusal, not a queue.
+MAX_BULK = 5
 SHOW_ENV = ("systemctl", "--user", "show-environment")
 DEFAULT_DISPLAY = ":0"
 
@@ -81,26 +84,69 @@ def build_argv(
     )
 
 
-def apply(runner: CommandRunner, body: object) -> MutationResult:
-    """Open a terminal resuming one known session in its own directory."""
-    session = known_session(body)
-    if isinstance(session, MutationResult):
-        return session
-    if not session.cwd or not _sysroot.sysroot_path(session.cwd).is_dir():
-        return MutationResult.failure(
-            f"{session.cwd or 'The session directory'} no longer exists.",
-            stderr="claude --resume only finds a session from its own directory.",
-        )
-    display, xauthority = _display_env(runner)
-    argv = build_argv(session.id, session.cwd, display, xauthority, int(now()))
-    result = runner.run(argv, timeout=TIMEOUT)
-    if result.ok:
-        return MutationResult.success(
-            f"Resuming {session.title or session.id} in a new terminal.",
-            stdout=result.stdout.strip()[-2000:],
-            argv=argv,
-        )
+def _missing_dirs(sessions: list[Session]) -> MutationResult | None:
+    """Refuse to launch anything if any session's directory is gone."""
+    missing = [
+        s.cwd or "The session directory"
+        for s in sessions
+        if not s.cwd or not _sysroot.sysroot_path(s.cwd).is_dir()
+    ]
+    if not missing:
+        return None
     return MutationResult.failure(
-        "Could not open a terminal.",
-        stderr=(result.error or result.stderr.strip())[-4000:],
+        f"{', '.join(missing)} no longer exists.",
+        stderr="claude --resume only finds a session from its own directory.",
+    )
+
+
+def _over_cap(body: object) -> MutationResult | None:
+    """Refuse a bulk request naming more sessions than one click should open."""
+    raw = body.get("ids") if isinstance(body, dict) else None
+    if not isinstance(raw, list) or len(raw) <= MAX_BULK:
+        return None
+    return MutationResult.refusal(
+        f"At most {MAX_BULK} sessions can be resumed at once.",
+        stderr=f"Got {len(raw)} ids; no terminal was opened.",
+    )
+
+
+def apply(runner: CommandRunner, body: object) -> MutationResult:
+    """Open a terminal per known session, each in its own directory."""
+    refused = _over_cap(body)
+    if refused is not None:
+        return refused
+    sessions = known_sessions(body)
+    if isinstance(sessions, MutationResult):
+        return sessions
+    refused = _missing_dirs(sessions)
+    if refused is not None:
+        return refused
+    display, xauthority = _display_env(runner)
+    epoch = int(now())
+    opened: list[tuple[str, tuple[str, ...], str]] = []
+    for session in sessions:
+        argv = build_argv(session.id, session.cwd, display, xauthority, epoch)
+        result = runner.run(argv, timeout=TIMEOUT)
+        if not result.ok:
+            summary = "Could not open a terminal."
+            if is_bulk(body):
+                summary = (
+                    f"Opened {len(opened)} of {len(sessions)} terminals; "
+                    f"could not open one for {session.id}."
+                )
+            return MutationResult.failure(
+                summary, stderr=(result.error or result.stderr.strip())[-4000:]
+            )
+        opened.append((session.id, argv, result.stdout.strip()))
+    if is_bulk(body):
+        # One payload carries one argv; a bulk launch reports per-id lines.
+        return MutationResult.success(
+            f"Resuming {plural(len(sessions))} in new terminals.",
+            stdout="\n".join(f"{sid}: {out}" for sid, _, out in opened)[-2000:],
+        )
+    _, argv, out = opened[0]
+    return MutationResult.success(
+        f"Resuming {sessions[0].title or sessions[0].id} in a new terminal.",
+        stdout=out[-2000:],
+        argv=argv,
     )
