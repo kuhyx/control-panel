@@ -17,6 +17,7 @@ import { AbBanner } from "./ab-panel.tsx";
 import { ContextFile } from "./context-panel.tsx";
 import { FilterBar } from "./filter-bar.tsx";
 import { LazyPanel } from "./lazy-panel.tsx";
+import { PageTabs } from "./page-tabs.tsx";
 import { SessionDetail } from "./session-detail.tsx";
 import { VIEWS } from "./views.ts";
 
@@ -96,6 +97,7 @@ export function TokensPage({
   return (
     <>
       {banner}
+      <PageTabs active="spend" />
       <h2 className="page-title">Claude Code spend</h2>
       {index.value !== null && <Coverage index={index.value} />}
       {index.value !== null && (

@@ -4,6 +4,7 @@ import {
   formatAge,
   formatBytes,
   formatEpochMicros,
+  formatRelativeAge,
   formatTimestamp,
 } from "./format.ts";
 
@@ -64,5 +65,23 @@ describe("formatAge", () => {
 
   it("renders an unparsable timestamp as a dash", () => {
     expect(formatAge("whenever", base)).toBe("—");
+  });
+});
+
+describe("formatRelativeAge", () => {
+  const at = "2026-10-22T08:00:00.000Z";
+  const base = Date.parse(at);
+  const minute = 60_000;
+
+  it("scales from seconds to minutes, hours and days", () => {
+    expect(formatRelativeAge(at, base + 7400)).toBe("7 s ago");
+    expect(formatRelativeAge(at, base + 3 * minute)).toBe("3 min ago");
+    expect(formatRelativeAge(at, base + 200 * minute)).toBe("3 h ago");
+    expect(formatRelativeAge(at, base + 3 * 24 * 60 * minute)).toBe("3 d ago");
+  });
+
+  it("floors a clock running behind at zero and dashes nonsense", () => {
+    expect(formatRelativeAge(at, base - 2000)).toBe("0 s ago");
+    expect(formatRelativeAge("whenever", base)).toBe("—");
   });
 });

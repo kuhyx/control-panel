@@ -47,3 +47,23 @@ export function formatAge(iso: string, nowMs: number): string {
     ? `${String(seconds)}s ago`
     : `${String(Math.floor(seconds / SECONDS_PER_MINUTE))}m ago`;
 }
+
+// Coarser than formatAge, for things days or weeks old: "7 s ago",
+// "3 min ago", "3 h ago", "12 d ago". Floored at zero for a clock running
+// behind, like formatAge.
+const STEPS: readonly (readonly [number, string])[] = [
+  [60, "s"],
+  [60, "min"],
+  [24, "h"],
+];
+
+export function formatRelativeAge(iso: string, nowMs: number): string {
+  const then = Date.parse(iso);
+  if (Number.isNaN(then)) return "—";
+  let value = Math.max(0, Math.floor((nowMs - then) / MS_PER_SECOND));
+  for (const [size, unit] of STEPS) {
+    if (value < size) return `${String(value)} ${unit} ago`;
+    value = Math.floor(value / size);
+  }
+  return `${String(value)} d ago`;
+}
