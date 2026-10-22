@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./app.tsx";
 import * as api from "./lib/api.ts";
 import { STATUS } from "./test/fixture.ts";
+import { stubSessionsFetch } from "./test/sessions-fixture.ts";
 import { stubTokensFetch } from "./test/tokens-fetch.ts";
 
 function goto(hash: string): void {
@@ -39,6 +40,16 @@ describe("App", () => {
     goto("#/tokens");
     expect(
       await screen.findByRole("heading", { name: "Claude Code spend" }),
+    ).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
+  it("routes to the sessions tab", async () => {
+    stubSessionsFetch();
+    render(<App />);
+    goto("#/tokens/sessions");
+    expect(
+      await screen.findByRole("heading", { name: "Claude Code sessions" }),
     ).toBeInTheDocument();
     vi.unstubAllGlobals();
   });

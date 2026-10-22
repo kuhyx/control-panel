@@ -7,6 +7,7 @@ import { FleetTable } from "./components/fleet-table.tsx";
 import { Freshness } from "./components/freshness.tsx";
 import { LogViewer } from "./components/log-viewer.tsx";
 import { RollupTiles } from "./components/rollup-tiles.tsx";
+import { SessionsPage } from "./components/sessions/sessions-page.tsx";
 import { SubsystemDetail } from "./components/subsystem-detail.tsx";
 import { TokensPage } from "./components/tokens/tokens-page.tsx";
 import { UnknownSection } from "./components/unknown-section.tsx";
@@ -66,13 +67,24 @@ export function App(): React.JSX.Element {
         )}
       </header>
 
-      {route.name.startsWith("tokens") ? (
-        <TokensPage route={route} />
-      ) : (
-        <Fleet error={error} route={route} status={status} />
-      )}
+      <Page error={error} route={route} status={status} />
     </main>
   );
+}
+
+// Sessions is checked first: it shares the `tokens` prefix but none of the
+// token page's data, so TokensPage (and its index fetch) never mounts there.
+function Page({
+  error,
+  route,
+  status,
+}: Readonly<{
+  error: null | string;
+  route: ReturnType<typeof useRoute>;
+  status: FleetStatus | null;
+}>): React.JSX.Element {
+  if (route.name === "tokens-sessions") return <SessionsPage />;
+  return route.name.startsWith("tokens") ? <TokensPage route={route} /> : <Fleet error={error} route={route} status={status} />;
 }
 
 function Fleet({

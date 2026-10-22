@@ -9,10 +9,12 @@ export interface Route {
     | "tokens"
     | "tokens-file"
     | "tokens-panel"
-    | "tokens-session";
+    | "tokens-session"
+    | "tokens-sessions";
 }
 
 const OVERVIEW: Route = { id: "", name: "overview" };
+const SESSIONS: Route = { id: "", name: "tokens-sessions" };
 
 // A hand-rolled hash router: a handful of routes do not justify a dependency,
 // and a hash route needs no server-side rewrite rule on the Python static
@@ -27,6 +29,8 @@ export function parseHash(hash: string): Route {
   const clean = path.replace(/^#\/?/, "");
   const [head = "", tail = "", rest = ""] = clean.split("/", 3);
   if (head === "tokens") {
+    // Before the `rest === ""` check: `#/tokens/sessions` has no third part.
+    if (tail === "sessions") return SESSIONS;
     if (rest === "") return { id: "", name: "tokens" };
     if (tail === "f") return { id: decodeURIComponent(rest), name: "tokens-file" };
     if (tail === "p") return { id: decodeURIComponent(rest), name: "tokens-panel" };
@@ -45,14 +49,14 @@ function trimTrailingSlashes(path: string): string {
   return path.slice(0, end);
 }
 
-// `/tokens` is a real path too (the server falls back to index.html for any
+// `/tokens` (and `/tokens/sessions`) is a real path too (the server falls back to index.html for any
 // unknown path), so a bookmark or `curl localhost:8760/tokens` lands on the
 // token page; a hash, when present, still wins.
 export function parseLocation(pathname: string, hash: string): Route {
   if (hash !== "" && hash !== "#" && hash !== "#/") return parseHash(hash);
-  return trimTrailingSlashes(pathname) === "/tokens"
-    ? { id: "", name: "tokens" }
-    : parseHash(hash);
+  const path = trimTrailingSlashes(pathname);
+  if (path === "/tokens/sessions") return SESSIONS;
+  return path === "/tokens" ? { id: "", name: "tokens" } : parseHash(hash);
 }
 
 export function useRoute(): Route {

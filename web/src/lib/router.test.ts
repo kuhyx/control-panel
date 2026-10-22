@@ -70,4 +70,17 @@ describe("token routes", () => {
       name: "tokens-session",
     });
   });
+
+  it("routes the sessions tab by hash and by path", () => {
+    const sessions = { id: "", name: "tokens-sessions" };
+    expect(parseHash("#/tokens/sessions")).toEqual(sessions);
+    expect(parseHash("#/tokens/sessions/")).toEqual(sessions);
+    expect(parseHash("#/tokens/sessions?done=1&q=x")).toEqual(sessions);
+    expect(parseLocation("/tokens/sessions", "")).toEqual(sessions);
+    expect(parseLocation("/tokens/sessions/", "#/")).toEqual(sessions);
+    expect(parseLocation("/tokens/sessions", "#/tokens")).toEqual({
+      id: "",
+      name: "tokens",
+    });
+  });
 });

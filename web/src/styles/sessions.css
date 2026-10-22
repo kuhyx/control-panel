@@ -1,0 +1,72 @@
+/* The token pages' tab strip and the Sessions tab. Every value is a token
+   from @kuhyx/web-ui/tokens.css; status badges take their semantic fill in
+   sessions-table.tsx. */
+
+.page-tabs {
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-3);
+}
+
+.page-tabs a {
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  padding: var(--space-1) var(--space-3);
+  text-decoration: none;
+}
+
+.page-tabs a[aria-current="page"] {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.filter-bar label.check {
+  align-items: center;
+  flex-direction: row;
+}
+
+.sessions-table tbody tr {
+  cursor: pointer;
+}
+
+.sessions-table tr.dim td {
+  color: var(--text-muted);
+}
+
+.sessions-table tr.session-detail {
+  cursor: auto;
+}
+
+.sessions-table tr.session-detail td {
+  background: var(--surface-2);
+}
+
+.session-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.session-meta {
+  display: grid;
+  gap: var(--space-1) var(--space-3);
+  grid-template-columns: max-content 1fr;
+  margin: 0 0 var(--space-2);
+}
+
+.session-meta dt {
+  color: var(--text-muted);
+}
+
+.session-meta dd {
+  margin: 0;
+}
+
+.session-text {
+  margin: 0 0 var(--space-2);
+  white-space: pre-wrap;
+}
