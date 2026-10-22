@@ -37,7 +37,7 @@ describe("SessionActions", () => {
     render(<SessionActions onChanged={vi.fn()} session={session("alpha")} />);
     fireEvent.click(screen.getByRole("button", { name: "Resume alpha" }));
     expect(await screen.findByText(RESUMED.summary)).toBeInTheDocument();
-    expect(postedBodies(spy, "session-resume")).toEqual([{ id: "alpha" }]);
+    expect(postedBodies(spy, "session-resume")).toEqual([{ ids: ["alpha"] }]);
   });
 
   it("copies the resume command", async () => {
@@ -65,7 +65,7 @@ describe("SessionActions", () => {
       expect(onChanged).toHaveBeenCalledOnce();
     });
     expect(postedBodies(spy, "session-mark")).toEqual([
-      { id: "charlie", mark: "done" },
+      { ids: ["charlie"], mark: "done" },
     ]);
   });
 
@@ -80,11 +80,24 @@ describe("SessionActions", () => {
       expect(onChanged).toHaveBeenCalledOnce();
     });
     expect(postedBodies(spy, "session-mark")).toEqual([
-      { id: "foxtrot", mark: null },
+      { ids: ["foxtrot"], mark: null },
     ]);
     unmount();
     render(<SessionActions onChanged={onChanged} session={session("echo")} />);
     expect(screen.queryByRole("button", { name: /mark/i })).toBeNull();
+  });
+
+  it("deletes one session after the in-page confirmation, then refetches", async () => {
+    const spy = stubSessionsFetch();
+    const onChanged = vi.fn();
+    render(<SessionActions onChanged={onChanged} session={session("echo")} />);
+    fireEvent.click(screen.getByRole("button", { name: "Delete echo" }));
+    expect(postedBodies(spy, "session-delete")).toEqual([]);
+    fireEvent.click(screen.getByRole("button", { name: "Confirm delete 1?" }));
+    await waitFor(() => {
+      expect(onChanged).toHaveBeenCalledOnce();
+    });
+    expect(postedBodies(spy, "session-delete")).toEqual([{ id: "echo" }]);
   });
 
   it("shows a transport failure instead of swallowing it", async () => {

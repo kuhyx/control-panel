@@ -106,7 +106,7 @@ describe("SessionsPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Mark alpha done" }));
     await waitFor(() => {
       expect(postedBodies(spy, "session-mark")).toEqual([
-        { id: "alpha", mark: "done" },
+        { ids: ["alpha"], mark: "done" },
       ]);
     });
     await waitFor(() => {

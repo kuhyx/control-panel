@@ -34,53 +34,31 @@ export interface SessionsPayload {
   sessions: SessionEntry[];
 }
 
-// What the Sessions tab keeps in the hash query: `done=1&q=…`.
-export interface SessionsQuery {
-  q: string;
-  showDone: boolean;
-}
-
 export function fetchSessions(signal?: AbortSignal): Promise<SessionsPayload> {
   return getJson<SessionsPayload>("/api/sessions", signal);
 }
 
-export function resumeSession(id: string): Promise<MutationResult> {
-  return mutate("session-resume", { id });
+export function deleteSession(id: string): Promise<MutationResult> {
+  return mutate("session-delete", { id });
 }
 
-export function markSession(
-  id: string,
+// One request for the whole selection (a single row sends [id]), one answer.
+export function markSessions(
+  ids: readonly string[],
   mark: "done" | null,
 ): Promise<MutationResult> {
-  return mutate("session-mark", { id, mark });
+  return mutate("session-mark", { ids, mark });
 }
 
-export function sessionsFromSearch(search: string): SessionsQuery {
-  const parameters = new URLSearchParams(search);
-  return {
-    q: parameters.get("q") ?? "",
-    showDone: parameters.get("done") === "1",
-  };
+// The server opens one terminal per id and refuses more than five.
+export function resumeSessions(ids: readonly string[]): Promise<MutationResult> {
+  return mutate("session-resume", { ids });
 }
 
-export function sessionsToSearch(query: SessionsQuery): string {
-  const parameters = new URLSearchParams();
-  if (query.showDone) parameters.set("done", "1");
-  if (query.q !== "") parameters.set("q", query.q);
-  return parameters.toString();
-}
-
-// Filter only, never re-sort: the server's order is the point of the list.
-export function visibleSessions(
-  sessions: readonly SessionEntry[],
-  query: SessionsQuery,
-): SessionEntry[] {
-  const needle = query.q.trim().toLowerCase();
-  return sessions.filter((session) => {
-    if (session.done && !query.showDone) return false;
-    const haystack = `${session.project}\n${session.title}\n${session.cwd}`;
-    return haystack.toLowerCase().includes(needle);
-  });
+// Transcripts move to ~/.claude/projects-trash/; a session active in the last
+// ten minutes is refused rather than deleted from under its terminal.
+export function deleteSessions(ids: readonly string[]): Promise<MutationResult> {
+  return mutate("session-delete", { ids });
 }
 
 // Header order, and how each status reads after its count.
@@ -92,6 +70,9 @@ const LABELS: readonly (readonly [SessionStatus, string, string])[] = [
   ["done", "done", "done"],
   ["continuing", "continuing", "continuing"],
 ];
+
+// The server's priority order, which the Status column sorts by.
+export const STATUS_ORDER: readonly SessionStatus[] = LABELS.map(([status]) => status);
 
 // "3 need action · 2 questions · …" over every session, filter or not.
 export function statusCounts(sessions: readonly SessionEntry[]): string {
