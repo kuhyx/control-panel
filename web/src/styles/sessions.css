@@ -47,8 +47,9 @@
 .session-actions {
   align-items: center;
   display: flex;
-  flex-wrap: wrap;
   gap: var(--space-1);
+  /* One line per row: a wrapped third button doubled every row's height. */
+  white-space: nowrap;
 }
 
 .session-meta {
