@@ -64,7 +64,8 @@ def test_binds_loopback_only() -> None:
 
 
 def test_post_is_the_only_write_verb() -> None:
-    # Three approved knobs need one verb between them. PUT/DELETE/PATCH would
+    # The approved knobs (five since kuhy approved the two session mutations
+    # on 2026-10-22) need one verb between them. PUT/DELETE/PATCH would
     # each be a shape this dashboard has no business offering.
     assert hasattr(_web_server.Handler, "do_POST")
     for verb in ("do_PUT", "do_DELETE", "do_PATCH"):

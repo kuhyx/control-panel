@@ -1,6 +1,7 @@
 """The shape every mutation answers with.
 
-One type for all three knobs, because the interesting field is the same in
+One type for every knob (five since kuhy approved the two session mutations
+on 2026-10-22), because the interesting field is the same in
 every case: what the underlying script said when it refused. The dashboard
 never decides whether a change is allowed -- it relays.
 """

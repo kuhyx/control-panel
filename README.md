@@ -117,6 +117,8 @@ dashboard is structurally incapable of permitting something they would refuse.
 | `POST /api/mutate/shutdown-hours` | `screen-locker`'s `adjust_shutdown_schedule.sh`, **never with `--restore`** | the script rejects any value that is not stricter, and its stderr is relayed verbatim |
 | `POST /api/mutate/hosts-add` | append, then `hosts-blocker/install.sh` | the installer aborts if any entry disappeared, so appending is the only edit that survives |
 | `POST /api/mutate/restart` | `systemctl --user restart` / `docker restart` | allowlisted in the manifest, and the loader **refuses** `restartable` on anything but a user unit or container in a `server` subsystem. A restart leaves a unit exactly as armed as it was, so it cannot switch a guard off. |
+| `POST /api/mutate/session-resume` | `systemd-run --user --collect … terminator -x zsh -lic 'claude --resume <id>'` | approved 2026-10-22. Not a guard: the id must be a canonical UUID of a scanned session, the cwd comes from its transcript, and the transient unit has no unit file to arm or disarm. |
+| `POST /api/mutate/session-mark` | atomic write of `~/.claude/session-status.json` | approved 2026-10-22. The dashboard's own manual "done" marks for the Sessions tab; no guard reads them. |
 | `GET /api/mutate/steam-exceptions` | nothing — view only | the enforcer loads `config.json` once and re-`chattr +i`s it every 3s tick, so a write here would be silently reverted. The panel says so instead of offering a dead control. |
 
 Two pre-commit hooks state the boundary rather than leaving it to discipline.
