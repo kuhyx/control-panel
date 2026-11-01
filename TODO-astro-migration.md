@@ -6,6 +6,8 @@ on each page does the fetching and rendering in vanilla TS, and stateful
 widgets become custom elements. `python -m control_panel serve` keeps serving
 `web/dist` on 127.0.0.1:8760.
 
+**Order: this repo migrates LAST, after every other repo.**
+
 ## steps
 1. Do `~/src/utils/web_ui/TODO-astro-port.md` first. Then bump `@kuhyx/web-ui`
    from `web_ui-v0.3.2` to the new tag. `tokens.css` goes in the layout.
