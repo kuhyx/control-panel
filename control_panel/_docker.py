@@ -1,6 +1,6 @@
 """Docker containers: the half of the server fleet systemd cannot see.
 
-gitea, Home Assistant, open-webui, searxng, syncyomi, endurain, signal-api and
+gitea, Home Assistant, open-webui, searxng, endurain, signal-api and
 the Caddy fronts all run as containers, so ``systemctl`` reports nothing about
 them -- the same invisibility the manifest exists to defeat for uninstalled
 units. One ``docker ps -a`` per collection covers every container.
