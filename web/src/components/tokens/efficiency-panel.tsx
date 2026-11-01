@@ -1,6 +1,7 @@
 import type {
   EfficiencyPanel as Data,
   EfficiencyWeek,
+  NoteCostRow,
 } from "../../lib/tokens-types.ts";
 
 import { formatShare, formatUsd } from "../../lib/tokens-api.ts";
@@ -11,7 +12,31 @@ const TABLES = [
   { id: "done", title: "DONE sessions per week" },
   { id: "commits", title: "Surviving commits per week" },
   { id: "estimate", title: "Estimated size units per week" },
+  { id: "notes_weekly", title: "Todo notes per week" },
 ] as const;
+
+const NOTE_COLUMNS = [
+  { key: "title", label: "note" },
+  { key: "status", label: "status" },
+  { key: "priority", label: "priority" },
+  { key: "done", label: "done" },
+  { key: "sessions", label: "sessions", num: true },
+  { key: "usd", label: "USD", num: true, unit: "USD" },
+  { key: "tokens", label: "tokens", num: true, unit: "tokens" },
+] as const;
+
+function NotesTable({ data }: Readonly<{ data: Data }>): React.JSX.Element {
+  return (
+    <DataTable<NoteCostRow>
+      columns={NOTE_COLUMNS.map((column) => ({ ...column }))}
+      id="notes"
+      meta={data._tables?.notes}
+      rowKey={(row) => row.id}
+      rows={data.notes ?? []}
+      title="Notes by cost"
+    />
+  );
+}
 
 function WeeklyTable({
   data,
@@ -20,7 +45,7 @@ function WeeklyTable({
   data: Data;
   table: (typeof TABLES)[number];
 }>): React.JSX.Element {
-  const rows = data[table.id];
+  const rows = data[table.id] ?? [];
   const keys = [...new Set(rows.flatMap((row) => Object.keys(row)))];
   return (
     <DataTable<EfficiencyWeek>
@@ -123,8 +148,23 @@ export function EfficiencyPanel({
           />
           <p className="caption">{data.captions.estimate}</p>
         </div>
+        <div>
+          <h3>USD per todo note</h3>
+          <LineChart
+            format={formatUsd}
+            label="USD per note"
+            series={[
+              {
+                label: "USD per note",
+                points: points(data.notes_weekly ?? [], "usd_per_note"),
+              },
+            ]}
+          />
+          <p className="caption">{data.captions.notes}</p>
+        </div>
       </div>
       {TABLES.map((table) => <WeeklyTable data={data} key={table.id} table={table} />)}
+      <NotesTable data={data} />
     </section>
   );
 }

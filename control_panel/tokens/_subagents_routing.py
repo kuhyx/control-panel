@@ -4,8 +4,9 @@
 says so in ``additionalContext``, so its ``hook_context`` marks count the
 rewrites and its ``hook_run`` marks count the spawns it saw -- both stored,
 so every filter applies. Its A/B arm assignments go to
-``~/.claude/logs/agent-ab.jsonl``, read live when present (only the date
-range applies: the log has no cwd/model/scope).
+``~/.claude/logs/agent-ab.jsonl`` (judgment classes, closed) and the build
+experiment's ``agent-ab-build.jsonl``, each read live when present (only the
+date range applies: the logs have no cwd/model/scope).
 """
 
 from __future__ import annotations
@@ -23,10 +24,14 @@ if TYPE_CHECKING:
     from control_panel.tokens._db import Filters
 
 AB_LOG = ".claude/logs/agent-ab.jsonl"
+AB_BUILD_LOG = ".claude/logs/agent-ab-build.jsonl"
 HOOK = "%agent_model_pretool%"
 GAP = (
     "~/.claude/logs/agent-ab.jsonl (the routing hook's A/B arm log) does not "
     "exist yet; only the hook's stored marks are shown."
+)
+GAP_BUILD = (
+    "~/.claude/logs/agent-ab-build.jsonl (the build-class A/B log) does not exist yet."
 )
 
 _MARKS = (
@@ -49,9 +54,9 @@ def _stamp(entry: object) -> float | None:
         return None
 
 
-def _ab_rows(filters: Filters) -> list[dict[str, Any]] | None:
+def _ab_rows(filters: Filters, log: str = AB_LOG) -> list[dict[str, Any]] | None:
     """A/B assignments in range by arm/class/type; ``None`` with no log."""
-    path = _sysroot.user_path(AB_LOG)
+    path = _sysroot.user_path(log)
     if not path.is_file():
         return None
     counts: Counter[tuple[str, str, str]] = Counter()
@@ -75,12 +80,15 @@ def _ab_rows(filters: Filters) -> list[dict[str, Any]] | None:
 
 
 def routing(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
-    """Hook runs, model rewrites, and the A/B log (or the gap)."""
+    """Hook runs, model rewrites, and both A/B logs (or their gaps)."""
     kinds = dict(conn.execute(_MARKS, (HOOK, *filters.params())).fetchall())
     ab = _ab_rows(filters)
+    build = _ab_rows(filters, AB_BUILD_LOG)
     return {
         "hook_runs": kinds.get("hook_run", 0),
         "rewrites": kinds.get("hook_context", 0),
         "ab": ab or [],
         "gap": GAP if ab is None else "",
+        "ab_build": build or [],
+        "gap_build": GAP_BUILD if build is None else "",
     }

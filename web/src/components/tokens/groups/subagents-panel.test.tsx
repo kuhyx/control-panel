@@ -81,6 +81,23 @@ describe("SubagentsPanel", () => {
     expect(tiles.getByText("—")).toBeInTheDocument();
   });
 
+  it("lists the build A/B log apart from the judgment one", () => {
+    const data: SubagentsPanelData = {
+      ...DATA,
+      routing: {
+        ...DATA.routing,
+        ab_build: [
+          { arm: "opus", class: "build", count: 2, subagent_type: "general" },
+        ],
+        gap_build: "no build log yet",
+      },
+    };
+    render(view.render(data, { index: INDEX }));
+    expect(screen.getByText("Build A/B arms")).toBeInTheDocument();
+    expect(screen.getByText("Judgment A/B arms (closed)")).toBeInTheDocument();
+    expect(screen.getByText("no build log yet")).toBeInTheDocument();
+  });
+
   it("dashes a zero leverage tile", () => {
     render(
       view.render(

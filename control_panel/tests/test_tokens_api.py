@@ -115,7 +115,7 @@ def test_levers_rows_and_metric_series(store: Path) -> None:
 def test_efficiency_and_unknown_panel(store: Path) -> None:
     status, payload = _get("/api/tokens/panel/efficiency")
     assert status == HTTPStatus.OK
-    assert set(payload["captions"]) == {"done", "commits", "estimate"}
+    assert set(payload["captions"]) == {"done", "commits", "estimate", "notes"}
     assert _get("/api/tokens/panel/nope")[0] == HTTPStatus.NOT_FOUND
     assert _get("/api/tokens/bogus")[0] == HTTPStatus.NOT_FOUND
 

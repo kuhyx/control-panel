@@ -47,7 +47,14 @@ export interface SubagentsPanelData {
   by_model: AgentGroupRow[];
   by_type: AgentGroupRow[];
   caption: string;
-  routing: { ab: AbRow[]; gap: string; hook_runs: number; rewrites: number };
+  routing: {
+    ab: AbRow[];
+    ab_build?: AbRow[];
+    gap: string;
+    gap_build?: string;
+    hook_runs: number;
+    rewrites: number;
+  };
   totals: Sums & { worktree_agents: number };
   worktree: WorktreeRow[];
 }
@@ -178,7 +185,16 @@ export function SubagentsPanel({
         meta={data._tables?.["routing.ab"]}
         rowKey={(row) => `${row.arm}|${row.class}|${row.subagent_type}`}
         rows={routing.ab}
-        title="Routing A/B arms"
+        title="Judgment A/B arms (closed)"
+      />
+      {routing.gap_build ? <p className="caption">{routing.gap_build}</p> : null}
+      <DataTable<AbRow>
+        columns={AB_COLUMNS}
+        id="routing.ab_build"
+        meta={data._tables?.["routing.ab_build"]}
+        rowKey={(row) => `${row.arm}|${row.class}|${row.subagent_type}`}
+        rows={routing.ab_build ?? []}
+        title="Build A/B arms"
       />
     </section>
   );

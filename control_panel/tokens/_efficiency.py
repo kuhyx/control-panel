@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from control_panel.tokens import _efficiency_weeks
+from control_panel.tokens import _efficiency_notes, _efficiency_weeks
 from control_panel.tokens._registry import panel
 
 if TYPE_CHECKING:
@@ -33,13 +33,15 @@ CAPTIONS = {
         "USD per estimated size unit: spend of sessions the task-size estimator "
         "sized / its pre-work est_calls. Noisy (estimator precision ~0.7)."
     ),
+    "notes": _efficiency_notes.CAPTION,
 }
 
 
 @panel("efficiency", "Efficiency", order=30)
 def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
-    """The three weekly series under every filter, with captions."""
+    """The weekly series under every filter, plus per-note cost, with captions."""
     rows = _efficiency_weeks.sessions(conn, filters)
+    notes = _efficiency_notes.read()
     return {
         "captions": CAPTIONS,
         "filtered_by": (
@@ -48,4 +50,6 @@ def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
         "done": _efficiency_weeks.done(rows),
         "commits": _efficiency_weeks.commits(conn, rows, filters.until),
         "estimate": _efficiency_weeks.estimate(conn, rows),
+        "notes": notes,
+        "notes_weekly": _efficiency_notes.weekly(notes, filters.since, filters.until),
     }

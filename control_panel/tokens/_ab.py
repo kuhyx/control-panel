@@ -18,12 +18,20 @@ if TYPE_CHECKING:
     from control_panel.tokens._db import Filters
 
 COLLECTING = {"level": "grey", "text": "A/B judgment agents: collecting (n=0)"}
+BUILD_COLLECTING = {"level": "grey", "text": "A/B build agents: collecting (n=0)"}
 
 
 def payload(conn: sqlite3.Connection) -> dict[str, Any]:
     """The stored A/B summary, or an empty collecting one."""
     raw = _db.meta_json(conn, "ab")
     return raw if isinstance(raw, dict) else {"arms": {}, "banner": COLLECTING}
+
+
+def build_payload(conn: sqlite3.Connection) -> dict[str, Any]:
+    """The build-class A/B (agent-ab-build.jsonl), all time, with its rows."""
+    raw = _db.meta_json(conn, "ab_build")
+    found = raw if isinstance(raw, dict) else {"arms": {}, "banner": BUILD_COLLECTING}
+    return {**found, "metrics": _ab_rows.rows(found)}
 
 
 def banner(conn: sqlite3.Connection) -> dict[str, Any]:
@@ -74,6 +82,7 @@ def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
             **stored,
             "metrics": _ab_rows.rows(stored),
             "filtered_by": "all time, all assignments",
+            "build": build_payload(conn),
         }
     rows = [
         dict(zip(_COLUMNS, row, strict=True))
@@ -84,4 +93,5 @@ def build(conn: sqlite3.Connection, filters: Filters) -> dict[str, Any]:
         **recount,
         "metrics": _ab_rows.rows(recount),
         "filtered_by": "all time; arms recounted for cwd/model/scope",
+        "build": build_payload(conn),
     }

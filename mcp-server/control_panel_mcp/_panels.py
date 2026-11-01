@@ -76,8 +76,8 @@ def _rate(cell: object) -> str:
     )
 
 
-def ab_status(payload: Row) -> str:
-    """The A/B banner and one row per arm."""
+def _ab_section(title: str, payload: Row, suffix: str = "") -> str:
+    """One experiment: its banner and one row per arm."""
     arms = [{"arm": name, **arm} for name, arm in payload.get("arms", {}).items()]
     body = table(
         arms,
@@ -91,10 +91,22 @@ def ab_status(payload: Row) -> str:
     )
     banner = payload.get("banner") or {}
     return (
-        f"**A/B judgment subagents**: {banner.get('level', '-')}:"
-        f" {banner.get('text', '')}\n\n{body}\n\n"
-        f"unjoined: {payload.get('unjoined', 0)}. Rates are 95% CIs. {NOTE}"
+        f"**{title}**{suffix}: {banner.get('level', '-')}: {banner.get('text', '')}\n\n"
+        f"{body}\n\nunjoined: {payload.get('unjoined', 0)}."
     )
+
+
+def ab_status(payload: Row) -> str:
+    """The judgment A/B and, when present, the build A/B, each with its arms."""
+    build = payload.get("build")
+    if not isinstance(build, dict):
+        section = _ab_section("A/B judgment subagents", payload)
+        return f"{section} Rates are 95% CIs. {NOTE}"
+    parts = [
+        _ab_section("A/B judgment subagents", payload, " (closed experiment)"),
+        _ab_section("A/B build subagents", build),
+    ]
+    return "\n\n".join([*parts, f"Rates are 95% CIs. {NOTE}"])
 
 
 def efficiency(payload: Row) -> str:

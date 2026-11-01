@@ -33,7 +33,7 @@ export function AbBanner({
 export function AbPanel({ data }: Readonly<{ data: Data }>): React.JSX.Element {
   return (
     <section className="card" id="ab">
-      <h2>A/B: judgment subagents (Sonnet vs Opus)</h2>
+      <h2>A/B: judgment subagents (Sonnet vs Opus, closed)</h2>
       {data.filtered_by === undefined ? null : (
         <p className="category">Filtered by: {data.filtered_by}</p>
       )}
@@ -51,6 +51,25 @@ export function AbPanel({ data }: Readonly<{ data: Data }>): React.JSX.Element {
         rows={data.metrics ?? []}
         title="Measures"
       />
+      {data.build === undefined ? null : (
+        <>
+          <h3>A/B: build subagents (Sonnet vs Opus)</h3>
+          <AbBanner banner={data.build.banner} />
+          <p className="category">
+            From ~/.claude/logs/agent-ab-build.jsonl, all time.{" "}
+            {data.build.unjoined ?? 0} build assignments not (yet) found in
+            transcripts.
+          </p>
+          <DataTable<AbMetric>
+            columns={COLUMNS}
+            id="build.metrics"
+            meta={data._tables?.["build.metrics"]}
+            rowKey={(row) => row.measure}
+            rows={data.build.metrics ?? []}
+            title="Build measures"
+          />
+        </>
+      )}
     </section>
   );
 }

@@ -135,13 +135,28 @@ export type EfficiencyWeek = Record<string, null | number | string> & {
   week: string;
 };
 
+export interface NoteCostRow {
+  done: null | string;
+  done_at: null | number;
+  id: string;
+  priority: string;
+  sessions: number;
+  status: string;
+  title: string;
+  tokens: number;
+  usd: number;
+}
+
 export interface EfficiencyPanel {
   _tables?: Tables;
-  captions: Record<"commits" | "done" | "estimate", string>;
+  captions: Partial<Record<"notes", string>> &
+    Record<"commits" | "done" | "estimate", string>;
   commits: EfficiencyWeek[];
   done: EfficiencyWeek[];
   estimate: EfficiencyWeek[];
   filtered_by?: string;
+  notes?: NoteCostRow[];
+  notes_weekly?: EfficiencyWeek[];
 }
 
 export interface LeverRow {
@@ -202,14 +217,19 @@ export interface AbMetric {
   sonnet: string;
 }
 
-export interface AbPanel {
-  _tables?: Tables;
+export interface AbExperiment {
   arms: Partial<Record<"opus" | "sonnet", AbArm>>;
   banner: Banner;
   diffs?: Record<string, { diff: number; high: number; low: number }>;
-  filtered_by?: string;
   metrics?: AbMetric[];
   unjoined?: number;
+}
+
+export interface AbPanel extends AbExperiment {
+  _tables?: Tables;
+  // The build-class experiment (agent-ab-build.jsonl), all time.
+  build?: AbExperiment;
+  filtered_by?: string;
 }
 
 export type {

@@ -126,7 +126,14 @@ def _worktree(
     return sorted(rows, key=lambda r: (-r["usd"], r["day"]))
 
 
-TABLES = ("by_type", "by_model", "by_description", "worktree", "routing.ab")
+TABLES = (
+    "by_type",
+    "by_model",
+    "by_description",
+    "worktree",
+    "routing.ab",
+    "routing.ab_build",
+)
 
 
 @panel(

@@ -97,6 +97,22 @@ def test_ab_status() -> None:
     assert "| opus | 3 | 10% [0%-40%] k=1 | - | - | - | $1.00 | - |" in out
     assert "_panels" not in out
     assert "-: " in _panels.ab_status({})
+    assert "build" not in _panels.ab_status(AB).lower()
+
+
+def test_ab_status_reports_build_experiment_separately() -> None:
+    build = {
+        "arms": {"sonnet": {"n": 4}},
+        "banner": {"level": "grey", "text": "A/B build agents: collecting (n=0)"},
+        "unjoined": 2,
+    }
+    out = _panels.ab_status({**AB, "build": build})
+    judgment, _, rest = out.partition("**A/B build subagents**")
+    assert "**A/B judgment subagents** (closed experiment)" in judgment
+    assert "| opus | 3 |" in judgment
+    assert "grey: A/B build agents: collecting (n=0)" in rest
+    assert "| sonnet | 4 |" in rest
+    assert "unjoined: 2" in rest
 
 
 def test_efficiency() -> None:
