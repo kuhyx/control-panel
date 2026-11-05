@@ -5,7 +5,6 @@ import { App } from "./app.tsx";
 import * as api from "./lib/api.ts";
 import { STATUS } from "./test/fixture.ts";
 import { stubSessionsFetch } from "./test/sessions-fixture.ts";
-import { stubTokensFetch } from "./test/tokens-fetch.ts";
 
 function goto(hash: string): void {
   globalThis.location.hash = hash;
@@ -34,20 +33,33 @@ describe("App", () => {
     expect(screen.getByText(/1557 ms/)).toBeInTheDocument();
   });
 
-  it("routes to the token page", async () => {
-    stubTokensFetch();
+  it("links Sessions and the external Usage page", async () => {
+    render(<App />);
+    expect(screen.getByRole("link", { name: "Sessions" })).toHaveAttribute(
+      "href",
+      "#/sessions",
+    );
+    expect(screen.getByRole("link", { name: "Usage" })).toHaveAttribute(
+      "href",
+      "http://127.0.0.1:8786/usage/",
+    );
+    await screen.findByRole("table");
+  });
+
+  it("redirects an old token route to the usage page", async () => {
+    const replace = vi.fn();
+    vi.stubGlobal("location", { hash: "", pathname: "/", replace });
     render(<App />);
     goto("#/tokens");
-    expect(
-      await screen.findByRole("heading", { name: "Claude Code spend" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/Token usage moved/)).toBeInTheDocument();
+    expect(replace).toHaveBeenCalledWith("http://127.0.0.1:8786/usage/");
     vi.unstubAllGlobals();
   });
 
   it("routes to the sessions tab", async () => {
     stubSessionsFetch();
     render(<App />);
-    goto("#/tokens/sessions");
+    goto("#/sessions");
     expect(
       await screen.findByRole("heading", { name: "Claude Code sessions" }),
     ).toBeInTheDocument();

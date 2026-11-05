@@ -9,7 +9,6 @@ import {
   sortSessions,
 } from "../../lib/sessions-query.ts";
 import { nextSort } from "../../lib/table-query.ts";
-import { PageTabs } from "../tokens/page-tabs.tsx";
 import { BulkBar } from "./bulk-bar.tsx";
 import { SessionsFilters } from "./sessions-filters.tsx";
 import { SessionsTable } from "./sessions-table.tsx";
@@ -19,7 +18,7 @@ import { useSelection } from "./use-selection.ts";
 // The scan is cheap (see scan_ms) and sessions change while kuhy works, so
 // the list refreshes itself; usePoll pauses it while the tab is hidden.
 const POLL_MS = 10_000;
-const BASE = "#/tokens/sessions";
+const BASE = "#/sessions";
 
 // Every Claude Code session, the ones waiting on kuhy first (server order,
 // until a column sort is picked), finished ones hidden unless asked for.
@@ -46,7 +45,6 @@ export function SessionsPage({
   };
   return (
     <>
-      <PageTabs active="sessions" />
       <h2 className="page-title">Claude Code sessions</h2>
       {value !== null && (
         <p className="category">

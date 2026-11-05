@@ -23,7 +23,7 @@ const sessionCalls = (spy: ReturnType<typeof stubSessionsFetch>): number =>
   spy.mock.calls.filter(([path]) => path === "/api/sessions").length;
 
 async function open(
-  hash = "#/tokens/sessions",
+  hash = "#/sessions",
   payload: Parameters<typeof stubSessionsFetch>[0] = SESSIONS,
 ): Promise<ReturnType<typeof stubSessionsFetch>> {
   globalThis.history.replaceState(null, "", hash);
@@ -63,7 +63,7 @@ describe("SessionsPage selection", () => {
   });
 
   it("leaves the header unticked when nothing is shown", async () => {
-    await open("#/tokens/sessions?q=nothing-matches");
+    await open("#/sessions?q=nothing-matches");
     expect(all()).not.toBeChecked();
     expect(all()).not.toBePartiallyChecked();
   });
@@ -78,7 +78,7 @@ describe("SessionsPage selection", () => {
   });
 
   it("shift-click selects, then clears, the range from the last click", async () => {
-    await open("#/tokens/sessions?done=1");
+    await open("#/sessions?done=1");
     fireEvent.click(box("bravo"));
     fireEvent.click(box("echo"), { shiftKey: true });
     expect(bar()).toHaveTextContent("4 selected");
@@ -103,7 +103,7 @@ describe("SessionsPage selection", () => {
 
   it("keeps the selection across a refetch, dropping ids that vanished", async () => {
     const without = SESSIONS.sessions.filter((s) => s.id !== "bravo");
-    const spy = await open("#/tokens/sessions", [
+    const spy = await open("#/sessions", [
       SESSIONS,
       { ...SESSIONS, sessions: without },
     ]);
@@ -125,7 +125,7 @@ describe("SessionsPage selection", () => {
   });
 
   it("disables bulk Resume with more than five selected", async () => {
-    await open("#/tokens/sessions?done=1");
+    await open("#/sessions?done=1");
     fireEvent.click(all());
     expect(bar()).toHaveTextContent("7 selected");
     expect(within(bar()).getByRole("button", { name: "Resume" })).toBeDisabled();
@@ -157,7 +157,7 @@ describe("older than X, then a bulk action", () => {
   });
 
   it("age filter, header checkbox, Delete with its confirmation", async () => {
-    const spy = await open("#/tokens/sessions?done=1&older=1w");
+    const spy = await open("#/sessions?done=1&older=1w");
     fireEvent.click(all());
     fireEvent.click(within(bar()).getByRole("button", { name: "Delete" }));
     fireEvent.click(within(bar()).getByRole("button", { name: "Confirm delete 2?" }));

@@ -2,7 +2,7 @@ import type { SessionEntry, SessionStatus } from "../../lib/sessions-api.ts";
 
 import { formatRelativeAge } from "../../lib/format.ts";
 import { markOf, type RowMark } from "../../lib/sessions-query.ts";
-import { Markdown } from "../tokens/markdown.tsx";
+import { Markdown } from "../markdown.tsx";
 import { SessionActions } from "./session-actions.tsx";
 
 // Semantic fills only, as StateBadge does: what wants kuhy (a pending action

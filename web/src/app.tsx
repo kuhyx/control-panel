@@ -9,11 +9,12 @@ import { LogViewer } from "./components/log-viewer.tsx";
 import { RollupTiles } from "./components/rollup-tiles.tsx";
 import { SessionsPage } from "./components/sessions/sessions-page.tsx";
 import { SubsystemDetail } from "./components/subsystem-detail.tsx";
-import { TokensPage } from "./components/tokens/tokens-page.tsx";
 import { UnknownSection } from "./components/unknown-section.tsx";
+import { UsageRedirect } from "./components/usage-redirect.tsx";
 import { fetchStatus } from "./lib/api.ts";
 import { formatTimestamp } from "./lib/format.ts";
 import { useRoute } from "./lib/router.ts";
+import { USAGE_URL } from "./lib/usage-url.ts";
 
 // Poll rather than stream: the server is a plain do_GET-only ThreadingHTTPServer
 // with no SSE, and a 5s refresh is far finer than anything in this fleet moves.
@@ -56,7 +57,8 @@ export function App(): React.JSX.Element {
           <a href="#/">control-panel</a>
         </h1>
         <nav className="masthead-nav">
-          <a href="#/">fleet</a> · <a href="#/tokens">tokens</a>
+          <a href="#/">fleet</a> · <a href="#/sessions">Sessions</a> ·{" "}
+          <a href={USAGE_URL}>Usage</a>
         </nav>
         {status !== null && (
           <p className="category">
@@ -72,8 +74,6 @@ export function App(): React.JSX.Element {
   );
 }
 
-// Sessions is checked first: it shares the `tokens` prefix but none of the
-// token page's data, so TokensPage (and its index fetch) never mounts there.
 function Page({
   error,
   route,
@@ -83,8 +83,12 @@ function Page({
   route: ReturnType<typeof useRoute>;
   status: FleetStatus | null;
 }>): React.JSX.Element {
-  if (route.name === "tokens-sessions") return <SessionsPage />;
-  return route.name.startsWith("tokens") ? <TokensPage route={route} /> : <Fleet error={error} route={route} status={status} />;
+  if (route.name === "sessions") return <SessionsPage />;
+  return route.name === "usage" ? (
+    <UsageRedirect />
+  ) : (
+    <Fleet error={error} route={route} status={status} />
+  );
 }
 
 function Fleet({

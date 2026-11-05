@@ -151,11 +151,11 @@ Related deliberate choices:
 
 ```bash
 python -m venv .venv && .venv/bin/pip install -e .
-.venv/bin/pytest                       # 367 tests, 100% branch coverage
+.venv/bin/pytest                       # 573 tests, 100% branch coverage
 
 pnpm --dir web install                 # pnpm only: npm cannot install
 pnpm --dir web run lint                #   @kuhyx/web-ui from a git subdirectory
-pnpm --dir web run coverage            # 117 tests, 100% branch coverage
+pnpm --dir web run coverage            # 241 tests, 100% branch coverage
 pnpm --dir web run build               # -> web/dist, served by the Python process
 
 pre-commit run --all-files

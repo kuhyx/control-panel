@@ -36,51 +36,32 @@ describe("parseHash", () => {
   });
 });
 
-describe("token routes", () => {
-  it("routes the tokens page by hash and by the /tokens path", () => {
-    expect(parseHash("#/tokens")).toEqual({ id: "", name: "tokens" });
-    expect(parseHash("#/tokens?from=2026-10-10")).toEqual({ id: "", name: "tokens" });
-    expect(parseLocation("/tokens", "")).toEqual({ id: "", name: "tokens" });
-    expect(parseLocation("/", "#/s/x")).toEqual({ id: "x", name: "detail" });
+describe("sessions and moved token routes", () => {
+  const sessions = { id: "", name: "sessions" };
+  const usage = { id: "", name: "usage" };
+
+  it("routes the sessions page by hash and by path", () => {
+    expect(parseHash("#/sessions")).toEqual(sessions);
+    expect(parseHash("#/sessions?done=1&q=x")).toEqual(sessions);
+    expect(parseHash("#/tokens/sessions")).toEqual(sessions);
+    expect(parseHash("#/tokens/sessions?done=1")).toEqual(sessions);
+    expect(parseLocation("/sessions", "")).toEqual(sessions);
+    expect(parseLocation("/tokens/sessions/", "#/")).toEqual(sessions);
+  });
+
+  it("sends every other token route to the usage redirect", () => {
+    expect(parseHash("#/tokens")).toEqual(usage);
+    expect(parseHash("#/tokens/s/abc-1")).toEqual(usage);
+    expect(parseHash("#/tokens/p/carry?x=1")).toEqual(usage);
+    expect(parseLocation("/tokens", "")).toEqual(usage);
+    expect(parseLocation("/tokens", "#/s/x")).toEqual({ id: "x", name: "detail" });
   });
 
   it("ignores trailing slashes on the path and an empty hash", () => {
-    expect(parseLocation("/tokens//", "#/")).toEqual({ id: "", name: "tokens" });
-    expect(parseLocation("/tokens/", "#")).toEqual({ id: "", name: "tokens" });
+    expect(parseLocation("/tokens//", "#/")).toEqual(usage);
+    expect(parseLocation("/tokens/", "#")).toEqual(usage);
     expect(parseLocation("/", "")).toEqual({ id: "", name: "overview" });
     expect(parseLocation("", "")).toEqual({ id: "", name: "overview" });
     expect(parseLocation("/other", "")).toEqual({ id: "", name: "overview" });
-  });
-
-  it("routes one context file", () => {
-    expect(parseHash(`#/tokens/f/${encodeURIComponent("/a/b.md")}`)).toEqual({
-      id: "/a/b.md",
-      name: "tokens-file",
-    });
-    expect(parseHash("#/tokens/x/y")).toEqual({ id: "", name: "tokens" });
-    expect(parseHash("#/tokens/p/carry?t.carry%2Fmcp.limit=0")).toEqual({
-      id: "carry",
-      name: "tokens-panel",
-    });
-  });
-
-  it("routes one session", () => {
-    expect(parseHash("#/tokens/s/abc-1")).toEqual({
-      id: "abc-1",
-      name: "tokens-session",
-    });
-  });
-
-  it("routes the sessions tab by hash and by path", () => {
-    const sessions = { id: "", name: "tokens-sessions" };
-    expect(parseHash("#/tokens/sessions")).toEqual(sessions);
-    expect(parseHash("#/tokens/sessions/")).toEqual(sessions);
-    expect(parseHash("#/tokens/sessions?done=1&q=x")).toEqual(sessions);
-    expect(parseLocation("/tokens/sessions", "")).toEqual(sessions);
-    expect(parseLocation("/tokens/sessions/", "#/")).toEqual(sessions);
-    expect(parseLocation("/tokens/sessions", "#/tokens")).toEqual({
-      id: "",
-      name: "tokens",
-    });
   });
 });

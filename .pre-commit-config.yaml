@@ -182,10 +182,8 @@ repos:
           - --jobs=4
         # pylint resolves imports in its OWN isolated env, so anything the
         # package imports has to be listed here or it reports import-error and
-        # drags the score under --fail-under. `mcp` is a real runtime import
-        # (mcp-server/control_panel_mcp/_mcp.py).
+        # drags the score under --fail-under.
         additional_dependencies:
-          - mcp==2.3.0
           - pytest
           - requests
 

@@ -13,7 +13,7 @@ function rowIds(): string[] {
     .map((box) => (box.getAttribute("aria-label") ?? "").replace("Select ", ""));
 }
 
-async function open(hash = "#/tokens/sessions"): Promise<void> {
+async function open(hash = "#/sessions"): Promise<void> {
   globalThis.history.replaceState(null, "", hash);
   stubSessionsFetch();
   render(<SessionsPage now={now} />);
@@ -24,7 +24,7 @@ const header = (name: string): HTMLElement =>
   screen.getByRole("columnheader", { name });
 
 beforeEach(() => {
-  globalThis.history.replaceState(null, "", "#/tokens/sessions");
+  globalThis.history.replaceState(null, "", "#/sessions");
 });
 
 afterEach(() => {
@@ -39,7 +39,7 @@ describe("SessionsPage sorting", () => {
     ["Title", "title", "charlie", "golf"],
     ["Mark", "mark", "foxtrot", "alpha"],
   ])("cycles %s ascending, descending, off", async (label, key, first, descFirst) => {
-    await open("#/tokens/sessions?done=1");
+    await open("#/sessions?done=1");
     const th = header(label);
     const button = within(th).getByRole("button", { name: label });
     expect(th).toHaveAttribute("aria-sort", "none");
@@ -47,7 +47,7 @@ describe("SessionsPage sorting", () => {
     expect(th).toHaveAttribute("aria-sort", "ascending");
     expect(within(th).getByText("▲")).toBeInTheDocument();
     expect(rowIds()[0]).toBe(first);
-    expect(globalThis.location.hash).toBe(`#/tokens/sessions?done=1&sort=${key}%3Aasc`);
+    expect(globalThis.location.hash).toBe(`#/sessions?done=1&sort=${key}%3Aasc`);
     fireEvent.click(button);
     expect(th).toHaveAttribute("aria-sort", "descending");
     expect(within(th).getByText("▼")).toBeInTheDocument();
@@ -63,11 +63,11 @@ describe("SessionsPage sorting", () => {
       "foxtrot",
       "golf",
     ]);
-    expect(globalThis.location.hash).toBe("#/tokens/sessions?done=1");
+    expect(globalThis.location.hash).toBe("#/sessions?done=1");
   });
 
   it("shows how each row became done in the Mark column", async () => {
-    await open("#/tokens/sessions?done=1");
+    await open("#/sessions?done=1");
     const cell = (id: string): HTMLElement =>
       screen.getByRole("checkbox", { name: `Select ${id}` }).closest("tr") as HTMLElement;
     expect(within(cell("foxtrot")).getByText("by hand")).toBeInTheDocument();
@@ -84,7 +84,7 @@ describe("SessionsPage filters", () => {
     fireEvent.click(within(status).getByRole("checkbox", { name: "running (1)" }));
     expect(rowIds()).toEqual(["bravo", "delta"]);
     expect(globalThis.location.hash).toBe(
-      "#/tokens/sessions?status=question&status=running",
+      "#/sessions?status=question&status=running",
     );
     fireEvent.click(within(status).getByRole("checkbox", { name: "done (2)" }));
     expect(rowIds()).toEqual(["bravo", "delta", "echo", "foxtrot"]);
@@ -100,7 +100,7 @@ describe("SessionsPage filters", () => {
     ).toEqual(["All projects", "delta", "foxtrot", "golf", "panel", "router"]);
     fireEvent.change(project, { target: { value: "panel" } });
     expect(rowIds()).toEqual(["alpha", "bravo"]);
-    expect(globalThis.location.hash).toBe("#/tokens/sessions?project=panel");
+    expect(globalThis.location.hash).toBe("#/sessions?project=panel");
     fireEvent.change(project, { target: { value: "" } });
     expect(rowIds()).toHaveLength(4);
   });
@@ -111,13 +111,13 @@ describe("SessionsPage filters", () => {
     expect(rowIds()).toHaveLength(4);
     fireEvent.change(screen.getByLabelText("Older than"), { target: { value: "2" } });
     expect(rowIds()).toEqual(["alpha", "charlie"]);
-    expect(globalThis.location.hash).toBe("#/tokens/sessions?older=2h");
+    expect(globalThis.location.hash).toBe("#/sessions?older=2h");
     fireEvent.change(screen.getByLabelText("Age unit"), { target: { value: "w" } });
     expect(rowIds()).toEqual([]);
     expect(screen.getByText("No sessions match.")).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Older than"), { target: { value: "" } });
     expect(rowIds()).toHaveLength(4);
-    expect(globalThis.location.hash).toBe("#/tokens/sessions");
+    expect(globalThis.location.hash).toBe("#/sessions");
   });
 
   it("filters by mark; a done mark shows done rows without Show done", async () => {
@@ -129,14 +129,14 @@ describe("SessionsPage filters", () => {
     expect(rowIds()).toEqual(["echo", "golf"]);
     fireEvent.change(mark, { target: { value: "open" } });
     expect(rowIds()).toEqual(["alpha", "bravo", "charlie", "delta"]);
-    expect(globalThis.location.hash).toBe("#/tokens/sessions?mark=open");
+    expect(globalThis.location.hash).toBe("#/sessions?mark=open");
     fireEvent.change(mark, { target: { value: "all" } });
-    expect(globalThis.location.hash).toBe("#/tokens/sessions");
+    expect(globalThis.location.hash).toBe("#/sessions");
   });
 
   it("restores every filter and the sort from the hash, combined", async () => {
     await open(
-      "#/tokens/sessions?status=done&status=continuing&project=panel&older=1d&mark=tag&sort=age:asc",
+      "#/sessions?status=done&status=continuing&project=panel&older=1d&mark=tag&sort=age:asc",
     );
     expect(rowIds()).toEqual(["echo"]);
     expect(screen.getByRole("checkbox", { name: "done (2)" })).toBeChecked();
@@ -154,14 +154,14 @@ describe("SessionsPage filters", () => {
   });
 
   it("keeps a hashed project that vanished, and ignores impossible values", async () => {
-    await open("#/tokens/sessions?project=gone&mark=tag&older=2d");
+    await open("#/sessions?project=gone&mark=tag&older=2d");
     expect(screen.getByLabelText("Project")).toHaveValue("gone");
     expect(screen.getByText("No sessions match.")).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Mark"), { target: { value: "bogus" } });
     fireEvent.change(screen.getByLabelText("Age unit"), { target: { value: "bogus" } });
     // Neither change reached the query: the hash is still the one loaded.
     expect(globalThis.location.hash).toBe(
-      "#/tokens/sessions?project=gone&mark=tag&older=2d",
+      "#/sessions?project=gone&mark=tag&older=2d",
     );
     expect(screen.getByLabelText("Mark")).toHaveValue("tag");
   });

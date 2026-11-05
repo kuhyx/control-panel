@@ -38,22 +38,6 @@ jobs:
         # here would mask a test that forgot the fixture.
         run: pytest
 
-  # The token-dashboard MCP server is its own package with its own venv (the
-  # dashboard stays stdlib-only), so it gets its own install and 100% gate.
-  mcp-server:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: mcp-server
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.x"
-      - run: pip install -e '.[test]'
-      - name: Tests (100% branch coverage enforced)
-        run: pytest
-
   frontend:
     runs-on: ubuntu-latest
     defaults:
@@ -78,7 +62,7 @@ jobs:
         with:
           cache: pnpm
           cache-dependency-path: web/pnpm-lock.yaml
-          node-version: "24.22.0"
+          node-version: "26.13.0"
 
       # --frozen-lockfile: CI must fail on a lockfile that does not match
       # package.json rather than silently resolving something else.

@@ -24,7 +24,7 @@ function rowIds(): string[] {
 }
 
 beforeEach(() => {
-  globalThis.history.replaceState(null, "", "#/tokens/sessions");
+  globalThis.history.replaceState(null, "", "#/sessions");
 });
 
 afterEach(() => {
@@ -65,14 +65,14 @@ describe("SessionsPage", () => {
     fireEvent.click(screen.getByLabelText("Show done"));
     expect(rowIds()).toHaveLength(7);
     expect(screen.getByText("title of golf").closest("tr")).toHaveClass("dim");
-    expect(globalThis.location.hash).toBe("#/tokens/sessions?done=1");
+    expect(globalThis.location.hash).toBe("#/sessions?done=1");
     fireEvent.click(screen.getByLabelText("Show done"));
     expect(rowIds()).toHaveLength(4);
-    expect(globalThis.location.hash).toBe("#/tokens/sessions");
+    expect(globalThis.location.hash).toBe("#/sessions");
   });
 
   it("narrows rows by the filter and restores it from the hash", async () => {
-    globalThis.history.replaceState(null, "", "#/tokens/sessions?q=golf&done=1");
+    globalThis.history.replaceState(null, "", "#/sessions?q=golf&done=1");
     stubSessionsFetch();
     render(<SessionsPage now={now} />);
     expect(await screen.findByText("title of golf")).toBeInTheDocument();
@@ -82,7 +82,7 @@ describe("SessionsPage", () => {
       target: { value: "ROUTER" },
     });
     expect(rowIds()).toEqual(["Fix the Router"]);
-    expect(globalThis.location.hash).toBe("#/tokens/sessions?done=1&q=ROUTER");
+    expect(globalThis.location.hash).toBe("#/sessions?done=1&q=ROUTER");
     fireEvent.change(screen.getByLabelText("Filter sessions"), {
       target: { value: "nothing-matches" },
     });
