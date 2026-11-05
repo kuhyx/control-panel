@@ -1,0 +1,45 @@
+{
+  "id": "todoimplementer",
+  "title": "todoImplementer (agent board)",
+  "category": "server",
+  "units": [
+    {
+      "name": "todoimplementer.service",
+      "scope": "user",
+      "kind": "service",
+      "why_it_matters": "runs the board and the Claude sessions behind it; KillMode=process lets runs outlive a restart"
+    },
+    {
+      "name": "token-ingest.timer",
+      "scope": "user",
+      "kind": "timer",
+      "why_it_matters": "feeds the usage page; stopped = /usage/ goes stale"
+    }
+  ],
+  "containers": [
+    {
+      "name": "todoimplementer-oauth2-proxy",
+      "restartable": true
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "todoImplementer",
+      "url": "http://127.0.0.1:8786/"
+    },
+    {
+      "label": "todoImplementer usage",
+      "url": "http://127.0.0.1:8786/usage/"
+    },
+    {
+      "label": "todoImplementer (public)",
+      "url": "https://agents.kuhy.duckdns.org/"
+    }
+  ],
+  "docs": [
+    {
+      "path": "~/src/todoImplementer/README.md",
+      "label": "todoImplementer README (repo kuhyx/todoImplementer)"
+    }
+  ]
+}
