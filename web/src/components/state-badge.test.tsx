@@ -4,10 +4,11 @@ import { describe, expect, it } from "vitest";
 import { StateBadge } from "./state-badge.tsx";
 
 describe("StateBadge", () => {
-  it("names the state and colours it with a semantic token", () => {
+  it("speaks the state, paints its glyph and colours it with a semantic token", () => {
     render(<StateBadge state="NOT_INSTALLED" />);
-    const badge = screen.getByTitle("NOT_INSTALLED");
-    expect(badge).toHaveTextContent("NOT_INSTALLED");
+    const badge = screen.getByRole("img", { name: "NOT_INSTALLED" });
+    expect(badge).toHaveTextContent(/^∅$/u);
+    expect(badge).not.toHaveAttribute("title");
     expect(badge.style.backgroundColor).toBe("var(--danger)");
   });
 });

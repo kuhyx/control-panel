@@ -41,8 +41,10 @@ describe("formatEpochMicros", () => {
 });
 
 describe("formatTimestamp", () => {
-  it("renders an ISO timestamp locally", () => {
-    expect(formatTimestamp("2026-08-28T16:40:00+00:00")).toContain("2026");
+  it("renders an ISO timestamp locally, in digits only", () => {
+    expect(formatTimestamp("2026-08-28T16:40:00+00:00")).toMatch(
+      /^2026-08-2[89] \d{2}:\d{2}:00$/u,
+    );
   });
 
   it("passes an unparsable value straight through", () => {
@@ -55,12 +57,12 @@ describe("formatAge", () => {
   const base = Date.parse(at);
 
   it("counts seconds, then whole minutes", () => {
-    expect(formatAge(at, base + 7400)).toBe("7s ago");
-    expect(formatAge(at, base + 185_000)).toBe("3m ago");
+    expect(formatAge(at, base + 7400)).toBe("7 s");
+    expect(formatAge(at, base + 185_000)).toBe("3 min");
   });
 
   it("never renders a negative age for a clock that runs behind", () => {
-    expect(formatAge(at, base - 2000)).toBe("0s ago");
+    expect(formatAge(at, base - 2000)).toBe("0 s");
   });
 
   it("renders an unparsable timestamp as a dash", () => {
@@ -74,14 +76,14 @@ describe("formatRelativeAge", () => {
   const minute = 60_000;
 
   it("scales from seconds to minutes, hours and days", () => {
-    expect(formatRelativeAge(at, base + 7400)).toBe("7 s ago");
-    expect(formatRelativeAge(at, base + 3 * minute)).toBe("3 min ago");
-    expect(formatRelativeAge(at, base + 200 * minute)).toBe("3 h ago");
-    expect(formatRelativeAge(at, base + 3 * 24 * 60 * minute)).toBe("3 d ago");
+    expect(formatRelativeAge(at, base + 7400)).toBe("7 s");
+    expect(formatRelativeAge(at, base + 3 * minute)).toBe("3 min");
+    expect(formatRelativeAge(at, base + 200 * minute)).toBe("3 h");
+    expect(formatRelativeAge(at, base + 3 * 24 * 60 * minute)).toBe("3 d");
   });
 
   it("floors a clock running behind at zero and dashes nonsense", () => {
-    expect(formatRelativeAge(at, base - 2000)).toBe("0 s ago");
+    expect(formatRelativeAge(at, base - 2000)).toBe("0 s");
     expect(formatRelativeAge("whenever", base)).toBe("—");
   });
 });

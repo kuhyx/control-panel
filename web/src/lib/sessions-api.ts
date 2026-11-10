@@ -61,25 +61,12 @@ export function deleteSessions(ids: readonly string[]): Promise<MutationResult> 
   return mutate("session-delete", { ids });
 }
 
-// Header order, and how each status reads after its count.
-const LABELS: readonly (readonly [SessionStatus, string, string])[] = [
-  ["needs_action", "need action", "need action"],
-  ["question", "question", "questions"],
-  ["untagged", "untagged", "untagged"],
-  ["running", "running", "running"],
-  ["done", "done", "done"],
-  ["continuing", "continuing", "continuing"],
+// The server's priority order, which the Status column and the chips follow.
+export const STATUS_ORDER: readonly SessionStatus[] = [
+  "needs_action",
+  "question",
+  "untagged",
+  "running",
+  "done",
+  "continuing",
 ];
-
-// The server's priority order, which the Status column sorts by.
-export const STATUS_ORDER: readonly SessionStatus[] = LABELS.map(([status]) => status);
-
-// "3 need action · 2 questions · …" over every session, filter or not.
-export function statusCounts(sessions: readonly SessionEntry[]): string {
-  const parts: string[] = [];
-  for (const [status, one, many] of LABELS) {
-    const count = sessions.filter((s) => s.status === status).length;
-    if (count > 0) parts.push(`${String(count)} ${count === 1 ? one : many}`);
-  }
-  return parts.length === 0 ? "no sessions" : parts.join(" · ");
-}

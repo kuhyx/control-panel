@@ -35,10 +35,18 @@ export interface ColumnSpec<T> {
   */
   filter?: boolean;
   /**
+  What the header paints; `label` is its spoken name only.
+  */
+  glyph: string;
+  /**
   Stable, URL-safe id (no dots or colons).
   */
   id: string;
   label: string;
+  /**
+  Paints a filter option (an enum word) as a glyph; the value is spoken.
+  */
+  optionGlyph?: (value: string) => string;
   /**
   Case-insensitive free-text box over `text`.
   */

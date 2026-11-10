@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import type { ProbeRecord } from "../lib/types.ts";
 
-import { ProbeDot, probeLabel, probeTone } from "./probe-dot.tsx";
+import { ProbeDot, probeLabel, probeNumbers, probeTone } from "./probe-dot.tsx";
 
 function probe(over: Partial<ProbeRecord>): ProbeRecord {
   return {
@@ -51,9 +51,18 @@ describe("probeTone", () => {
   });
 });
 
-it("renders an accessible dot carrying the label", () => {
+describe("probeNumbers", () => {
+  it("paints only digits: status and latency, whichever exist", () => {
+    expect(probeNumbers(probe({ latency_ms: 30.2, status: 200 }))).toBe("200 · 30.2 ms");
+    expect(probeNumbers(probe({ status: 404 }))).toBe("404");
+    expect(probeNumbers(probe({ latency_ms: 1.5 }))).toBe("1.5 ms");
+    expect(probeNumbers(probe({}))).toBe("");
+  });
+});
+
+it("renders a dot that speaks the label and paints no tooltip", () => {
   render(<ProbeDot probe={probe({ status: 200 })} />);
   const dot = screen.getByRole("img", { name: "up 200" });
-  expect(dot).toHaveAttribute("title", "up 200");
+  expect(dot).not.toHaveAttribute("title");
   expect(dot.style.backgroundColor).toBe("var(--success)");
 });

@@ -75,6 +75,25 @@ it("says so when a search matches no subsystem", async () => {
   const user = userEvent.setup();
   render(<FleetTable subsystems={STATUS.subsystems} />);
   await user.type(screen.getByLabelText("Search Subsystem"), "zzz-nothing");
-  expect(screen.getByText("No rows match the current filters.")).toBeInTheDocument();
+  expect(
+    screen.getByRole("cell", { name: "No rows match the current filters." }),
+  ).toBeInTheDocument();
   expect(screen.queryByRole("link", { name: "Hosts / DNS blocking" })).not.toBeInTheDocument();
+});
+
+it("shows each category as a spoken glyph and drops the Why sentence", () => {
+  render(<FleetTable subsystems={[SERVER, ...STATUS.subsystems]} />);
+  expect(screen.getAllByRole("img", { name: "enforcement" })[0]).toHaveTextContent("🔒");
+  expect(screen.getByRole("img", { name: "server" })).toHaveTextContent("🖥️");
+  expect(screen.queryByRole("button", { name: "Why" })).not.toBeInTheDocument();
+  expect(screen.queryByText("all 3 declared unit(s) armed")).not.toBeInTheDocument();
+});
+
+it("filters by state with glyph options", async () => {
+  const user = userEvent.setup();
+  render(<FleetTable subsystems={STATUS.subsystems} />);
+  await user.click(screen.getByLabelText("Filter State"));
+  const group = screen.getByRole("group", { name: "State values" });
+  expect(within(group).getByRole("img", { name: "ARMED" })).toHaveTextContent("✓");
+  expect(within(group).getByRole("img", { name: "NOT_INSTALLED" })).toHaveTextContent("∅");
 });

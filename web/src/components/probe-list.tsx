@@ -1,6 +1,10 @@
 import type { ProbeRecord } from "../lib/types.ts";
 
-import { ProbeDot, probeLabel } from "./probe-dot.tsx";
+import { Glyph } from "./glyph.tsx";
+import { ProbeDot, probeNumbers } from "./probe-dot.tsx";
+
+// Probe kinds the collector emits (control_panel/_probe.py).
+const KIND_GLYPH: Readonly<Record<string, string>> = { file: "📄", http: "🌐", tcp: "🔌" };
 
 export function ProbeList({
   probes,
@@ -13,7 +17,8 @@ export function ProbeList({
             <ProbeDot probe={probe} />
             <code>{probe.target}</code>
             <span className="category">
-              {probe.kind} · {probeLabel(probe)}
+              <Glyph glyph={KIND_GLYPH[probe.kind] ?? "•"} label={probe.kind} />{" "}
+              {probeNumbers(probe)}
             </span>
           </li>
         );

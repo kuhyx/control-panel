@@ -4,29 +4,35 @@ import type { ColumnSpec } from "../lib/table-state.ts";
 import type { ContainerRecord } from "../lib/types.ts";
 
 import { severityRank } from "../lib/arming.ts";
+import { armingGlyph, GLYPH, SCOPE_GLYPH } from "../lib/glyphs.ts";
 import { useTableView } from "../lib/table-state.ts";
+import { Glyph } from "./glyph.tsx";
 import { JournalPanel } from "./journal-panel.tsx";
 import { LogsToggle } from "./logs-toggle.tsx";
 import { RestartButton } from "./restart-button.tsx";
 import { StateBadge } from "./state-badge.tsx";
 import { ColumnHeader, NoMatchRow, TableHint } from "./table-controls.tsx";
 
-const COLUMN_COUNT = 4;
+const COLUMN_COUNT = 3;
 
+// No Status column: Docker's "Up 4 days (healthy)" is a sentence; the badge
+// carries the verdict (the state word is spoken on it).
 const COLUMNS: readonly ColumnSpec<ContainerRecord>[] = [
-  { id: "container", label: "Container", search: true, text: (c) => c.name },
   {
-    filter: true,
-    id: "state",
-    label: "State",
-    sortKey: (c) => severityRank(c.arming),
-    text: (c) => c.arming,
+    glyph: GLYPH.containers,
+    id: "container",
+    label: "Container",
+    search: true,
+    text: (c) => c.name,
   },
   {
-    id: "status",
-    label: "Status",
-    search: true,
-    text: (c) => `${c.state} ${c.status}`.trim(),
+    filter: true,
+    glyph: GLYPH.state,
+    id: "state",
+    label: "State",
+    optionGlyph: armingGlyph,
+    sortKey: (c) => severityRank(c.arming),
+    text: (c) => c.arming,
   },
 ];
 
@@ -39,8 +45,7 @@ export function ContainerTable({
   return (
     <>
       <TableHint view={view} />
-      <table className="table">
-        <caption className="sr-only">Docker containers</caption>
+      <table aria-label="Docker containers" className="table">
         <thead>
           <tr>
             {COLUMNS.map((column) => {
@@ -48,7 +53,7 @@ export function ContainerTable({
                 <ColumnHeader column={column} key={column.id} view={view} />
               );
             })}
-            <th scope="col">Actions</th>
+            <th scope="col"><span aria-label="Actions">{GLYPH.actions}</span></th>
           </tr>
         </thead>
         <tbody>
@@ -69,14 +74,12 @@ function ContainerRow({
       <tr>
         <th scope="row">
           {container.name}
-          <span className="category">docker</span>
+          <span className="category">
+            <Glyph glyph={SCOPE_GLYPH.docker} label="docker" />
+          </span>
         </th>
         <td>
           <StateBadge state={container.arming} />
-        </td>
-        <td>
-          {container.state === "" ? "—" : container.state}
-          <span className="category">{container.status}</span>
         </td>
         <td className="actions">
           {container.restartable && (

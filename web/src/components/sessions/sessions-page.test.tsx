@@ -32,18 +32,25 @@ afterEach(() => {
 });
 
 describe("SessionsPage", () => {
-  it("reads, then counts every status and the scan", async () => {
+  it("reads, then counts every status on its chip and shows the scan", async () => {
     stubSessionsFetch();
     render(<SessionsPage now={now} />);
-    expect(screen.getByText("Reading…")).toBeInTheDocument();
     expect(
-      await screen.findByText(
-        /1 need action · 1 question · 1 untagged · 1 running · 2 done · 1 continuing/,
-      ),
-    ).toHaveTextContent("1033 sessions scanned in 840 ms");
-    expect(
-      screen.getByRole("heading", { name: "Claude Code sessions" }),
+      screen.getByRole("status", { name: "Reading" }),
     ).toBeInTheDocument();
+    expect(
+      await screen.findByLabelText("1033 sessions scanned in 840 ms"),
+    ).toHaveTextContent("1033 · 840 ms");
+    for (const name of [
+      "needs action (1)",
+      "question (1)",
+      "untagged (1)",
+      "running (1)",
+      "done (2)",
+      "continuing (1)",
+    ]) {
+      expect(screen.getByRole("checkbox", { name })).toBeInTheDocument();
+    }
   });
 
   it("hides done rows until Show done is ticked, and keeps it in the hash", async () => {
@@ -58,10 +65,10 @@ describe("SessionsPage", () => {
     ]);
     const alpha = screen.getByText("title of alpha").closest("tr");
     expect(alpha).not.toHaveClass("dim");
-    expect(within(alpha as HTMLElement).getByText("needs action")).toHaveClass(
-      "badge",
-    );
-    expect(within(alpha as HTMLElement).getByText("3 h ago")).toBeVisible();
+    expect(
+      within(alpha as HTMLElement).getByRole("img", { name: "needs action" }),
+    ).toHaveClass("badge");
+    expect(within(alpha as HTMLElement).getByText("3 h")).toBeVisible();
     fireEvent.click(screen.getByLabelText("Show done"));
     expect(rowIds()).toHaveLength(7);
     expect(screen.getByText("title of golf").closest("tr")).toHaveClass("dim");
@@ -86,7 +93,7 @@ describe("SessionsPage", () => {
     fireEvent.change(screen.getByLabelText("Filter sessions"), {
       target: { value: "nothing-matches" },
     });
-    expect(screen.getByText("No sessions match.")).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "No sessions match." })).toHaveTextContent("∅");
   });
 
   it("expands a row into its last messages, and keeps it open across a refetch", async () => {
@@ -131,6 +138,6 @@ describe("SessionsPage", () => {
   it("shows a failed read as an alert", async () => {
     stubSessionsFetch(null);
     render(<SessionsPage now={now} />);
-    expect(await screen.findByRole("alert")).toHaveTextContent("500");
+    expect(await screen.findByRole("alert")).toHaveAccessibleName(/500/);
   });
 });

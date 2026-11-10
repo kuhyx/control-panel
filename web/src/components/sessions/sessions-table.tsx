@@ -5,6 +5,7 @@ import type { SessionColumn } from "../../lib/sessions-query.ts";
 import type { SortState } from "../../lib/table-state.ts";
 import type { Selection } from "./use-selection.ts";
 
+import { GLYPH } from "../../lib/glyphs.ts";
 import { SessionsHead } from "./sessions-head.tsx";
 import { COLUMNS, SessionRows } from "./sessions-row.tsx";
 
@@ -63,8 +64,8 @@ export function SessionsTable({
           })}
           {sessions.length === 0 && (
             <tr>
-              <td className="empty" colSpan={COLUMNS}>
-                No sessions match.
+              <td aria-label="No sessions match." className="empty" colSpan={COLUMNS}>
+                {GLYPH.none}
               </td>
             </tr>
           )}

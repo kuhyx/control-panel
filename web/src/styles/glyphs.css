@@ -1,0 +1,55 @@
+/* Glyphs that replace words (textgate): sized to read at a glance, with a
+   generous hit area on the masthead links. Tokens from @kuhyx/web-ui. */
+
+.masthead-nav {
+  display: flex;
+  gap: var(--space-4);
+  font-size: var(--text-title);
+}
+
+.masthead-nav a {
+  text-decoration: none;
+}
+
+.glyph {
+  display: inline-block;
+  line-height: 1;
+}
+
+/* A state badge holds one glyph now: square it so every state is the same
+   width and the shape, not the length, tells them apart. */
+.badge {
+  min-width: 2em;
+  text-align: center;
+}
+
+/* The rollup tile's state glyph sits under the count, so it needs the
+   count's weight to be read, not a caption's. */
+.tile-label {
+  font-size: var(--text-title);
+}
+
+/* "12 d" must not break between the number and its unit. */
+.num {
+  white-space: nowrap;
+}
+
+/* Section headings are a single glyph now; caption size made them specks. */
+h3[aria-label] {
+  font-size: var(--text-title);
+}
+
+.error-note {
+  color: var(--danger);
+  font-size: var(--text-title);
+}
+
+.filter-bar label {
+  flex-direction: row;
+  align-items: center;
+  font-size: var(--text-label);
+}
+
+.sort-button {
+  font-size: var(--text-label);
+}

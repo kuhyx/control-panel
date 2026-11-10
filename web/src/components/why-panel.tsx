@@ -4,6 +4,13 @@ import type { Rationale } from "../lib/types.ts";
 
 import { fetchWhy } from "../lib/api.ts";
 import { levelTone } from "../lib/arming.ts";
+import { GLYPH } from "../lib/glyphs.ts";
+import { ErrorNote } from "./error-note.tsx";
+import { Glyph } from "./glyph.tsx";
+
+// control_panel/_rationale.py's placeholder for an empty audit log: the
+// server's sentence, not the log's content, so it is painted as "∅".
+const NO_ENTRIES = "no entries recorded";
 
 // Two sources, deliberately. The artifacts are what was already written down
 // -- unit-file comments, incident write-ups, the reason columns of the two
@@ -28,28 +35,30 @@ export function WhyPanel({ id }: Readonly<{ id: string }>): React.JSX.Element {
     };
   }, [id]);
 
-  if (error !== null) return <p className="empty">{error}</p>;
-  if (why === null) return <p className="empty">Reading rationale…</p>;
+  if (error !== null) return <ErrorNote error={error} />;
+  if (!why) return <progress aria-label="Reading rationale…" />;
   if (why.rules.length === 0 && why.artifacts.length === 0) {
+    // Not in a unit comment, a policy document, an audit log, or the sidecar.
     return (
-      <p className="empty">
-        No rationale is recorded for this subsystem — not in a unit comment, a
-        policy document, an audit log, or the sidecar.
+      <p aria-label="No rationale is recorded" className="empty" role="status">
+        {GLYPH.none}
       </p>
     );
   }
 
+  // Signals are server sentences: a toned dot plus a level glyph, the
+  // message spoken. Rules and artifacts are what someone wrote down: shown.
   return (
     <section aria-label="Why this is enforced">
       {why.signals.map((signal) => {
         return (
-        <p className="empty" key={signal.code}>
-          <span
-            className="dot"
-            style={{ backgroundColor: levelTone(signal.level) }}
-          />
-          {signal.message}
-        </p>
+          <p aria-label={signal.message} className="empty" key={signal.code} role="note">
+            <span
+              className="dot"
+              style={{ backgroundColor: levelTone(signal.level) }}
+            />
+            <span aria-hidden="true">{signal.level === "info" ? "ℹ" : GLYPH.error}</span>
+          </p>
         );
       })}
 
@@ -60,13 +69,13 @@ export function WhyPanel({ id }: Readonly<{ id: string }>): React.JSX.Element {
           <p>{rule.why}</p>
           {rule.ratchet !== "" && (
             <p className="rule-field">
-              <span className="rule-label">Ratchet</span>
+              <span aria-label="Ratchet" className="rule-label">⏳</span>
               {rule.ratchet}
             </p>
           )}
           {rule.cost_of_bypass !== "" && (
             <p className="rule-field">
-              <span className="rule-label">Cost of bypass</span>
+              <span aria-label="Cost of bypass" className="rule-label">💸</span>
               {rule.cost_of_bypass}
             </p>
           )}
@@ -79,9 +88,17 @@ export function WhyPanel({ id }: Readonly<{ id: string }>): React.JSX.Element {
         <details className="artifact" key={`${artifact.kind}/${artifact.label}`}>
           <summary>
             {artifact.label}
-            <span className="category">{artifact.kind}</span>
+            <span className="category">
+              <Glyph glyph="📄" label={artifact.kind} />
+            </span>
           </summary>
-          <pre className="log">{artifact.excerpt}</pre>
+          {artifact.excerpt === NO_ENTRIES ? (
+            <p aria-label={NO_ENTRIES} className="empty" role="status">
+              {GLYPH.none}
+            </p>
+          ) : (
+            <pre className="log">{artifact.excerpt}</pre>
+          )}
         </details>
         );
       })}

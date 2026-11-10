@@ -18,7 +18,9 @@ describe("RestartButton", () => {
       screen.getByRole("button", { name: "Restart signal-bot.service" }),
     );
     expect(spy).not.toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: "Confirm restart" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Confirm restart signal-bot.service" }),
+    ).toHaveClass("danger");
   });
 
   it("can be cancelled", async () => {
@@ -37,11 +39,12 @@ describe("RestartButton", () => {
     const user = userEvent.setup();
     render(<RestartButton kind="container" name="gitea" />);
     await user.click(screen.getByRole("button", { name: "Restart gitea" }));
-    await user.click(screen.getByRole("button", { name: "Confirm restart" }));
+    await user.click(screen.getByRole("button", { name: "Confirm restart gitea" }));
     expect(spy).toHaveBeenCalledWith("container", "gitea");
-    // While the request is in flight the button says so and cannot be re-sent.
-    expect(screen.getByRole("button", { name: "Restart gitea" })).toBeDisabled();
-    expect(screen.getByText("Restarting…")).toBeInTheDocument();
+    // While the request is in flight the button spins and cannot be re-sent.
+    const busy = screen.getByRole("button", { name: "Restart gitea" });
+    expect(busy).toBeDisabled();
+    expect(busy).toHaveTextContent("⟳");
     pending.resolve({
       argv: ["docker", "restart", "gitea"],
       ok: true,
@@ -51,8 +54,9 @@ describe("RestartButton", () => {
       summary: "gitea restarted.",
     });
     await waitFor(() => {
-      expect(screen.getByText("gitea restarted.")).toBeInTheDocument();
+      expect(screen.getByRole("status", { name: "gitea restarted." })).toBeInTheDocument();
     });
+    expect(screen.getByRole("button", { name: "Restart gitea" })).toHaveTextContent("↻");
   });
 
   it("shows a transport failure instead of swallowing it", async () => {
@@ -60,9 +64,9 @@ describe("RestartButton", () => {
     const user = userEvent.setup();
     render(<RestartButton kind="unit" name="a.service" />);
     await user.click(screen.getByRole("button", { name: "Restart a.service" }));
-    await user.click(screen.getByRole("button", { name: "Confirm restart" }));
+    await user.click(screen.getByRole("button", { name: "Confirm restart a.service" }));
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent("403");
+      expect(screen.getByRole("alert")).toHaveAccessibleName(/403/);
     });
   });
 });

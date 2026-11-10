@@ -2,14 +2,17 @@ import { useState } from "react";
 
 import type { MutationResult } from "../../lib/types.ts";
 
+import { GLYPH } from "../../lib/glyphs.ts";
 import {
   deleteSessions,
   markSessions,
   resumeSessions,
   type SessionEntry,
 } from "../../lib/sessions-api.ts";
+import { ErrorNote } from "../error-note.tsx";
 import { MutationOutcome } from "../tighten-curfew.tsx";
 import { ConfirmDelete } from "./confirm-delete.tsx";
+import { COPY_FAILED, CopyNote } from "./copy-note.tsx";
 
 // More terminals than this at once is a mistake, not a workflow; the server
 // refuses it too.
@@ -64,38 +67,51 @@ export function BulkBar({
       await navigator.clipboard.writeText(selected.map((s) => s.resume_command).join("\n"));
       setCopied(`Copied ${String(count)} command${count === 1 ? "" : "s"}`);
     } catch {
-      setCopied("Copy failed");
+      setCopied(COPY_FAILED);
     }
   };
 
+  // Over MAX_RESUME the resume button is disabled and shows the cap ("▶ ≤5").
   const isTooMany = count > MAX_RESUME;
   return (
     <section aria-label="Bulk actions" className="bulk-bar">
       {count > 0 && (
         <>
-          <strong>{count} selected</strong>
-          <button disabled={busy} onClick={() => void send(() => markSessions(ids, "done"))} type="button">
-            Mark done
+          <strong aria-label={`${String(count)} selected`}>☑ {count}</strong>
+          <button
+            aria-label="Mark done"
+            disabled={busy}
+            onClick={() => void send(() => markSessions(ids, "done"))}
+            type="button"
+          >
+            {GLYPH.mark}
           </button>
           <button
+            aria-label="Unmark"
             className="quiet"
             disabled={busy}
             onClick={() => void send(() => markSessions(ids, null))}
             type="button"
           >
-            Unmark
-          </button>
-          <button className="quiet" onClick={() => void copy()} type="button">
-            Copy commands
+            {GLYPH.undo}
           </button>
           <button
+            aria-label="Copy commands"
+            className="quiet"
+            onClick={() => void copy()}
+            type="button"
+          >
+            {GLYPH.copy}
+          </button>
+          <button
+            aria-label={isTooMany ? `Resume (max ${String(MAX_RESUME)} terminals at once)` : "Resume"}
             className="quiet"
             disabled={busy || isTooMany}
             onClick={() => void send(() => resumeSessions(ids))}
-            title={isTooMany ? "max 5 terminals at once" : undefined}
             type="button"
           >
-            Resume
+            {GLYPH.resume}
+            {isTooMany && ` ≤${String(MAX_RESUME)}`}
           </button>
           <ConfirmDelete
             count={count}
@@ -106,6 +122,7 @@ export function BulkBar({
         </>
       )}
       <button
+        aria-label={count > 0 ? "Clear selection" : "Dismiss"}
         className="quiet"
         onClick={() => {
           forget();
@@ -113,14 +130,10 @@ export function BulkBar({
         }}
         type="button"
       >
-        {count > 0 ? "Clear selection" : "Dismiss"}
+        {GLYPH.clear}
       </button>
-      {copied !== "" && <span className="category">{copied}</span>}
-      {error !== null && (
-        <span className="empty" role="alert">
-          {error}
-        </span>
-      )}
+      {copied !== "" && <CopyNote copied={copied} count={count} />}
+      {error !== null && <ErrorNote error={error} />}
       {result !== null && <MutationOutcome result={result} />}
     </section>
   );

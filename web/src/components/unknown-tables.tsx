@@ -1,13 +1,18 @@
 import type { ColumnSpec } from "../lib/table-state.ts";
 import type { Listener, UndeclaredUnit } from "../lib/types.ts";
 
+import { GLYPH, scopeGlyph } from "../lib/glyphs.ts";
 import { useTableView } from "../lib/table-state.ts";
+import { Glyph } from "./glyph.tsx";
 import { ColumnHeader, NoMatchRow, TableHint } from "./table-controls.tsx";
 
+// An empty process is one this user may not see (root's sockets): a hidden
+// eye, spoken as the old sentence.
 const NO_PROCESS = "process not visible to this user";
 
 const LISTENER_COLUMNS: readonly ColumnSpec<Listener>[] = [
   {
+    glyph: "🌐",
     id: "listener",
     label: "Listener",
     search: true,
@@ -15,6 +20,7 @@ const LISTENER_COLUMNS: readonly ColumnSpec<Listener>[] = [
     text: (l) => `${l.address}:${String(l.port)}`,
   },
   {
+    glyph: "⚙",
     id: "process",
     label: "Process",
     search: true,
@@ -23,8 +29,15 @@ const LISTENER_COLUMNS: readonly ColumnSpec<Listener>[] = [
 ];
 
 const UNIT_COLUMNS: readonly ColumnSpec<UndeclaredUnit>[] = [
-  { id: "unit", label: "Unit", search: true, text: (u) => u.name },
-  { filter: true, id: "scope", label: "Scope", text: (u) => u.scope },
+  { glyph: GLYPH.units, id: "unit", label: "Unit", search: true, text: (u) => u.name },
+  {
+    filter: true,
+    glyph: "👤",
+    id: "scope",
+    label: "Scope",
+    optionGlyph: scopeGlyph,
+    text: (u) => u.scope,
+  },
 ];
 
 export function ListenerTable({
@@ -35,7 +48,6 @@ export function ListenerTable({
     <>
       <TableHint view={view} />
       <table className="table">
-        <caption className="sr-only">Listening ports not in the manifest</caption>
         <thead>
           <tr>
             {LISTENER_COLUMNS.map((column) => {
@@ -56,7 +68,11 @@ export function ListenerTable({
                 </code>
               </th>
               <td className="reason">
-                {listener.process === "" ? NO_PROCESS : listener.process}
+                {listener.process === "" ? (
+                  <Glyph glyph="🙈" label={NO_PROCESS} />
+                ) : (
+                  listener.process
+                )}
               </td>
             </tr>
             );
@@ -75,7 +91,6 @@ export function UserUnitTable({
     <>
       <TableHint view={view} />
       <table className="table">
-        <caption className="sr-only">User units not in the manifest</caption>
         <thead>
           <tr>
             {UNIT_COLUMNS.map((column) => {
@@ -93,7 +108,9 @@ export function UserUnitTable({
               <th scope="row">
                 <code>{unit.name}</code>
               </th>
-              <td className="reason">{unit.scope}</td>
+              <td className="reason">
+                <Glyph glyph={scopeGlyph(unit.scope)} label={unit.scope} />
+              </td>
             </tr>
             );
           })}

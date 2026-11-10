@@ -38,7 +38,7 @@ function trimTrailingSlashes(path: string): string {
 // (the server falls back to index.html for any unknown path), so a bookmark
 // lands on the right page; a hash, when present, still wins.
 export function parseLocation(pathname: string, hash: string): Route {
-  if (hash !== "" && hash !== "#" && hash !== "#/") return parseHash(hash);
+  if (!["", "#", "#/"].includes(hash)) return parseHash(hash);
   const path = trimTrailingSlashes(pathname);
   if (path === "/sessions" || path === "/tokens/sessions") return SESSIONS;
   return path === "/tokens" ? USAGE : parseHash(hash);

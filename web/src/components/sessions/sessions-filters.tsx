@@ -1,3 +1,4 @@
+import { GLYPH, MARK_GLYPH, SESSION_GLYPH } from "../../lib/glyphs.ts";
 import { type SessionEntry, STATUS_ORDER } from "../../lib/sessions-api.ts";
 import {
   AGE_UNITS,
@@ -7,7 +8,10 @@ import {
   type SessionsQuery,
 } from "../../lib/sessions-query.ts";
 
-const UNIT_LABEL: Record<AgeUnit, string> = { d: "days", h: "hours", w: "weeks" };
+// Unit symbols, not words: d, h, w next to the number.
+const UNIT_SPOKEN: Record<AgeUnit, string> = { d: "days", h: "hours", w: "weeks" };
+// Native <option>s can only hold characters: glyphs (MARK_GLYPH), the words
+// spoken via each option's aria-label.
 const MARK_OPTIONS: readonly (readonly [MarkFilter, string])[] = [
   ["all", "All"],
   ["manual", "Marked done by hand"],
@@ -15,8 +19,8 @@ const MARK_OPTIONS: readonly (readonly [MarkFilter, string])[] = [
   ["open", "Not done"],
 ];
 
-// One chip per status, counted over every session (like the header line), so
-// the numbers stay put while other filters change.
+// One chip per status, counted over every session, so the numbers stay put
+// while other filters change: status glyph + count.
 function StatusChips({
   onQuery,
   query,
@@ -27,14 +31,14 @@ function StatusChips({
   sessions: readonly SessionEntry[];
 }>): React.JSX.Element {
   return (
-    <fieldset className="status-chips">
-      <legend>Status</legend>
+    <fieldset aria-label="Status" className="status-chips">
       {STATUS_ORDER.map((status) => {
         const count = sessions.filter((s) => s.status === status).length;
         const isOn = query.statuses.includes(status);
         return (
           <label className="chip" key={status}>
             <input
+              aria-label={`${status.replace("_", " ")} (${String(count)})`}
               checked={isOn}
               onChange={() => {
                 onQuery({
@@ -46,7 +50,9 @@ function StatusChips({
               }}
               type="checkbox"
             />
-            {status.replace("_", " ")} ({count})
+            <span aria-hidden="true">
+              {SESSION_GLYPH[status]} {count}
+            </span>
           </label>
         );
       })}
@@ -55,7 +61,8 @@ function StatusChips({
 }
 
 // Every control combines with the others (AND); see filterSessions for how
-// Show done relates to the status and mark filters.
+// Show done relates to the status and mark filters. Each control paints a
+// glyph and speaks its old label.
 export function SessionsFilters({
   onQuery,
   query,
@@ -70,25 +77,28 @@ export function SessionsFilters({
   return (
     <div className="filter-bar">
       <label>
-        Filter sessions
+        <span aria-hidden="true">{GLYPH.search}</span>
         <input
+          aria-label="Filter sessions"
           onChange={(event) => {
             onQuery({ ...query, q: event.target.value });
           }}
-          placeholder="project, title or cwd"
           type="search"
           value={query.q}
         />
       </label>
       <label>
-        Project
+        <span aria-hidden="true">{GLYPH.project}</span>
         <select
+          aria-label="Project"
           onChange={(event) => {
             onQuery({ ...query, project: event.target.value });
           }}
           value={query.project}
         >
-          <option value="">All projects</option>
+          <option aria-label="All projects" value="">
+            {MARK_GLYPH.all}
+          </option>
           {projects.map((project) => {
             return (
               <option key={project} value={project}>
@@ -100,13 +110,13 @@ export function SessionsFilters({
       </label>
       <div className="age-filter">
         <label>
-          Older than
+          <span aria-hidden="true">{GLYPH.age} &gt;</span>
           <input
+            aria-label="Older than"
             min={0}
             onChange={(event) => {
               onQuery({ ...query, ageN: event.target.value });
             }}
-            placeholder="off"
             type="number"
             value={query.ageN}
           />
@@ -121,16 +131,17 @@ export function SessionsFilters({
         >
           {AGE_UNITS.map((unit) => {
             return (
-              <option key={unit} value={unit}>
-                {UNIT_LABEL[unit]}
+              <option aria-label={UNIT_SPOKEN[unit]} key={unit} value={unit}>
+                {unit}
               </option>
             );
           })}
         </select>
       </div>
       <label>
-        Mark
+        <span aria-hidden="true">{GLYPH.mark}</span>
         <select
+          aria-label="Mark"
           onChange={(event) => {
             const mark = MARK_OPTIONS.find(([value]) => value === event.target.value);
             if (mark !== undefined) onQuery({ ...query, mark: mark[0] });
@@ -139,8 +150,8 @@ export function SessionsFilters({
         >
           {MARK_OPTIONS.map(([value, label]) => {
             return (
-              <option key={value} value={value}>
-                {label}
+              <option aria-label={label} key={value} value={value}>
+                {MARK_GLYPH[value]}
               </option>
             );
           })}
@@ -148,13 +159,14 @@ export function SessionsFilters({
       </label>
       <label className="check">
         <input
+          aria-label="Show done"
           checked={query.showDone}
           onChange={(event) => {
             onQuery({ ...query, showDone: event.target.checked });
           }}
           type="checkbox"
         />
-        Show done
+        <span aria-hidden="true">{SESSION_GLYPH.done}</span>
       </label>
       <StatusChips onQuery={onQuery} query={query} sessions={sessions} />
     </div>

@@ -14,10 +14,11 @@ describe("Freshness", () => {
     vi.useFakeTimers();
     vi.setSystemTime(Date.parse(AT) + 3000);
     render(<Freshness at={AT} />);
-    expect(screen.getByText("updated 3s ago")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "updated" })).toBeInTheDocument();
+    expect(screen.getByText("3 s")).toBeInTheDocument();
     act(() => {
       vi.advanceTimersByTime(2000);
     });
-    expect(screen.getByText("updated 5s ago")).toBeInTheDocument();
+    expect(screen.getByText("5 s")).toBeInTheDocument();
   });
 });

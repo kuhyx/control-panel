@@ -16,17 +16,26 @@ export function probeLabel(probe: ProbeRecord): string {
   return `up ${status}${latency}`;
 }
 
+// The painted part of a probe answer: HTTP status and latency, digits only
+// ("200 · 1.5 ms"); empty when nothing answered.
+export function probeNumbers(probe: ProbeRecord): string {
+  const parts: string[] = [];
+  if (probe.status !== null) parts.push(String(probe.status));
+  if (probe.latency_ms !== null) parts.push(`${String(probe.latency_ms)} ms`);
+  return parts.join(" · ");
+}
+
+// The sentence from probeLabel is the spoken name only: no title, which would
+// paint it on hover.
 export function ProbeDot({
   probe,
 }: Readonly<{ probe: ProbeRecord }>): React.JSX.Element {
-  const label = probeLabel(probe);
   return (
     <span
-      aria-label={label}
+      aria-label={probeLabel(probe)}
       className="dot probe-dot"
       role="img"
       style={{ backgroundColor: probeTone(probe) }}
-      title={label}
     />
   );
 }

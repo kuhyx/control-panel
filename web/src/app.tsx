@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { FleetStatus } from "./lib/types.ts";
 
 import { AnomalyBanner } from "./components/anomaly-banner.tsx";
+import { ErrorNote } from "./components/error-note.tsx";
 import { FleetTable } from "./components/fleet-table.tsx";
 import { Freshness } from "./components/freshness.tsx";
 import { LogViewer } from "./components/log-viewer.tsx";
@@ -13,6 +14,7 @@ import { UnknownSection } from "./components/unknown-section.tsx";
 import { UsageRedirect } from "./components/usage-redirect.tsx";
 import { fetchStatus } from "./lib/api.ts";
 import { formatTimestamp } from "./lib/format.ts";
+import { GLYPH } from "./lib/glyphs.ts";
 import { useRoute } from "./lib/router.ts";
 import { USAGE_URL } from "./lib/usage-url.ts";
 
@@ -53,18 +55,24 @@ export function App(): React.JSX.Element {
   return (
     <main>
       <header className="masthead">
-        <h1>
-          <a href="#/">control-panel</a>
-        </h1>
+        {/* The app's proper noun stays, spoken only; the nav glyphs are the
+            visible masthead. */}
+        <h1 className="sr-only">control-panel</h1>
         <nav className="masthead-nav">
-          <a href="#/">fleet</a> · <a href="#/sessions">Sessions</a> ·{" "}
-          <a href={USAGE_URL}>Usage</a>
+          <a aria-label="fleet" href="#/">
+            <span aria-hidden="true">{GLYPH.home}</span>
+          </a>
+          <a aria-label="Sessions" href="#/sessions">
+            <span aria-hidden="true">{GLYPH.sessions}</span>
+          </a>
+          <a aria-label="Usage" href={USAGE_URL}>
+            <span aria-hidden="true">{GLYPH.usage}</span>
+          </a>
         </nav>
         {status !== null && (
           <p className="category">
-            {status.host} · read {formatTimestamp(status.generated_at)} in{" "}
-            {status.collector.duration_ms} ms ·{" "}
-            <Freshness at={status.collected_at} />
+            {status.host} · {formatTimestamp(status.generated_at)} ·{" "}
+            {status.collector.duration_ms} ms · <Freshness at={status.collected_at} />
           </p>
         )}
       </header>
@@ -102,12 +110,12 @@ function Fleet({
 }>): React.JSX.Element {
   return (
     <>
-      {error !== null && (
-        <p className="empty" role="alert">
-          {error}
+      {error !== null && <ErrorNote error={error} />}
+      {status === null && error === null && (
+        <p aria-label="Reading" className="empty" role="status">
+          {GLYPH.reading}
         </p>
       )}
-      {status === null && error === null && <p className="empty">Reading…</p>}
 
       {status !== null && <Body route={route} status={status} />}
     </>
@@ -125,7 +133,9 @@ function Body({
   if (route.name === "detail") {
     const found = status.subsystems.find((s) => s.id === route.id);
     return found === undefined ? (
-      <p className="empty">No such subsystem: {route.id}</p>
+      <p aria-label="No such subsystem" className="empty" role="status">
+        {GLYPH.none} <code>{route.id}</code>
+      </p>
     ) : (
       <SubsystemDetail subsystem={found} />
     );

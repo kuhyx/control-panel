@@ -22,19 +22,21 @@ describe("ContainerTable", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows docker's own status beside the state", () => {
+  it("shows each container's verdict as a state badge, not docker's sentence", () => {
     render(<ContainerTable containers={SERVER.containers} />);
-    expect(screen.getByText("Up 4 days (healthy)")).toBeInTheDocument();
-    // A container Docker has never heard of has no state; say so with a dash.
+    expect(screen.queryByText("Up 4 days (healthy)")).not.toBeInTheDocument();
     const ghost = screen.getByRole("row", { name: /ghost/ });
-    expect(within(ghost).getByText("—")).toBeInTheDocument();
+    expect(within(ghost).getByRole("img", { name: "NOT_INSTALLED" })).toBeInTheDocument();
+    expect(within(ghost).getByRole("img", { name: "docker" })).toBeInTheDocument();
   });
 
   it("says so when a search matches no container", async () => {
     const user = userEvent.setup();
     render(<ContainerTable containers={SERVER.containers} />);
     await user.type(screen.getByLabelText("Search Container"), "nonexistent");
-    expect(screen.getByText("No rows match the current filters.")).toBeInTheDocument();
+    expect(
+      screen.getByRole("cell", { name: "No rows match the current filters." }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Restart signal-api" })).not.toBeInTheDocument();
   });
 

@@ -2,13 +2,16 @@ import type { ColumnSpec } from "../lib/table-state.ts";
 import type { SubsystemStatus } from "../lib/types.ts";
 
 import { requiresAttention, severityRank } from "../lib/arming.ts";
+import { armingGlyph, CATEGORY_GLYPH, GLYPH } from "../lib/glyphs.ts";
 import { useTableView } from "../lib/table-state.ts";
 import { DashboardLinks } from "./dashboard-links.tsx";
+import { Glyph } from "./glyph.tsx";
 import { StateBadge } from "./state-badge.tsx";
 import { ColumnHeader, NoMatchRow, TableHint } from "./table-controls.tsx";
 
 const COLUMNS: readonly ColumnSpec<SubsystemStatus>[] = [
   {
+    glyph: GLYPH.subsystem,
     id: "subsystem",
     label: "Subsystem",
     search: true,
@@ -17,25 +20,31 @@ const COLUMNS: readonly ColumnSpec<SubsystemStatus>[] = [
   },
   {
     filter: true,
+    glyph: GLYPH.state,
     id: "state",
     label: "State",
+    optionGlyph: armingGlyph,
     sortKey: (s) => severityRank(s.state),
     text: (s) => s.state,
   },
   {
+    glyph: GLYPH.units,
     id: "units",
     label: "Units",
     search: true,
     sortKey: (s) => s.units.length,
     text: (s) => String(s.units.length),
   },
+  // No Why column: its server-built sentence ("all 7 declared unit(s)
+  // armed", "down: …") repeated the badge, the unit count and the dashboard
+  // dots; the detail page lists the units that are not armed.
   {
+    glyph: GLYPH.dashboards,
     id: "dashboards",
     label: "Dashboards",
     search: true,
     text: (s) => s.dashboards.map((d) => d.label).join(" "),
   },
-  { filter: true, id: "why", label: "Why", text: (s) => s.reason },
 ];
 
 export function FleetTable({
@@ -50,8 +59,7 @@ export function FleetTable({
   return (
     <>
       <TableHint view={view} />
-      <table className="table">
-        <caption className="sr-only">Every declared subsystem</caption>
+      <table aria-label="Every declared subsystem" className="table">
         <thead>
           <tr>
             {COLUMNS.map((column) => {
@@ -71,7 +79,12 @@ export function FleetTable({
               >
                 <th scope="row">
                   <a href={`#/s/${subsystem.id}`}>{subsystem.title}</a>
-                  <span className="category">{subsystem.category}</span>
+                  <span className="category">
+                    <Glyph
+                      glyph={CATEGORY_GLYPH[subsystem.category]}
+                      label={subsystem.category}
+                    />
+                  </span>
                 </th>
                 <td>
                   <StateBadge state={subsystem.state} />
@@ -80,7 +93,6 @@ export function FleetTable({
                 <td>
                   <DashboardLinks dashboards={subsystem.dashboards} />
                 </td>
-                <td className="reason">{subsystem.reason}</td>
               </tr>
             );
           })}

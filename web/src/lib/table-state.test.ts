@@ -26,9 +26,9 @@ const ROWS: Row[] = [
 ];
 
 const COLUMNS: ColumnSpec<Row>[] = [
-  { id: "name", label: "Name", search: true, text: (r) => r.name },
-  { filter: true, id: "kind", label: "Kind", text: (r) => r.kind },
-  { id: "at", label: "At", sortKey: (r) => r.at, text: (r) => String(r.at) },
+  { glyph: "#", id: "name", label: "Name", search: true, text: (r) => r.name },
+  { filter: true, glyph: "◆", id: "kind", label: "Kind", text: (r) => r.kind },
+  { glyph: "⏱", id: "at", label: "At", sortKey: (r) => r.at, text: (r) => String(r.at) },
 ];
 const IDS = COLUMNS.map((c) => c.id);
 

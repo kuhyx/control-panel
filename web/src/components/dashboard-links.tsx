@@ -1,22 +1,32 @@
 import type { DashboardRecord } from "../lib/types.ts";
 
-import { ProbeDot, probeLabel } from "./probe-dot.tsx";
+import { ProbeDot, probeNumbers } from "./probe-dot.tsx";
 
 const STOPPED = "stopped (on demand)";
+const STOPPED_GLYPH = "⏸";
+const CLASH_GLYPH = "⚠";
 
-// Why a dashboard is not a usable link, or null when it is. A stopped UI has
-// nothing to open; a clashing one opens somebody else's server. Both render as
-// plain text so a click can never land on the wrong page.
-function unusable(dashboard: DashboardRecord): null | string {
-  const notes: string[] = [];
-  if (dashboard.stopped) notes.push("stopped");
-  if (dashboard.clash !== null) notes.push("port taken");
-  return notes.length === 0 ? null : notes.join(" · ");
+// Why a dashboard is not a usable link (glyphs + spoken words), or null when
+// it is. A stopped UI has nothing to open; a clashing one opens somebody
+// else's server. Both render as plain text so a click can never land on the
+// wrong page.
+function unusable(dashboard: DashboardRecord): null | { glyphs: string; words: string } {
+  const glyphs: string[] = [];
+  const words: string[] = [];
+  if (dashboard.stopped) {
+    glyphs.push(STOPPED_GLYPH);
+    words.push("stopped");
+  }
+  if (dashboard.clash !== null) {
+    glyphs.push(CLASH_GLYPH);
+    words.push("port taken");
+  }
+  return glyphs.length === 0 ? null : { glyphs: glyphs.join(" "), words: words.join(" · ") };
 }
 
+// Spoken name of an unusable dashboard's dot (only called for those).
 function detail(dashboard: DashboardRecord): string {
-  if (dashboard.clash !== null) return dashboard.clash;
-  return dashboard.stopped ? STOPPED : probeLabel(dashboard.probe);
+  return dashboard.clash ?? STOPPED;
 }
 
 function Dot({
@@ -25,23 +35,21 @@ function Dot({
   if (dashboard.clash === null && !dashboard.stopped) {
     return <ProbeDot probe={dashboard.probe} />;
   }
-  const label = detail(dashboard);
   return (
     <span
-      aria-label={label}
+      aria-label={detail(dashboard)}
       className="dot probe-dot"
       role="img"
       style={{
         backgroundColor:
           dashboard.clash === null ? "var(--text-muted)" : "var(--danger)",
       }}
-      title={label}
     />
   );
 }
 
-// Every dashboard opens in its own tab: the panel is the hub you come back to,
-// and losing it to a navigation would mean re-finding it from the tray.
+// Overview: one dot + label per dashboard. Detail page: also the URL and the
+// probe's numbers (status, latency); the probe's sentence is spoken on the dot.
 export function DashboardLinks({
   dashboards,
   detailed = false,
@@ -54,6 +62,7 @@ export function DashboardLinks({
     <ul className="dashboards">
       {dashboards.map((dashboard) => {
         const note = unusable(dashboard);
+        const numbers = probeNumbers(dashboard.probe);
         return (
           <li key={dashboard.url}>
             <Dot dashboard={dashboard} />
@@ -65,20 +74,22 @@ export function DashboardLinks({
               <>
                 <span>{dashboard.label}</span>
                 <span
+                  aria-label={note.words}
                   className={
                     dashboard.clash === null
                       ? "dashboard-note"
                       : "dashboard-note clash"
                   }
-                  title={detail(dashboard)}
+                  role="img"
                 >
-                  {note}
+                  {note.glyphs}
                 </span>
               </>
             )}
             {detailed && (
               <span className="category">
-                {dashboard.url} · {detail(dashboard)}
+                {dashboard.url}
+                {numbers !== "" && ` · ${numbers}`}
               </span>
             )}
           </li>

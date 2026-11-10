@@ -51,9 +51,11 @@ describe("BulkBar", () => {
   it("marks the selection done, then refetches and clears it", async () => {
     const spy = stubSessionsFetch();
     const { onChanged, onClear } = renderBar(["alpha", "charlie"]);
-    expect(bar()).toHaveTextContent("2 selected");
+    expect(within(bar()).getByLabelText("2 selected")).toHaveTextContent("2");
     click("Mark done");
-    expect(await within(bar()).findByText(RESUMED.summary)).toBeInTheDocument();
+    expect(
+      await within(bar()).findByRole("status", { name: RESUMED.summary }),
+    ).toBeInTheDocument();
     expect(postedBodies(spy, "session-mark")).toEqual([
       { ids: ["alpha", "charlie"], mark: "done" },
     ]);
@@ -83,14 +85,17 @@ describe("BulkBar", () => {
     });
   });
 
-  it("disables Resume past five, with the reason as its tooltip", () => {
+  it("disables Resume past five, showing the cap and speaking the reason", () => {
     renderBar(["alpha", "bravo", "charlie", "delta", "echo", "foxtrot"]);
-    const resume = within(bar()).getByRole("button", { name: "Resume" });
+    const resume = within(bar()).getByRole("button", {
+      name: "Resume (max 5 terminals at once)",
+    });
     expect(resume).toBeDisabled();
-    expect(resume).toHaveAttribute("title", "max 5 terminals at once");
+    expect(resume).toHaveTextContent("≤5");
+    expect(resume).not.toHaveAttribute("title");
   });
 
-  it("deletes only after the in-page confirmation", async () => {
+  it("deletes after a confirming second click", async () => {
     const spy = stubSessionsFetch();
     renderBar(["echo", "golf"]);
     click("Delete");
@@ -108,7 +113,9 @@ describe("BulkBar", () => {
     const { onChanged, onClear } = renderBar(["bravo"]);
     click("Delete");
     click("Confirm delete 1?");
-    expect(await within(bar()).findByText(REFUSED.summary)).toBeInTheDocument();
+    expect(
+      await within(bar()).findByRole("status", { name: REFUSED.summary }),
+    ).toBeInTheDocument();
     expect(onClear).not.toHaveBeenCalled();
     expect(onChanged).not.toHaveBeenCalled();
   });
@@ -117,14 +124,16 @@ describe("BulkBar", () => {
     vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("offline"))));
     const { onClear } = renderBar(["alpha"]);
     click("Mark done");
-    expect(await within(bar()).findByRole("alert")).toHaveTextContent("offline");
+    expect(await within(bar()).findByRole("alert")).toHaveAccessibleName(/offline/);
     expect(onClear).not.toHaveBeenCalled();
   });
 
   it("copies every resume command, one per line", async () => {
     renderBar(["alpha", "bravo"]);
     click("Copy commands");
-    expect(await within(bar()).findByText("Copied 2 commands")).toBeInTheDocument();
+    expect(
+      await within(bar()).findByRole("status", { name: "Copied 2 commands" }),
+    ).toHaveTextContent("✓ 2");
     expect(writeText).toHaveBeenCalledWith(
       "cd '/home/kuhy/src/alpha' && claude --resume alpha\ncd '/home/kuhy/src/bravo' && claude --resume bravo",
     );
@@ -134,7 +143,17 @@ describe("BulkBar", () => {
     writeText.mockRejectedValue(new Error("denied"));
     renderBar(["alpha"]);
     click("Copy commands");
-    expect(await within(bar()).findByText("Copy failed")).toBeInTheDocument();
+    expect(
+      await within(bar()).findByRole("status", { name: "Copy failed" }),
+    ).toHaveTextContent("✕");
+  });
+
+  it("says one command in the singular", async () => {
+    renderBar(["alpha"]);
+    click("Copy commands");
+    expect(
+      await within(bar()).findByRole("status", { name: "Copied 1 command" }),
+    ).toHaveTextContent("✓ 1");
   });
 
   it("clears the selection on request", () => {

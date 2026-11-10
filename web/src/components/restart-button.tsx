@@ -3,6 +3,8 @@ import { useState } from "react";
 import type { MutationResult } from "../lib/types.ts";
 
 import { restart } from "../lib/api.ts";
+import { GLYPH } from "../lib/glyphs.ts";
+import { ErrorNote } from "./error-note.tsx";
 import { MutationOutcome } from "./tighten-curfew.tsx";
 
 // Two clicks, no window.confirm: a native dialog blocks the page and, under i3,
@@ -35,17 +37,24 @@ export function RestartButton({
     <span className="restart">
       {confirming ? (
         <>
-          <button onClick={() => void submit()} type="button">
-            Confirm restart
+          {/* Armed: the same glyph on the danger fill, plus a way out. */}
+          <button
+            aria-label={`Confirm restart ${name}`}
+            className="danger"
+            onClick={() => void submit()}
+            type="button"
+          >
+            {GLYPH.restart}?
           </button>
           <button
+            aria-label="Cancel"
             className="quiet"
             onClick={() => {
               setConfirming(false);
             }}
             type="button"
           >
-            Cancel
+            {GLYPH.clear}
           </button>
         </>
       ) : (
@@ -57,14 +66,10 @@ export function RestartButton({
           }}
           type="button"
         >
-          {busy ? "Restarting…" : "Restart"}
+          {busy ? GLYPH.reading : GLYPH.restart}
         </button>
       )}
-      {error !== null && (
-        <span className="empty" role="alert">
-          {error}
-        </span>
-      )}
+      {error !== null && <ErrorNote error={error} />}
       {result !== null && <MutationOutcome result={result} />}
     </span>
   );

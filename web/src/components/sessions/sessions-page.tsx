@@ -1,6 +1,7 @@
 import { useState } from "react";
 
-import { fetchSessions, statusCounts } from "../../lib/sessions-api.ts";
+import { GLYPH } from "../../lib/glyphs.ts";
+import { fetchSessions } from "../../lib/sessions-api.ts";
 import {
   filterSessions,
   sessionsFromSearch,
@@ -9,6 +10,7 @@ import {
   sortSessions,
 } from "../../lib/sessions-query.ts";
 import { nextSort } from "../../lib/table-query.ts";
+import { ErrorNote } from "../error-note.tsx";
 import { BulkBar } from "./bulk-bar.tsx";
 import { SessionsFilters } from "./sessions-filters.tsx";
 import { SessionsTable } from "./sessions-table.tsx";
@@ -45,26 +47,32 @@ export function SessionsPage({
   };
   return (
     <>
-      <h2 className="page-title">Claude Code sessions</h2>
+      <h2 aria-label="Sessions" className="page-title">
+        {GLYPH.sessions}
+      </h2>
+      {/* Per-status counts live on the chips; this line keeps the scan's
+          size and cost: "🔍 1857 · 12 ms". */}
       {value !== null && (
-        <p className="category">
-          {statusCounts(value.sessions)} · {value.scanned} sessions scanned in{" "}
-          {Math.round(value.scan_ms)} ms
+        <p
+          aria-label={`${String(value.scanned)} sessions scanned in ${String(Math.round(value.scan_ms))} ms`}
+          className="category"
+        >
+          {GLYPH.search} {value.scanned} · {Math.round(value.scan_ms)} ms
         </p>
       )}
       <SessionsFilters onQuery={update} query={query} sessions={all} />
-      {error !== null && (
-        <p className="empty" role="alert">
-          {error}
-        </p>
-      )}
+      {error !== null && <ErrorNote error={error} />}
       <BulkBar
         onChanged={reload}
         onClear={selection.clear}
         selected={selection.selected}
       />
       {value === null
-        ? error === null && <p className="empty">Reading…</p>
+        ? error === null && (
+          <p aria-label="Reading" className="empty" role="status">
+            {GLYPH.reading}
+          </p>
+        )
         : (
           <SessionsTable
             nowMs={nowMs}

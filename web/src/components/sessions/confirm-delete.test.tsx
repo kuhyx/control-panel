@@ -18,20 +18,19 @@ afterEach(() => {
 });
 
 describe("ConfirmDelete", () => {
-  it("asks once, explains where transcripts go, then sends on the second click", () => {
+  it("asks once, showing the count, then sends on the second click", () => {
     const onConfirm = vi.fn();
     render(<ConfirmDelete count={3} label="Delete selected" onConfirm={onConfirm} />);
     fireEvent.click(screen.getByRole("button", { name: "Delete selected" }));
     expect(onConfirm).not.toHaveBeenCalled();
     const confirm = screen.getByRole("button", { name: "Confirm delete 3?" });
-    expect(screen.getByText(/move to ~\/\.claude\/projects-trash\//)).toHaveTextContent(
-      /active in the last 10 minutes are refused/,
-    );
+    expect(confirm).toHaveTextContent("3?");
+    expect(confirm).toHaveClass("danger");
     fireEvent.click(confirm);
     expect(onConfirm).toHaveBeenCalledOnce();
     // Sent: back to the idle button, so a third click asks again.
     expect(screen.getByRole("button", { name: "Delete selected" })).toBeInTheDocument();
-    expect(screen.queryByText(/projects-trash/)).toBeNull();
+    expect(screen.queryByRole("button", { name: "Confirm delete 3?" })).toBeNull();
   });
 
   it("disarms itself after five seconds", async () => {

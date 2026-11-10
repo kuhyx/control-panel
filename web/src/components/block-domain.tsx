@@ -3,14 +3,20 @@ import { useState } from "react";
 import type { MutationResult } from "../lib/types.ts";
 
 import { mutate } from "../lib/api.ts";
+import { GLYPH } from "../lib/glyphs.ts";
+import { ErrorNote } from "./error-note.tsx";
 import { MutationOutcome } from "./tighten-curfew.tsx";
 
 const MIN_REASON = 10;
+const DOMAIN = "🌐";
+const WHY = "✎";
+const BLOCK = "🚫";
 
 // Add-only, and not because this form says so: hosts-blocker's protection
 // check diffs the entry set against a root-owned immutable state file and
 // aborts the install if anything disappeared. There is no remove button
-// because there is no remove path that would survive.
+// because there is no remove path that would survive. The reason is stored
+// beside the entry in a comment the guard ignores.
 export function BlockDomain(): React.JSX.Element {
   const [domain, setDomain] = useState("");
   const [why, setWhy] = useState("");
@@ -19,7 +25,8 @@ export function BlockDomain(): React.JSX.Element {
   const [result, setResult] = useState<MutationResult | null>(null);
   const [error, setError] = useState<null | string>(null);
 
-  const isReady = domain.trim() !== "" && why.trim().length >= MIN_REASON;
+  const reasonLength = why.trim().length;
+  const isReady = domain.trim() !== "" && reasonLength >= MIN_REASON;
 
   const submit = async (): Promise<void> => {
     setBusy(true);
@@ -36,73 +43,81 @@ export function BlockDomain(): React.JSX.Element {
 
   return (
     <section aria-label="Block a domain" className="mutate">
-      <p className="reason">
-        Adds one entry to the blocklist and rebuilds <code>/etc/hosts</code>.
-        There is no way to remove one from here: the installer refuses any
-        change that drops an existing entry. The reason is stored beside the
-        entry in a comment the guard ignores, so it survives without weakening
-        the check.
-      </p>
-
       <div className="fields">
         <label>
-          Domain
+          <span aria-hidden="true">{DOMAIN}</span>
           <input
+            aria-label="Domain"
             onChange={(event) => {
               setDomain(event.target.value);
             }}
-            placeholder="example.com"
             type="text"
             value={domain}
           />
         </label>
         <label className="grow">
-          Why (kept with the entry)
+          <span aria-hidden="true">{WHY}</span>
           <input
+            aria-label="Why (kept with the entry)"
             onChange={(event) => {
               setWhy(event.target.value);
             }}
-            placeholder="eats an hour every evening"
             type="text"
             value={why}
           />
+          {/* The reason needs MIN_REASON characters: a live count shows how
+              far it is. */}
+          <span
+            aria-label={`${String(reasonLength)} of ${String(MIN_REASON)} characters`}
+            className="category"
+            role="img"
+          >
+            {Math.min(reasonLength, MIN_REASON)}/{MIN_REASON}
+          </span>
         </label>
       </div>
 
       {confirming ? (
         <p className="confirm">
-          Block {domain} permanently? Rebuilding <code>/etc/hosts</code> takes a
-          moment.
-          <button disabled={busy} onClick={() => void submit()} type="button">
-            Yes, block it
+          {BLOCK} <code>{domain}</code>
+          <button
+            aria-label="Yes, block it"
+            className="danger"
+            disabled={busy}
+            onClick={() => void submit()}
+            type="button"
+          >
+            {BLOCK}?
           </button>
           <button
+            aria-label="Cancel"
             onClick={() => {
               setConfirming(false);
             }}
             type="button"
           >
-            Cancel
+            {GLYPH.clear}
           </button>
         </p>
       ) : (
         <button
+          aria-label="Block domain"
           disabled={busy || !isReady}
           onClick={() => {
             setConfirming(true);
           }}
           type="button"
         >
-          {isReady ? "Block domain…" : `Needs a domain and ${MIN_REASON}+ char reason`}
+          {BLOCK}
         </button>
       )}
 
-      {busy && <p className="empty">Rebuilding /etc/hosts…</p>}
-      {error !== null && (
-        <p className="empty" role="alert">
-          {error}
+      {busy && (
+        <p aria-label="Rebuilding /etc/hosts" className="empty" role="status">
+          {GLYPH.reading}
         </p>
       )}
+      {error !== null && <ErrorNote error={error} />}
       {result !== null && <MutationOutcome result={result} />}
     </section>
   );

@@ -3,11 +3,49 @@ import { useState } from "react";
 import type { MutationResult } from "../lib/types.ts";
 
 import { mutate } from "../lib/api.ts";
+import { GLYPH } from "../lib/glyphs.ts";
+import { ErrorNote } from "./error-note.tsx";
+
+// Weekdays as ISO numbers (Mon = 1): the evening hour fields are a moon over
+// a day range, the morning end a sun.
+const MON_WED = "🌙 1–3";
+const THU_SUN = "🌙 4–7";
+const MORNING = "☀";
+
+function HourField({
+  glyph,
+  label,
+  onChange,
+  value,
+}: Readonly<{
+  glyph: string;
+  label: string;
+  onChange: (value: string) => void;
+  value: string;
+}>): React.JSX.Element {
+  return (
+    <label>
+      <span aria-hidden="true">{glyph}</span>
+      <input
+        aria-label={label}
+        max="23"
+        min="0"
+        onChange={(event) => {
+          onChange(event.target.value);
+        }}
+        type="number"
+        value={value}
+      />
+    </label>
+  );
+}
 
 // The three hours are sent as-is. This component contains no comparison
 // against the current schedule, deliberately: the ratchet lives in
 // screen-locker's adjust_shutdown_schedule.sh, and a second opinion here could
-// only ever disagree with the one that actually guards the file.
+// only ever disagree with the one that actually guards the file. Earlier
+// evening hours and a later morning end are stricter; the script's answer is
+// shown as the outcome glyph, its stderr verbatim.
 export function TightenCurfew(): React.JSX.Element {
   const [monWed, setMonWed] = useState("21");
   const [thuSun, setThuSun] = useState("21");
@@ -38,111 +76,81 @@ export function TightenCurfew(): React.JSX.Element {
 
   return (
     <section aria-label="Tighten the curfew" className="mutate">
-      <p className="reason">
-        Only a stricter schedule is accepted, and this page does not decide
-        which that is — the request goes to the same script the sick-day flow
-        uses, and its answer is shown verbatim below. Earlier evening hours are
-        stricter; a <em>later</em> morning end is stricter, because it lengthens
-        the shutdown window.
-      </p>
-
       <div className="fields">
-        <label>
-          Mon–Wed
-          <input
-            max="23"
-            min="0"
-            onChange={(event) => {
-              setMonWed(event.target.value);
-            }}
-            type="number"
-            value={monWed}
-          />
-        </label>
-        <label>
-          Thu–Sun
-          <input
-            max="23"
-            min="0"
-            onChange={(event) => {
-              setThuSun(event.target.value);
-            }}
-            type="number"
-            value={thuSun}
-          />
-        </label>
-        <label>
-          Morning end
-          <input
-            max="23"
-            min="0"
-            onChange={(event) => {
-              setMorningEnd(event.target.value);
-            }}
-            type="number"
-            value={morningEnd}
-          />
-        </label>
+        <HourField glyph={MON_WED} label="Mon–Wed" onChange={setMonWed} value={monWed} />
+        <HourField glyph={THU_SUN} label="Thu–Sun" onChange={setThuSun} value={thuSun} />
+        <HourField
+          glyph={MORNING}
+          label="Morning end"
+          onChange={setMorningEnd}
+          value={morningEnd}
+        />
       </div>
 
       {confirming ? (
         <p className="confirm">
-          Apply Mon–Wed {monWed}:00, Thu–Sun {thuSun}:00, morning end{" "}
-          {morningEnd}:00? This is written to a guarded file and cannot be
-          loosened again from here.
-          <button disabled={busy} onClick={() => void submit()} type="button">
-            Yes, tighten it
+          {MON_WED} {monWed}:00 · {THU_SUN} {thuSun}:00 · {MORNING} {morningEnd}:00
+          <button
+            aria-label="Yes, tighten it"
+            className="danger"
+            disabled={busy}
+            onClick={() => void submit()}
+            type="button"
+          >
+            {GLYPH.stricter}?
           </button>
           <button
+            aria-label="Cancel"
             onClick={() => {
               setConfirming(false);
             }}
             type="button"
           >
-            Cancel
+            {GLYPH.clear}
           </button>
         </p>
       ) : (
         <button
+          aria-label="Tighten curfew"
           disabled={busy}
           onClick={() => {
             setConfirming(true);
           }}
           type="button"
         >
-          Tighten curfew…
+          {GLYPH.stricter}
         </button>
       )}
 
-      {error !== null && <p className="empty" role="alert">{error}</p>}
+      {error !== null && <ErrorNote error={error} />}
       {result !== null && <MutationOutcome result={result} />}
     </section>
   );
 }
 
-// Three outcomes, three tones. A refusal is the guard doing its job, so it
-// must not look like the danger red of a broken pipeline.
 function outcomeTone(result: MutationResult): string {
   if (result.ok) return "var(--success)";
   return result.refused ? "var(--warning)" : "var(--danger)";
 }
 
+function outcomeGlyph(result: MutationResult): string {
+  if (result.ok) return GLYPH.ok;
+  return result.refused ? GLYPH.refused : GLYPH.fail;
+}
+
+// Dot tone plus glyph shape for the verdict; the server's summary sentence is
+// spoken only. stderr is the script's own output, shown verbatim like a log.
 export function MutationOutcome({
   result,
 }: Readonly<{ result: MutationResult }>): React.JSX.Element {
   const tone = outcomeTone(result);
   return (
-    <div className="outcome" role="status">
+    <div aria-label={result.summary} className="outcome" role="status">
       <p>
         <span className="dot" style={{ backgroundColor: tone }} />
-        {result.summary}
+        <span aria-hidden="true">{outcomeGlyph(result)}</span>
       </p>
-      {result.stderr !== "" && (
-        <>
-          <p className="category">what the script said</p>
-          <pre className="log">{result.stderr}</pre>
-        </>
-      )}
+      {result.stderr !== "" && <pre className="log">{result.stderr}</pre>}
     </div>
   );
 }

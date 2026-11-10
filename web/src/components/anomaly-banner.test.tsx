@@ -5,28 +5,35 @@ import { STATUS } from "../test/fixture.ts";
 import { AnomalyBanner } from "./anomaly-banner.tsx";
 
 describe("AnomalyBanner", () => {
-  it("names the real findings, not a generic count", () => {
+  it("speaks each real finding and counts them in the heading", () => {
     render(<AnomalyBanner anomalies={STATUS.anomalies} />);
     expect(
-      screen.getByText("phone-auto-sync.timer is NOT_INSTALLED"),
+      screen.getByRole("listitem", {
+        name: /^phone-auto-sync\.timer is NOT_INSTALLED: /u,
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("kuhytrack-budget.timer is UNARMED"),
+      screen.getByRole("listitem", { name: /^kuhytrack-budget\.timer is UNARMED: /u }),
     ).toBeInTheDocument();
-    expect(screen.getByText("2 finding(s)")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Findings" })).toHaveTextContent("2");
   });
 
-  it("shows evidence when there is any, and omits the line when there is none", () => {
+  it("links each finding to the subsystem it is about", () => {
     render(<AnomalyBanner anomalies={STATUS.anomalies} />);
-    const items = within(screen.getByRole("list")).getAllByRole("listitem");
-    expect(items[0]).toHaveTextContent("scope=user · UnitFileState=None");
-    expect(items[1]).not.toHaveTextContent("·");
-  });
-
-  it("says so plainly when nothing needs attention", () => {
-    render(<AnomalyBanner anomalies={[]} />);
-    expect(screen.getByRole("status")).toHaveTextContent(
-      /Nothing needs attention/,
+    const [first, second] = within(screen.getByRole("list")).getAllByRole("listitem");
+    if (first === undefined || second === undefined) throw new Error("two findings expected");
+    expect(within(first).getByRole("link")).toHaveAttribute(
+      "href",
+      "#/s/phone-focus-mode",
     );
+    expect(within(second).getByRole("link")).toHaveAttribute(
+      "href",
+      "#/s/kuhytrack",
+    );
+  });
+
+  it("shows a check when nothing needs attention", () => {
+    render(<AnomalyBanner anomalies={[]} />);
+    expect(screen.getByRole("status")).toHaveAccessibleName("Nothing needs attention");
   });
 });

@@ -2,14 +2,17 @@ import { useState } from "react";
 
 import type { MutationResult } from "../../lib/types.ts";
 
+import { GLYPH } from "../../lib/glyphs.ts";
 import {
   deleteSession,
   markSessions,
   resumeSessions,
   type SessionEntry,
 } from "../../lib/sessions-api.ts";
+import { ErrorNote } from "../error-note.tsx";
 import { MutationOutcome } from "../tighten-curfew.tsx";
 import { ConfirmDelete } from "./confirm-delete.tsx";
+import { COPIED, COPY_FAILED, CopyNote } from "./copy-note.tsx";
 
 // Which mark a click would send, or undefined for no button. Only a manual
 // mark can be undone: a session that reported DONE itself has nothing to
@@ -50,9 +53,9 @@ export function SessionActions({
   const copy = async (): Promise<void> => {
     try {
       await navigator.clipboard.writeText(session.resume_command);
-      setCopied("Copied");
+      setCopied(COPIED);
     } catch {
-      setCopied("Copy failed");
+      setCopied(COPY_FAILED);
     }
   };
 
@@ -64,7 +67,7 @@ export function SessionActions({
         onClick={() => void send(() => resumeSessions([session.id]), false)}
         type="button"
       >
-        Resume
+        {GLYPH.resume}
       </button>
       <button
         aria-label={`Copy resume command for ${session.id}`}
@@ -72,7 +75,7 @@ export function SessionActions({
         onClick={() => void copy()}
         type="button"
       >
-        Copy
+        {GLYPH.copy}
       </button>
       {mark !== undefined && (
         <button
@@ -82,7 +85,7 @@ export function SessionActions({
           onClick={() => void send(() => markSessions([session.id], mark), true)}
           type="button"
         >
-          {mark === null ? "Unmark" : "Mark done"}
+          {mark === null ? GLYPH.undo : GLYPH.mark}
         </button>
       )}
       <ConfirmDelete
@@ -91,12 +94,8 @@ export function SessionActions({
         label={`Delete ${session.id}`}
         onConfirm={() => void send(() => deleteSession(session.id), true)}
       />
-      {copied !== "" && <span className="category">{copied}</span>}
-      {error !== null && (
-        <span className="empty" role="alert">
-          {error}
-        </span>
-      )}
+      {copied !== "" && <CopyNote copied={copied} />}
+      {error !== null && <ErrorNote error={error} />}
       {result !== null && <MutationOutcome result={result} />}
     </div>
   );

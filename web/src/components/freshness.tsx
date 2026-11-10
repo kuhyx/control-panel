@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 
 import { formatAge, formatTimestamp } from "../lib/format.ts";
+import { GLYPH } from "../lib/glyphs.ts";
+import { Glyph } from "./glyph.tsx";
 
 const TICK_MS = 1000;
 
@@ -19,5 +21,9 @@ export function Freshness({
       clearInterval(timer);
     };
   }, []);
-  return <span title={formatTimestamp(at)}>updated {formatAge(at, now)}</span>;
+  return (
+    <span title={formatTimestamp(at)}>
+      <Glyph glyph={GLYPH.reading} label="updated" /> {formatAge(at, now)}
+    </span>
+  );
 }

@@ -23,20 +23,26 @@ const MICROS_PER_MS = 1000;
 export function formatEpochMicros(raw: null | string): string {
   if (raw === null || raw === "") return "—";
   const micros = Number(raw);
-  if (!Number.isFinite(micros) || micros <= 0) return "—";
-  const when = new Date(micros / MICROS_PER_MS);
-  return when.toLocaleString();
+  return !Number.isFinite(micros) || micros <= 0 ? "—" : formatLocal(new Date(micros / MICROS_PER_MS));
+}
+
+// Digits only ("2026-11-10 21:57:47", local time): toLocaleString paints
+// words such as "PM" or month names in some locales.
+function formatLocal(when: Date): string {
+  const pad = (value: number): string => String(value).padStart(2, "0");
+  const day = `${String(when.getFullYear())}-${pad(when.getMonth() + 1)}-${pad(when.getDate())}`;
+  return `${day} ${pad(when.getHours())}:${pad(when.getMinutes())}:${pad(when.getSeconds())}`;
 }
 
 export function formatTimestamp(iso: string): string {
   const parsed = new Date(iso);
-  return Number.isNaN(parsed.getTime()) ? iso : parsed.toLocaleString();
+  return Number.isNaN(parsed.getTime()) ? iso : formatLocal(parsed);
 }
 
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;
 
-// "12s ago" / "3m ago". A clock running slightly behind the server's must not
+// "12 s" / "3 min" (the age glyph next to it says "ago"). A clock running slightly behind the server's must not
 // render a negative age, so the floor is zero.
 export function formatAge(iso: string, nowMs: number): string {
   const parsed = new Date(iso);
@@ -44,12 +50,12 @@ export function formatAge(iso: string, nowMs: number): string {
   if (Number.isNaN(then)) return "—";
   const seconds = Math.max(0, Math.round((nowMs - then) / MS_PER_SECOND));
   return seconds < SECONDS_PER_MINUTE
-    ? `${String(seconds)}s ago`
-    : `${String(Math.floor(seconds / SECONDS_PER_MINUTE))}m ago`;
+    ? `${String(seconds)} s`
+    : `${String(Math.floor(seconds / SECONDS_PER_MINUTE))} min`;
 }
 
-// Coarser than formatAge, for things days or weeks old: "7 s ago",
-// "3 min ago", "3 h ago", "12 d ago". Floored at zero for a clock running
+// Coarser than formatAge, for things days or weeks old: "7 s",
+// "3 min", "3 h", "12 d". Floored at zero for a clock running
 // behind, like formatAge.
 const STEPS: readonly (readonly [number, string])[] = [
   [60, "s"],
@@ -62,8 +68,8 @@ export function formatRelativeAge(iso: string, nowMs: number): string {
   if (Number.isNaN(then)) return "—";
   let value = Math.max(0, Math.floor((nowMs - then) / MS_PER_SECOND));
   for (const [size, unit] of STEPS) {
-    if (value < size) return `${String(value)} ${unit} ago`;
+    if (value < size) return `${String(value)} ${unit}`;
     value = Math.floor(value / size);
   }
-  return `${String(value)} d ago`;
+  return `${String(value)} d`;
 }

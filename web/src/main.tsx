@@ -7,6 +7,7 @@ import "./styles/live.css";
 import "./styles/sessions.css";
 import "./styles/shared.css";
 import "./styles/table-controls.css";
+import "./styles/glyphs.css";
 import { App } from "./app.tsx";
 
 const root = document.querySelector("#root");

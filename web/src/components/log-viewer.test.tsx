@@ -9,7 +9,7 @@ describe("LogViewer", () => {
     vi.restoreAllMocks();
   });
 
-  it("says the 57 MB file is never read whole", async () => {
+  it("shows the line count over the 57 MB file it never reads whole", async () => {
     vi.spyOn(api, "fetchLog").mockResolvedValue({
       id: "hosts-monitor",
       lines: ["one", "two"],
@@ -19,9 +19,10 @@ describe("LogViewer", () => {
     });
     render(<LogViewer id="hosts-monitor" />);
     await waitFor(() => {
-      expect(screen.getByText(/never read whole/)).toBeInTheDocument();
+      expect(screen.getByLabelText("last 2 lines of 54.6 MB")).toHaveTextContent(
+        "≡ 2 / 54.6 MB",
+      );
     });
-    expect(screen.getByText(/54.6 MB/)).toBeInTheDocument();
   });
 
   it("reports a plain line count for a short log", async () => {
@@ -33,11 +34,11 @@ describe("LogViewer", () => {
     });
     render(<LogViewer id="small" />);
     await waitFor(() => {
-      expect(screen.getByText("1 line(s)")).toBeInTheDocument();
+      expect(screen.getByLabelText("1 line(s)")).toHaveTextContent(/^≡ 1$/u);
     });
   });
 
-  it("surfaces a server note", async () => {
+  it("surfaces a server note as a spoken info glyph", async () => {
     vi.spyOn(api, "fetchLog").mockResolvedValue({
       id: "j",
       lines: [],
@@ -47,16 +48,18 @@ describe("LogViewer", () => {
     });
     render(<LogViewer id="j" />);
     await waitFor(() => {
-      expect(screen.getByText(/not implemented/)).toBeInTheDocument();
+      expect(
+        screen.getByRole("note", { name: "journal reads are not implemented yet" }),
+      ).toHaveTextContent("ℹ");
     });
   });
 
   it("shows a loading state and then the error when the read fails", async () => {
     vi.spyOn(api, "fetchLog").mockRejectedValue(new Error("boom"));
     render(<LogViewer id="x" />);
-    expect(screen.getByText(/Loading x/)).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Loading x" })).toBeInTheDocument();
     await waitFor(() => {
-      expect(screen.getByText(/boom/)).toBeInTheDocument();
+      expect(screen.getByRole("alert")).toHaveAccessibleName("Error: boom");
     });
   });
 });
@@ -68,7 +71,7 @@ it("does not set state after unmount when the read is aborted", async () => {
   unmount();
   pending.reject(new Error("aborted"));
   await new Promise((resolve) => setTimeout(resolve, 0));
-  expect(screen.queryByText(/aborted/)).not.toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
 
 it("renders a journal-kind log through the journal reader", async () => {

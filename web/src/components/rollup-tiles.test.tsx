@@ -9,13 +9,16 @@ describe("RollupTiles", () => {
     const list = screen.getByRole("list", { name: "Fleet summary" });
     const items = within(list).getAllByRole("listitem");
     expect(items).toHaveLength(2);
-    expect(items[0]).toHaveTextContent("38");
-    expect(items[0]).toHaveTextContent("ARMED");
+    const [armed, unarmed] = items;
+    if (armed === undefined || unarmed === undefined) throw new Error("two tiles expected");
+    expect(armed).toHaveTextContent("38");
+    expect(within(armed).getByRole("img", { name: "ARMED" })).toHaveTextContent("✓");
+    expect(within(unarmed).getByRole("img", { name: "UNARMED" })).toHaveTextContent("◌");
   });
 
   it("hides zero counts rather than rendering an empty tile", () => {
     render(<RollupTiles rollup={{ ARMED: 1, BAD: 0 }} />);
-    expect(screen.queryByText("BAD")).not.toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: "BAD" })).not.toBeInTheDocument();
   });
 
   it("renders nothing when the fleet is empty", () => {

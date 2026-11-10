@@ -1,6 +1,6 @@
-// A button that flips a row's log panel open and shut. The panel itself is
-// rendered by the row, in a full-width row of its own -- a 100-line log does
-// not fit in a table cell.
+import { GLYPH } from "../lib/glyphs.ts";
+
+// Scroll glyph while closed, a cross while open (aria-expanded carries it too).
 export function LogsToggle({
   name,
   onToggle,
@@ -18,7 +18,7 @@ export function LogsToggle({
       onClick={onToggle}
       type="button"
     >
-      {open ? "Hide logs" : "Logs"}
+      {open ? GLYPH.clear : GLYPH.logs}
     </button>
   );
 }

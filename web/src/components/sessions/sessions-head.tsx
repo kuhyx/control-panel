@@ -2,12 +2,15 @@ import type { SessionColumn } from "../../lib/sessions-query.ts";
 import type { SortState } from "../../lib/table-state.ts";
 import type { Selection } from "./use-selection.ts";
 
-const LABELS: readonly (readonly [SessionColumn, string])[] = [
-  ["status", "Status"],
-  ["age", "Age"],
-  ["project", "Project"],
-  ["title", "Title"],
-  ["mark", "Mark"],
+import { GLYPH } from "../../lib/glyphs.ts";
+
+// Column, spoken name, painted glyph.
+const LABELS: readonly (readonly [SessionColumn, string, string])[] = [
+  ["status", "Status", GLYPH.state],
+  ["age", "Age", GLYPH.age],
+  ["project", "Project", GLYPH.project],
+  ["title", "Title", GLYPH.title],
+  ["mark", "Mark", GLYPH.mark],
 ];
 
 // Same markup (and table-controls.css styling) as ColumnHeader.
@@ -44,18 +47,19 @@ export function SessionsHead({
             type="checkbox"
           />
         </th>
-        {LABELS.map(([column, label]) => {
+        {LABELS.map(([column, label, glyph]) => {
           const active = sort?.column === column ? sort.direction : "none";
           return (
             <th aria-sort={ARIA_SORT[active]} className="sortable" key={column} scope="col">
               <button
+                aria-label={label}
                 className="sort-button"
                 onClick={() => {
                   onSort(column);
                 }}
                 type="button"
               >
-                {label}
+                <span aria-hidden="true">{glyph}</span>
                 <span aria-hidden="true" className={`sort-indicator sort-${active}`}>
                   {INDICATOR[active]}
                 </span>
@@ -63,7 +67,7 @@ export function SessionsHead({
             </th>
           );
         })}
-        <th scope="col">Actions</th>
+        <th scope="col"><span aria-label="Actions">{GLYPH.actions}</span></th>
       </tr>
     </thead>
   );

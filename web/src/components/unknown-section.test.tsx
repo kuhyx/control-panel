@@ -24,16 +24,21 @@ describe("UnknownSection", () => {
       units: [{ name: "new-thing.service", scope: "user" }],
     });
     render(<UnknownSection />);
-    expect(screen.getByText(/Looking for undeclared/)).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: /Looking for/ })).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByText("127.0.0.1:8798")).toBeInTheDocument();
     });
     expect(screen.getByText(/issue_dashboard/)).toBeInTheDocument();
-    // A root-owned listener has no visible process; say why, not nothing.
+    // A root-owned listener has no visible process; mark why, not nothing.
     expect(
-      screen.getByText("process not visible to this user"),
-    ).toBeInTheDocument();
+      screen.getByRole("img", { name: "process not visible to this user" }),
+    ).toHaveTextContent("🙈");
     expect(screen.getByText("new-thing.service")).toBeInTheDocument();
+    // The scope filter offers the same glyph, so look in the body cell.
+    expect(
+      within(screen.getAllByRole("table")[1]!).getAllByRole("cell")[0],
+    ).toContainElement(screen.getAllByRole("img", { name: "user" }).at(-1)!);
+    expect(screen.getAllByRole("img", { name: "user" }).at(-1)).toHaveTextContent("$");
   });
 
   it("sorts listeners by port number, not by address text", async () => {
@@ -58,7 +63,21 @@ describe("UnknownSection", () => {
     expect(ports()).toEqual(["0.0.0.0:8798", "127.0.0.1:952", "192.0.2.1:22"]);
   });
 
-  it("says so when a search matches no listener or user unit", async () => {
+  it("paints an unexpected scope as a bullet, its word spoken", async () => {
+    vi.spyOn(api, "fetchUnknown").mockResolvedValue({
+      listeners: [],
+      units: [{ name: "odd.service", scope: "machine" }],
+    });
+    render(<UnknownSection />);
+    await screen.findByText("odd.service");
+    // Painted in the body cell and in the scope filter's option alike.
+    const glyphs = screen.getAllByRole("img", { name: "machine" });
+    for (const glyph of glyphs) {
+      expect(glyph).toHaveTextContent("•");
+    }
+  });
+
+  it("marks when a search matches no listener or user unit", async () => {
     vi.spyOn(api, "fetchUnknown").mockResolvedValue({
       listeners: [{ address: "0.0.0.0", port: 8798, process: "a" }],
       units: [{ name: "x.timer", scope: "user" }],
@@ -68,17 +87,21 @@ describe("UnknownSection", () => {
     await screen.findByText("x.timer");
     await user.type(screen.getByLabelText("Search Listener"), "zzz");
     await user.type(screen.getByLabelText("Search Unit"), "zzz");
-    expect(screen.getAllByText("No rows match the current filters.")).toHaveLength(2);
+    expect(
+      screen.getAllByRole("cell", { name: "No rows match the current filters." }),
+    ).toHaveLength(2);
     expect(screen.queryByText("0.0.0.0:8798")).not.toBeInTheDocument();
     expect(screen.queryByText("x.timer")).not.toBeInTheDocument();
   });
 
-  it("says everything is declared when nothing is left over", async () => {
+  it("marks everything declared when nothing is left over", async () => {
     vi.spyOn(api, "fetchUnknown").mockResolvedValue({ listeners: [], units: [] });
     render(<UnknownSection />);
-    await waitFor(() => {
-      expect(screen.getByText(/is declared somewhere above/)).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByRole("status", {
+        name: "Every listening port and user unit is declared",
+      }),
+    ).toHaveTextContent("✓");
   });
 
   it("omits an empty half", async () => {
@@ -90,16 +113,16 @@ describe("UnknownSection", () => {
     await waitFor(() => {
       expect(screen.getByText("x.timer")).toBeInTheDocument();
     });
-    expect(screen.queryByText("Listening ports")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Listening ports" })).not.toBeInTheDocument();
   });
 
   it("shows a failed read", async () => {
     vi.spyOn(api, "fetchUnknown").mockRejectedValue(new Error("boom"));
     render(<UnknownSection />);
     await waitFor(() => {
-      expect(screen.getByText(/boom/)).toBeInTheDocument();
+      expect(screen.getByRole("alert")).toHaveAccessibleName(/boom/);
     });
-    expect(screen.queryByText(/Looking for/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
   });
 });
 
@@ -110,5 +133,5 @@ it("does not set state after unmount", async () => {
   unmount();
   pending.reject(new Error("aborted"));
   await new Promise((resolve) => setTimeout(resolve, 0));
-  expect(screen.queryByText(/aborted/)).not.toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });

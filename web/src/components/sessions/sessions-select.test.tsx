@@ -19,6 +19,9 @@ const box = (id: string): HTMLElement =>
 const all = (): HTMLElement =>
   screen.getByRole("checkbox", { name: "Select all shown sessions" });
 const bar = (): HTMLElement => screen.getByRole("region", { name: "Bulk actions" });
+// The bar paints "☑ N"; "N selected" is its spoken name.
+const selected = (): null | string =>
+  within(bar()).queryByLabelText(/ selected$/u)?.getAttribute("aria-label") ?? null;
 const sessionCalls = (spy: ReturnType<typeof stubSessionsFetch>): number =>
   spy.mock.calls.filter(([path]) => path === "/api/sessions").length;
 
@@ -49,13 +52,13 @@ describe("SessionsPage selection", () => {
     expect(screen.queryByRole("region", { name: "Bulk actions" })).toBeNull();
     fireEvent.click(box("bravo"));
     expect(all()).toBePartiallyChecked();
-    expect(bar()).toHaveTextContent("1 selected");
+    expect(selected()).toBe("1 selected");
     fireEvent.click(all());
     expect(all()).toBeChecked();
-    expect(bar()).toHaveTextContent("4 selected");
-    fireEvent.change(screen.getByLabelText("Project"), { target: { value: "panel" } });
+    expect(selected()).toBe("4 selected");
+    fireEvent.change(screen.getByRole("combobox", { name: "Project" }), { target: { value: "panel" } });
     // Hidden rows drop out of the selection: only what is shown is acted on.
-    expect(bar()).toHaveTextContent("2 selected");
+    expect(selected()).toBe("2 selected");
     expect(all()).toBeChecked();
     fireEvent.click(all());
     expect(all()).not.toBeChecked();
@@ -81,24 +84,24 @@ describe("SessionsPage selection", () => {
     await open("#/sessions?done=1");
     fireEvent.click(box("bravo"));
     fireEvent.click(box("echo"), { shiftKey: true });
-    expect(bar()).toHaveTextContent("4 selected");
+    expect(selected()).toBe("4 selected");
     for (const id of ["bravo", "charlie", "delta", "echo"]) {
       expect(box(id)).toBeChecked();
     }
     fireEvent.click(box("charlie"), { shiftKey: true });
     // charlie was on, so the range echo..charlie goes off.
-    expect(bar()).toHaveTextContent("1 selected");
+    expect(selected()).toBe("1 selected");
     expect(box("bravo")).toBeChecked();
   });
 
   it("shift-click with no visible anchor toggles one row", async () => {
     await open();
     fireEvent.click(box("delta"), { shiftKey: true });
-    expect(bar()).toHaveTextContent("1 selected");
+    expect(selected()).toBe("1 selected");
     fireEvent.click(box("alpha"));
-    fireEvent.change(screen.getByLabelText("Project"), { target: { value: "router" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Project" }), { target: { value: "router" } });
     fireEvent.click(box("charlie"), { shiftKey: true });
-    expect(bar()).toHaveTextContent("1 selected");
+    expect(selected()).toBe("1 selected");
   });
 
   it("keeps the selection across a refetch, dropping ids that vanished", async () => {
@@ -109,16 +112,18 @@ describe("SessionsPage selection", () => {
     ]);
     fireEvent.click(box("alpha"));
     fireEvent.click(box("bravo"));
-    expect(bar()).toHaveTextContent("2 selected");
+    expect(selected()).toBe("2 selected");
     fireEvent.click(screen.getByRole("button", { name: "Mark charlie done" }));
     await waitFor(() => {
       expect(screen.queryByRole("checkbox", { name: "Select bravo" })).toBeNull();
     });
     expect(sessionCalls(spy)).toBe(2);
     expect(box("alpha")).toBeChecked();
-    expect(bar()).toHaveTextContent("1 selected");
+    expect(selected()).toBe("1 selected");
     fireEvent.click(within(bar()).getByRole("button", { name: "Copy commands" }));
-    expect(await within(bar()).findByText("Copied 1 command")).toBeInTheDocument();
+    expect(
+      await within(bar()).findByRole("status", { name: "Copied 1 command" }),
+    ).toBeInTheDocument();
     expect(writeText).toHaveBeenCalledWith(
       "cd '/home/kuhy/src/alpha' && claude --resume alpha",
     );
@@ -127,8 +132,10 @@ describe("SessionsPage selection", () => {
   it("disables bulk Resume with more than five selected", async () => {
     await open("#/sessions?done=1");
     fireEvent.click(all());
-    expect(bar()).toHaveTextContent("7 selected");
-    expect(within(bar()).getByRole("button", { name: "Resume" })).toBeDisabled();
+    expect(selected()).toBe("7 selected");
+    expect(
+      within(bar()).getByRole("button", { name: "Resume (max 5 terminals at once)" }),
+    ).toBeDisabled();
   });
 });
 
@@ -138,7 +145,7 @@ describe("older than X, then a bulk action", () => {
     fireEvent.change(screen.getByLabelText("Age unit"), { target: { value: "h" } });
     fireEvent.change(screen.getByLabelText("Older than"), { target: { value: "2" } });
     fireEvent.click(all());
-    expect(bar()).toHaveTextContent("2 selected");
+    expect(selected()).toBe("2 selected");
     fireEvent.click(within(bar()).getByRole("button", { name: "Mark done" }));
     await waitFor(() => {
       expect(postedBodies(spy, "session-mark")).toEqual([
@@ -146,17 +153,19 @@ describe("older than X, then a bulk action", () => {
       ]);
     });
     // Success: refetched, selection cleared, the answer still on screen.
-    expect(await within(bar()).findByText(/Resumed alpha/)).toBeInTheDocument();
+    expect(
+      await within(bar()).findByRole("status", { name: /Resumed alpha/u }),
+    ).toBeInTheDocument();
     await waitFor(() => {
       expect(sessionCalls(spy)).toBe(2);
     });
     expect(box("alpha")).not.toBeChecked();
-    expect(bar()).not.toHaveTextContent("selected");
+    expect(selected()).toBeNull();
     fireEvent.click(within(bar()).getByRole("button", { name: "Dismiss" }));
     expect(screen.queryByRole("region", { name: "Bulk actions" })).toBeNull();
   });
 
-  it("age filter, header checkbox, Delete with its confirmation", async () => {
+  it("age filter, header checkbox, Delete, confirm", async () => {
     const spy = await open("#/sessions?done=1&older=1w");
     fireEvent.click(all());
     fireEvent.click(within(bar()).getByRole("button", { name: "Delete" }));

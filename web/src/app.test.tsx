@@ -25,7 +25,7 @@ describe("App", () => {
 
   it("shows a reading state, then the overview", async () => {
     render(<App />);
-    expect(screen.getByText("Reading…")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Reading" })).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
@@ -51,7 +51,9 @@ describe("App", () => {
     vi.stubGlobal("location", { hash: "", pathname: "/", replace });
     render(<App />);
     goto("#/tokens");
-    expect(await screen.findByText(/Token usage moved/)).toBeInTheDocument();
+    expect(
+      await screen.findByRole("status", { name: "Token usage moved" }),
+    ).toBeInTheDocument();
     expect(replace).toHaveBeenCalledWith("http://127.0.0.1:8786/usage/");
     vi.unstubAllGlobals();
   });
@@ -61,7 +63,7 @@ describe("App", () => {
     render(<App />);
     goto("#/sessions");
     expect(
-      await screen.findByRole("heading", { name: "Claude Code sessions" }),
+      await screen.findByRole("heading", { name: "Sessions" }),
     ).toBeInTheDocument();
     vi.unstubAllGlobals();
   });
@@ -79,7 +81,7 @@ describe("App", () => {
     });
     goto("#/");
     await waitFor(() => {
-      expect(screen.getByText("2 finding(s)")).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Findings" })).toHaveTextContent("2");
     });
   });
 
@@ -87,7 +89,9 @@ describe("App", () => {
     render(<App />);
     goto("#/s/ghost");
     await waitFor(() => {
-      expect(screen.getByText(/No such subsystem: ghost/)).toBeInTheDocument();
+      expect(screen.getByRole("status", { name: "No such subsystem" })).toHaveTextContent(
+        "ghost",
+      );
     });
   });
 
@@ -110,7 +114,7 @@ describe("App", () => {
     vi.spyOn(api, "fetchStatus").mockRejectedValue(new Error("server down"));
     render(<App />);
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent(/server down/);
+      expect(screen.getByRole("alert")).toHaveAccessibleName(/server down/);
     });
   });
 

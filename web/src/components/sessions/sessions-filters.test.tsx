@@ -20,8 +20,12 @@ async function open(hash = "#/sessions"): Promise<void> {
   await screen.findByRole("checkbox", { name: "Select all shown sessions" });
 }
 
+// A header paints only a glyph; its sort button carries the column's name.
 const header = (name: string): HTMLElement =>
-  screen.getByRole("columnheader", { name });
+  screen.getByRole("button", { name }).closest("th") as HTMLElement;
+
+// "Project" and "Mark" also name a column's sort button: pick the dropdown.
+const select = (name: string): HTMLElement => screen.getByRole("combobox", { name });
 
 beforeEach(() => {
   globalThis.history.replaceState(null, "", "#/sessions");
@@ -70,9 +74,9 @@ describe("SessionsPage sorting", () => {
     await open("#/sessions?done=1");
     const cell = (id: string): HTMLElement =>
       screen.getByRole("checkbox", { name: `Select ${id}` }).closest("tr") as HTMLElement;
-    expect(within(cell("foxtrot")).getByText("by hand")).toBeInTheDocument();
-    expect(within(cell("echo")).getByText("by tag")).toBeInTheDocument();
-    expect(within(cell("alpha")).getByText("—")).toBeInTheDocument();
+    expect(within(cell("foxtrot")).getByRole("img", { name: "by hand" })).toHaveTextContent("✋");
+    expect(within(cell("echo")).getByRole("img", { name: "by tag" })).toHaveTextContent("🏷");
+    expect(within(cell("alpha")).getByRole("img", { name: "not done" })).toHaveTextContent("—");
   });
 });
 
@@ -80,24 +84,25 @@ describe("SessionsPage filters", () => {
   it("filters by status chips with counts; a done chip shows its rows", async () => {
     await open();
     const status = screen.getByRole("group", { name: "Status" });
-    fireEvent.click(within(status).getByRole("checkbox", { name: "question (1)" }));
-    fireEvent.click(within(status).getByRole("checkbox", { name: "running (1)" }));
+    fireEvent.click(within(status).getByRole("checkbox", { name: /question \(\d+\)/ }));
+    fireEvent.click(within(status).getByRole("checkbox", { name: /running \(\d+\)/ }));
     expect(rowIds()).toEqual(["bravo", "delta"]);
     expect(globalThis.location.hash).toBe(
       "#/sessions?status=question&status=running",
     );
-    fireEvent.click(within(status).getByRole("checkbox", { name: "done (2)" }));
+    fireEvent.click(within(status).getByRole("checkbox", { name: /done \(\d+\)/ }));
     expect(rowIds()).toEqual(["bravo", "delta", "echo", "foxtrot"]);
-    fireEvent.click(within(status).getByRole("checkbox", { name: "question (1)" }));
+    fireEvent.click(within(status).getByRole("checkbox", { name: /question \(\d+\)/ }));
     expect(rowIds()).toEqual(["delta", "echo", "foxtrot"]);
   });
 
   it("filters by project from a sorted dropdown", async () => {
     await open();
-    const project = screen.getByLabelText("Project");
+    const project = select("Project");
     expect(
       within(project).getAllByRole("option").map((o) => o.textContent),
-    ).toEqual(["All projects", "delta", "foxtrot", "golf", "panel", "router"]);
+    ).toEqual(["∗", "delta", "foxtrot", "golf", "panel", "router"]);
+    expect(within(project).getByRole("option", { name: "All projects" })).toHaveValue("");
     fireEvent.change(project, { target: { value: "panel" } });
     expect(rowIds()).toEqual(["alpha", "bravo"]);
     expect(globalThis.location.hash).toBe("#/sessions?project=panel");
@@ -114,7 +119,7 @@ describe("SessionsPage filters", () => {
     expect(globalThis.location.hash).toBe("#/sessions?older=2h");
     fireEvent.change(screen.getByLabelText("Age unit"), { target: { value: "w" } });
     expect(rowIds()).toEqual([]);
-    expect(screen.getByText("No sessions match.")).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "No sessions match." })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Older than"), { target: { value: "" } });
     expect(rowIds()).toHaveLength(4);
     expect(globalThis.location.hash).toBe("#/sessions");
@@ -122,7 +127,10 @@ describe("SessionsPage filters", () => {
 
   it("filters by mark; a done mark shows done rows without Show done", async () => {
     await open();
-    const mark = screen.getByLabelText("Mark");
+    const mark = select("Mark");
+    expect(
+      within(mark).getAllByRole("option").map((o) => o.getAttribute("aria-label")),
+    ).toEqual(["All", "Marked done by hand", "Done by tag", "Not done"]);
     fireEvent.change(mark, { target: { value: "manual" } });
     expect(rowIds()).toEqual(["foxtrot"]);
     fireEvent.change(mark, { target: { value: "tag" } });
@@ -142,12 +150,12 @@ describe("SessionsPage filters", () => {
     expect(screen.getByRole("checkbox", { name: "done (2)" })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: "continuing (1)" })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: "running (1)" })).not.toBeChecked();
-    expect(screen.getByLabelText("Project")).toHaveValue("panel");
+    expect(select("Project")).toHaveValue("panel");
     expect(screen.getByLabelText("Older than")).toHaveValue(1);
     expect(screen.getByLabelText("Age unit")).toHaveValue("d");
-    expect(screen.getByLabelText("Mark")).toHaveValue("tag");
+    expect(select("Mark")).toHaveValue("tag");
     expect(header("Age")).toHaveAttribute("aria-sort", "ascending");
-    fireEvent.change(screen.getByLabelText("Project"), { target: { value: "" } });
+    fireEvent.change(select("Project"), { target: { value: "" } });
     expect(rowIds()).toEqual(["echo"]);
     fireEvent.change(screen.getByLabelText("Older than"), { target: { value: "" } });
     expect(rowIds()).toEqual(["golf", "echo"]);
@@ -155,14 +163,14 @@ describe("SessionsPage filters", () => {
 
   it("keeps a hashed project that vanished, and ignores impossible values", async () => {
     await open("#/sessions?project=gone&mark=tag&older=2d");
-    expect(screen.getByLabelText("Project")).toHaveValue("gone");
-    expect(screen.getByText("No sessions match.")).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Mark"), { target: { value: "bogus" } });
+    expect(select("Project")).toHaveValue("gone");
+    expect(screen.getByRole("cell", { name: "No sessions match." })).toBeInTheDocument();
+    fireEvent.change(select("Mark"), { target: { value: "bogus" } });
     fireEvent.change(screen.getByLabelText("Age unit"), { target: { value: "bogus" } });
     // Neither change reached the query: the hash is still the one loaded.
     expect(globalThis.location.hash).toBe(
       "#/sessions?project=gone&mark=tag&older=2d",
     );
-    expect(screen.getByLabelText("Mark")).toHaveValue("tag");
+    expect(select("Mark")).toHaveValue("tag");
   });
 });

@@ -19,8 +19,8 @@ const ROWS: Row[] = [
 ];
 
 const COLUMNS: ColumnSpec<Row>[] = [
-  { id: "name", label: "Name", search: true, text: (r) => r.name },
-  { filter: true, id: "kind", label: "Kind", text: (r) => r.kind },
+  { glyph: "#", id: "name", label: "Name", search: true, text: (r) => r.name },
+  { filter: true, glyph: "◆", id: "kind", label: "Kind", text: (r) => r.kind },
 ];
 
 function Harness(): React.JSX.Element {
@@ -67,8 +67,8 @@ describe("ColumnHeader", () => {
   it("cycles sort ascending, descending, off with aria-sort", async () => {
     const user = userEvent.setup();
     render(<Harness />);
-    const header = screen.getByRole("columnheader", { name: /^Name/ });
-    const button = within(header).getByRole("button", { name: /Name/ });
+    const button = screen.getByRole("button", { name: "Name" });
+    const header = button.closest("th");
     expect(header).toHaveAttribute("aria-sort", "none");
     await user.click(button);
     expect(header).toHaveAttribute("aria-sort", "ascending");
@@ -94,7 +94,14 @@ describe("ColumnHeader", () => {
     await user.type(screen.getByLabelText("Search Name"), "BRA");
     expect(rowNames()).toEqual(["Bravo"]);
     expect(globalThis.location.hash).toBe("#?t.q.name=BRA");
-    expect(screen.getByRole("status")).toHaveTextContent("1 of 3 shown");
+    expect(screen.getByRole("status", { name: "1 of 3 shown" })).toHaveTextContent("1/3");
+  });
+
+  it("paints the column glyph and speaks the label", () => {
+    render(<Harness />);
+    const button = screen.getByRole("button", { name: "Name" });
+    expect(button).toHaveTextContent("#");
+    expect(button).not.toHaveTextContent("Name");
   });
 
   it("offers a multi-select over the distinct values", async () => {
@@ -108,9 +115,42 @@ describe("ColumnHeader", () => {
     expect(rowNames()).toEqual(["alpha", "charlie"]);
     await user.click(screen.getByRole("checkbox", { name: "service" }));
     expect(rowNames()).toHaveLength(3);
-    expect(screen.getByText("2 selected")).toBeInTheDocument();
+    expect(screen.getByLabelText("Filter Kind")).toHaveTextContent("▾ 2");
     await user.click(screen.getByRole("checkbox", { name: "timer" }));
     expect(rowNames()).toEqual(["Bravo"]);
+  });
+
+  it("shows a bare caret while nothing is picked", () => {
+    render(<Harness />);
+    expect(screen.getByLabelText("Filter Kind")).toHaveTextContent(/^▾$/u);
+  });
+
+  it("paints filter options as glyphs when the column maps them", () => {
+    const glyphed: ColumnSpec<Row> = {
+      filter: true,
+      glyph: "◆",
+      id: "kind",
+      label: "Kind",
+      optionGlyph: (value) => (value === "timer" ? "⏱" : "⚙"),
+      text: (r) => r.kind,
+    };
+    function Glyphed(): React.JSX.Element {
+      const view = useTableView("g", [glyphed], ROWS);
+      return (
+        <table>
+          <thead>
+            <tr>
+              <ColumnHeader column={glyphed} view={view} />
+            </tr>
+          </thead>
+        </table>
+      );
+    }
+    render(<Glyphed />);
+    const group = screen.getByRole("group", { name: "Kind values" });
+    expect(within(group).getByRole("img", { name: "timer" })).toHaveTextContent("⏱");
+    expect(within(group).getByRole("img", { name: "service" })).toHaveTextContent("⚙");
+    expect(within(group).queryByText("timer")).not.toBeInTheDocument();
   });
 
   it("labels an empty value so it can still be unticked", async () => {
@@ -139,8 +179,10 @@ describe("TableHint", () => {
     render(<Harness />);
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     await user.type(screen.getByLabelText("Search Name"), "zzz");
-    expect(screen.getByRole("status")).toHaveTextContent("0 of 3 shown");
-    expect(screen.getByText("No rows match the current filters.")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "0 of 3 shown" })).toHaveTextContent("0/3");
+    expect(
+      screen.getByRole("cell", { name: "No rows match the current filters." }),
+    ).toHaveTextContent("∅");
     await user.click(screen.getByRole("button", { name: "Clear filters" }));
     expect(rowNames()).toHaveLength(3);
     expect(screen.queryByRole("status")).not.toBeInTheDocument();

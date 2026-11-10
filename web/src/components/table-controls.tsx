@@ -1,5 +1,8 @@
 import type { ColumnSpec, TableView } from "../lib/table-state.ts";
 
+import { GLYPH } from "../lib/glyphs.ts";
+import { Glyph } from "./glyph.tsx";
+
 // Header cell with the sort button and, per the column spec, a search box or a
 // multi-select filter. A column with no spec (Actions) keeps a plain <th>.
 
@@ -17,13 +20,14 @@ export function ColumnHeader<T>({
   return (
     <th aria-sort={ARIA_SORT[active]} className="sortable" scope="col">
       <button
+        aria-label={column.label}
         className="sort-button"
         onClick={() => {
           view.toggleSort(column.id);
         }}
         type="button"
       >
-        {column.label}
+        <span aria-hidden="true">{column.glyph}</span>
         <span aria-hidden="true" className={`sort-indicator sort-${active}`}>
           {INDICATOR[active]}
         </span>
@@ -35,7 +39,6 @@ export function ColumnHeader<T>({
           onChange={(event) => {
             view.setSearch(column.id, event.target.value);
           }}
-          placeholder="search"
           type="search"
           value={view.state.search[column.id] ?? ""}
         />
@@ -61,8 +64,9 @@ function FilterMenu<T>({
   };
   return (
     <details className="column-filter">
+      {/* ▾ alone = no filter; a count = that many values picked. */}
       <summary aria-label={`Filter ${column.label}`}>
-        {selected.length === 0 ? "all" : `${String(selected.length)} selected`}
+        {selected.length === 0 ? "▾" : `▾ ${String(selected.length)}`}
       </summary>
       <div aria-label={`${column.label} values`} className="filter-menu" role="group">
         {view.options(column).map((value) => {
@@ -75,7 +79,7 @@ function FilterMenu<T>({
               }}
               type="checkbox"
             />
-            <span>{value === "" ? "(empty)" : value}</span>
+            <OptionLabel column={column} value={value} />
           </label>
           );
         })}
@@ -84,16 +88,34 @@ function FilterMenu<T>({
   );
 }
 
+function OptionLabel<T>({
+  column,
+  value,
+}: Readonly<{ column: ColumnSpec<T>; value: string }>): React.JSX.Element {
+  if (value === "") return <span aria-label="(empty)">—</span>;
+  if (column.optionGlyph === undefined) return <span>{value}</span>;
+  return <Glyph glyph={column.optionGlyph(value)} label={value} />;
+}
+
 /**
-"N of M shown" plus a clear button; only present while something is filtering.
+"N/M" plus a clear button; only present while something is filtering.
 */
 export function TableHint<T>({ view }: Readonly<{ view: TableView<T> }>): null | React.JSX.Element {
   if (!view.filtered) return null;
   return (
-    <p className="table-hint" role="status">
-      {view.rows.length} of {view.total} shown
-      <button className="link-button" onClick={view.clear} type="button">
-        Clear filters
+    <p
+      aria-label={`${String(view.rows.length)} of ${String(view.total)} shown`}
+      className="table-hint"
+      role="status"
+    >
+      {view.rows.length}/{view.total}
+      <button
+        aria-label="Clear filters"
+        className="link-button"
+        onClick={view.clear}
+        type="button"
+      >
+        {GLYPH.clear}
       </button>
     </p>
   );
@@ -105,8 +127,8 @@ Body row shown when every row is filtered out.
 export function NoMatchRow({ colSpan }: Readonly<{ colSpan: number }>): React.JSX.Element {
   return (
     <tr>
-      <td className="empty" colSpan={colSpan}>
-        No rows match the current filters.
+      <td aria-label="No rows match the current filters." className="empty" colSpan={colSpan}>
+        {GLYPH.none}
       </td>
     </tr>
   );

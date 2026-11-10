@@ -1,7 +1,9 @@
 import type { SessionEntry, SessionStatus } from "../../lib/sessions-api.ts";
 
 import { formatRelativeAge } from "../../lib/format.ts";
+import { MARK_GLYPH, SESSION_GLYPH } from "../../lib/glyphs.ts";
 import { markOf, type RowMark } from "../../lib/sessions-query.ts";
+import { Glyph } from "../glyph.tsx";
 import { Markdown } from "../markdown.tsx";
 import { SessionActions } from "./session-actions.tsx";
 
@@ -20,18 +22,29 @@ const TONE: Record<SessionStatus, string> = {
 // Select, Status, Age, Project, Title, Mark, Actions.
 export const COLUMNS = 7;
 
-const MARK_LABEL: Record<RowMark, string> = {
+// Same glyphs as the Mark filter; an open row is a plain dash.
+const MARK_SPOKEN: Record<RowMark, string> = {
   manual: "by hand",
-  open: "—",
+  open: "not done",
   tag: "by tag",
 };
 
+function MarkCell({ mark }: Readonly<{ mark: RowMark }>): React.JSX.Element {
+  return <Glyph glyph={mark === "open" ? "—" : MARK_GLYPH[mark]} label={MARK_SPOKEN[mark]} />;
+}
+
+// Tone fill plus the status glyph; the status word is spoken.
 function StatusBadge({
   status,
 }: Readonly<{ status: SessionStatus }>): React.JSX.Element {
   return (
-    <span className="badge" style={{ backgroundColor: TONE[status] }}>
-      {status.replace("_", " ")}
+    <span
+      aria-label={status.replace("_", " ")}
+      className="badge"
+      role="img"
+      style={{ backgroundColor: TONE[status] }}
+    >
+      {SESSION_GLYPH[status]}
     </span>
   );
 }
@@ -42,18 +55,18 @@ function SessionDetail({
   return (
     <>
       <dl className="session-meta">
-        <dt>cwd</dt>
+        <dt aria-label="cwd">·</dt>
         <dd>
           <code>{session.cwd}</code>
         </dd>
-        <dt>session</dt>
+        <dt aria-label="session">◎</dt>
         <dd>
           <code>{session.id}</code>
         </dd>
       </dl>
-      <h4>Last prompt</h4>
+      <span aria-label="Last prompt">▲</span>
       <p className="session-text">{session.last_user}</p>
-      <h4>Last reply</h4>
+      <span aria-label="Last reply">▼</span>
       <Markdown text={session.last_assistant} />
     </>
   );
@@ -108,10 +121,12 @@ export function SessionRows({
         <td>{session.project}</td>
         <td>
           <button aria-expanded={isOpen} className="link-button" type="button">
-            {session.title === "" ? "(untitled)" : session.title}
+            {session.title === "" ? <Glyph glyph="—" label="(untitled)" /> : session.title}
           </button>
         </td>
-        <td className="category">{MARK_LABEL[markOf(session)]}</td>
+        <td className="category">
+          <MarkCell mark={markOf(session)} />
+        </td>
         <td
           onClick={(event) => {
             event.stopPropagation();

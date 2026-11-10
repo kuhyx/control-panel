@@ -21,7 +21,7 @@ function outcome(over: Partial<MutationResult>): MutationResult {
 }
 
 describe("MutationOutcome", () => {
-  it("colours a refusal as the guard working, not as an error", () => {
+  it("marks a refusal as the guard working, not as an error", () => {
     const { container } = render(
       <MutationOutcome
         result={outcome({ refused: true, stderr: "not stricter", summary: "no" })}
@@ -29,28 +29,34 @@ describe("MutationOutcome", () => {
     );
     const dot = container.querySelector<HTMLElement>(".dot")!;
     expect(dot.style.backgroundColor).toBe("var(--warning)");
-    // The script's own words, not a paraphrase.
-    expect(screen.getByText("not stricter")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "no" })).toHaveTextContent("⊘");
+    // The script's own output, verbatim.
+    expect(container.querySelector("pre")).toHaveTextContent("not stricter");
   });
 
-  it("colours success and hard failure differently", () => {
+  it("marks success and hard failure with different tones and shapes", () => {
     const { container: good } = render(
       <MutationOutcome result={outcome({ ok: true, summary: "done" })} />,
     );
     expect(
       (good.querySelector<HTMLElement>(".dot")!).style.backgroundColor,
     ).toBe("var(--success)");
+    expect(screen.getByRole("status", { name: "done" })).toHaveTextContent("✓");
     const { container: bad } = render(
       <MutationOutcome result={outcome({ summary: "broken" })} />,
     );
     expect(
       (bad.querySelector<HTMLElement>(".dot")!).style.backgroundColor,
     ).toBe("var(--danger)");
+    expect(screen.getByRole("status", { name: "broken" })).toHaveTextContent("✕");
   });
 
-  it("omits the script output block when there is none", () => {
-    render(<MutationOutcome result={outcome({ ok: true, summary: "done" })} />);
-    expect(screen.queryByText("what the script said")).not.toBeInTheDocument();
+  it("speaks the summary and omits the output block when there is none", () => {
+    const { container } = render(
+      <MutationOutcome result={outcome({ ok: true, summary: "done" })} />,
+    );
+    expect(screen.getByRole("status")).toHaveAccessibleName("done");
+    expect(container.querySelector("pre")).toBeNull();
   });
 });
 
@@ -65,7 +71,10 @@ describe("TightenCurfew", () => {
     render(<TightenCurfew />);
     await user.click(screen.getByRole("button", { name: /Tighten curfew/ }));
     expect(spy).not.toHaveBeenCalled();
-    expect(screen.getByText(/cannot be loosened again/)).toBeInTheDocument();
+    // The armed step repeats the three hours it would send.
+    expect(screen.getByRole("button", { name: /Yes, tighten it/ })).toBeInTheDocument();
+    expect(screen.getAllByText(/21:00/)).toHaveLength(1);
+    expect(screen.getByText(/21:00.*21:00.*5:00/u)).toBeInTheDocument();
   });
 
   it("sends the three hours as numbers once confirmed", async () => {
@@ -83,7 +92,7 @@ describe("TightenCurfew", () => {
         thu_sun_hour: 21,
       });
     });
-    expect(screen.getByText("tightened")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "tightened" })).toBeInTheDocument();
   });
 
   it("can be cancelled", async () => {
@@ -131,7 +140,7 @@ describe("TightenCurfew", () => {
     await user.click(screen.getByRole("button", { name: /Tighten curfew/ }));
     await user.click(screen.getByRole("button", { name: /Yes, tighten it/ }));
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent(/server down/);
+      expect(screen.getByRole("alert")).toHaveAccessibleName(/server down/);
     });
   });
 });
@@ -144,7 +153,31 @@ describe("BlockDomain", () => {
   it("offers no way to remove an entry", () => {
     render(<BlockDomain />);
     expect(screen.queryByRole("button", { name: /remove|unblock/i })).toBeNull();
-    expect(screen.getByText(/no way to remove one from here/)).toBeInTheDocument();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+  });
+
+  it("counts the reason towards its 10-character minimum", async () => {
+    const user = userEvent.setup();
+    render(<BlockDomain />);
+    expect(screen.getByRole("img", { name: "0 of 10 characters" })).toHaveTextContent("0/10");
+    await user.type(screen.getByLabelText(/Why/), "a long enough reason");
+    expect(screen.getByRole("img", { name: "20 of 10 characters" })).toHaveTextContent("10/10");
+  });
+
+  it("shows a busy glyph while /etc/hosts is rebuilt", async () => {
+    const pending = Promise.withResolvers<MutationResult>();
+    vi.spyOn(api, "mutate").mockReturnValue(pending.promise);
+    const user = userEvent.setup();
+    render(<BlockDomain />);
+    await user.type(screen.getByLabelText("Domain"), "example.com");
+    await user.type(screen.getByLabelText(/Why/), "a sufficiently long reason");
+    await user.click(screen.getByRole("button", { name: /Block domain/ }));
+    await user.click(screen.getByRole("button", { name: /Yes, block it/ }));
+    expect(screen.getByRole("status", { name: "Rebuilding /etc/hosts" })).toBeInTheDocument();
+    pending.resolve(outcome({ ok: true, summary: "blocked" }));
+    await waitFor(() => {
+      expect(screen.queryByRole("status", { name: "Rebuilding /etc/hosts" })).toBeNull();
+    });
   });
 
   it("stays disabled until there is a domain and a real reason", async () => {
@@ -176,7 +209,7 @@ describe("BlockDomain", () => {
         why: "eats an hour every evening",
       });
     });
-    expect(screen.getByText("blocked")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "blocked" })).toBeInTheDocument();
   });
 
   it("can be cancelled", async () => {
@@ -199,7 +232,7 @@ describe("BlockDomain", () => {
     await user.click(screen.getByRole("button", { name: /Block domain/ }));
     await user.click(screen.getByRole("button", { name: /Yes, block it/ }));
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent(/nope/);
+      expect(screen.getByRole("alert")).toHaveAccessibleName(/nope/);
     });
   });
 });

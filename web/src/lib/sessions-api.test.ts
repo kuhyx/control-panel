@@ -11,24 +11,10 @@ import {
   fetchSessions,
   markSessions,
   resumeSessions,
-  statusCounts,
 } from "./sessions-api.ts";
 
 afterEach(() => {
   vi.unstubAllGlobals();
-});
-
-describe("statusCounts", () => {
-  it("counts every status over all rows, skipping empty ones", () => {
-    expect(statusCounts(SESSIONS.sessions)).toBe(
-      "1 need action · 1 question · 1 untagged · 1 running · 2 done · 1 continuing",
-    );
-    const two = [SESSIONS.sessions[1], SESSIONS.sessions[1]].filter(
-      (s) => s !== undefined,
-    );
-    expect(statusCounts(two)).toBe("2 questions");
-    expect(statusCounts([])).toBe("no sessions");
-  });
 });
 
 describe("sessions endpoints", () => {

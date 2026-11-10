@@ -25,11 +25,13 @@ describe("JournalPanel", () => {
   it("reads the last 100 lines of the named source", async () => {
     const spy = vi.spyOn(api, "fetchJournal").mockResolvedValue(tail({}));
     render(<JournalPanel name="signal-bot.service" source="user" />);
-    expect(screen.getByText("Reading signal-bot.service…")).toBeInTheDocument();
+    expect(
+      screen.getByRole("status", { name: "Reading signal-bot.service" }),
+    ).toBeInTheDocument();
     await waitFor(() => {
       expect(
-        screen.getByText("last 2 line(s) of user/signal-bot.service"),
-      ).toBeInTheDocument();
+        screen.getByLabelText("last 2 line(s) of user/signal-bot.service"),
+      ).toHaveTextContent("≡ 2 · $ signal-bot.service");
     });
     expect(spy).toHaveBeenCalledWith(
       "user",
@@ -45,23 +47,29 @@ describe("JournalPanel", () => {
     );
     render(<JournalPanel name="x.service" source="system" />);
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent("No journal files");
+      expect(screen.getByRole("alert")).toHaveAccessibleName("No journal files were found.");
     });
+    expect(screen.getByRole("alert")).toHaveTextContent("⚠");
   });
 
-  it("still says something when a failed read gave no reason", async () => {
-    vi.spyOn(api, "fetchJournal").mockResolvedValue(tail({ ok: false }));
+  it("still speaks something when a failed read gave no reason", async () => {
+    vi.spyOn(api, "fetchJournal").mockResolvedValue(
+      tail({ name: "gitea", ok: false, source: "docker" }),
+    );
     render(<JournalPanel name="gitea" source="docker" />);
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent("the read failed");
+      expect(screen.getByRole("alert")).toHaveAccessibleName("the read failed");
     });
+    expect(screen.getByLabelText("last 2 line(s) of docker/gitea")).toHaveTextContent(
+      "≡ 2 · ⬡ gitea",
+    );
   });
 
   it("shows a transport error", async () => {
     vi.spyOn(api, "fetchJournal").mockRejectedValue(new Error("404"));
     render(<JournalPanel name="x" source="user" />);
     await waitFor(() => {
-      expect(screen.getByText(/404/)).toBeInTheDocument();
+      expect(screen.getByRole("alert")).toHaveAccessibleName("Error: 404");
     });
   });
 });
@@ -73,5 +81,5 @@ it("does not set state after the panel closes mid-read", async () => {
   unmount();
   pending.reject(new Error("aborted"));
   await new Promise((resolve) => setTimeout(resolve, 0));
-  expect(screen.queryByText(/aborted/)).not.toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });

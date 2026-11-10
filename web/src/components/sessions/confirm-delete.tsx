@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { GLYPH } from "../../lib/glyphs.ts";
+
 // How long the armed "Confirm delete" waits for its second click.
 const ARMED_MS = 5000;
 
@@ -40,13 +42,17 @@ export function ConfirmDelete({
         }}
         type="button"
       >
-        Delete
+        {GLYPH.delete}
       </button>
     );
   }
   return (
     <>
+      {/* Armed: danger fill, the bin with the count and a "?". Transcripts
+          move to ~/.claude/projects-trash/; sessions active in the last 10
+          minutes are refused (the server's answer says which). */}
       <button
+        aria-label={`Confirm delete ${String(count)}?`}
         className="danger"
         disabled={isDisabled}
         onClick={() => {
@@ -55,12 +61,8 @@ export function ConfirmDelete({
         }}
         type="button"
       >
-        Confirm delete {count}?
+        {GLYPH.delete} {count}?
       </button>
-      <span className="confirm-note">
-        Transcripts move to ~/.claude/projects-trash/; sessions active in the
-        last 10 minutes are refused.
-      </span>
     </>
   );
 }

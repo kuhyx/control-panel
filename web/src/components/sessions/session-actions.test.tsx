@@ -36,14 +36,17 @@ describe("SessionActions", () => {
     const spy = stubSessionsFetch();
     render(<SessionActions onChanged={vi.fn()} session={session("alpha")} />);
     fireEvent.click(screen.getByRole("button", { name: "Resume alpha" }));
-    expect(await screen.findByText(RESUMED.summary)).toBeInTheDocument();
+    expect(
+      await screen.findByRole("status", { name: RESUMED.summary }),
+    ).toBeInTheDocument();
     expect(postedBodies(spy, "session-resume")).toEqual([{ ids: ["alpha"] }]);
   });
 
   it("copies the resume command", async () => {
     render(<SessionActions onChanged={vi.fn()} session={session("bravo")} />);
     fireEvent.click(screen.getByRole("button", { name: "Copy resume command for bravo" }));
-    expect(await screen.findByText("Copied")).toBeInTheDocument();
+    // A single copy paints the check alone, no count.
+    expect(await screen.findByRole("status", { name: "Copied" })).toHaveTextContent(/^✓$/u);
     expect(writeText).toHaveBeenCalledWith(
       "cd '/home/kuhy/src/bravo' && claude --resume bravo",
     );
@@ -53,7 +56,7 @@ describe("SessionActions", () => {
     writeText.mockRejectedValue(new Error("denied"));
     render(<SessionActions onChanged={vi.fn()} session={session("bravo")} />);
     fireEvent.click(screen.getByRole("button", { name: "Copy resume command for bravo" }));
-    expect(await screen.findByText("Copy failed")).toBeInTheDocument();
+    expect(await screen.findByRole("status", { name: "Copy failed" })).toHaveTextContent("✕");
   });
 
   it("marks done, then asks for a refetch", async () => {
@@ -105,7 +108,7 @@ describe("SessionActions", () => {
     const onChanged = vi.fn();
     render(<SessionActions onChanged={onChanged} session={session("alpha")} />);
     fireEvent.click(screen.getByRole("button", { name: "Mark alpha done" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("offline");
+    expect(await screen.findByRole("alert")).toHaveAccessibleName(/offline/);
     expect(onChanged).not.toHaveBeenCalled();
   });
 });

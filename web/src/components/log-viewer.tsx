@@ -4,6 +4,8 @@ import type { JournalTail, LogTail } from "../lib/types.ts";
 
 import { fetchLog } from "../lib/api.ts";
 import { formatBytes } from "../lib/format.ts";
+import { GLYPH } from "../lib/glyphs.ts";
+import { ErrorNote } from "./error-note.tsx";
 import { JournalBody } from "./journal-panel.tsx";
 
 const LINES = 200;
@@ -36,8 +38,14 @@ export function LogViewer({
     };
   }, [id]);
 
-  if (error !== null) return <p className="empty">{error}</p>;
-  if (tail === null) return <p className="empty">Loading {id}…</p>;
+  if (error !== null) return <ErrorNote error={error} />;
+  if (tail === null) {
+    return (
+      <p aria-label={`Loading ${id}`} className="empty" role="status">
+        {GLYPH.reading}
+      </p>
+    );
+  }
 
   if (isJournal(tail)) {
     return (
@@ -51,12 +59,24 @@ export function LogViewer({
   return (
     <article className="card">
       <h2>{tail.path ?? id}</h2>
-      <p className="category">
-        {tail.truncated
-          ? `last ${String(tail.lines.length)} lines of ${formatBytes(tail.total_bytes)} — the file is never read whole`
-          : `${String(tail.lines.length)} line(s)`}
+      {/* "≡ 200 / 1.2 MB": lines shown, then the file's size when only its
+          tail was read (the file is never read whole). */}
+      <p
+        aria-label={
+          tail.truncated
+            ? `last ${String(tail.lines.length)} lines of ${formatBytes(tail.total_bytes)}`
+            : `${String(tail.lines.length)} line(s)`
+        }
+        className="category"
+      >
+        ≡ {tail.lines.length}
+        {tail.truncated && ` / ${formatBytes(tail.total_bytes)}`}
       </p>
-      {tail.note !== undefined && <p className="empty">{tail.note}</p>}
+      {tail.note !== undefined && (
+        <p aria-label={tail.note} className="empty" role="note">
+          ℹ
+        </p>
+      )}
       <pre className="log">{tail.lines.join("\n")}</pre>
     </article>
   );

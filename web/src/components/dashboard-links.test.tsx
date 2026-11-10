@@ -51,7 +51,7 @@ describe("DashboardLinks", () => {
     render(<DashboardLinks dashboards={[stopped]} />);
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
     expect(screen.getByText("mangatl")).toBeInTheDocument();
-    expect(screen.getByText("stopped")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "stopped" })).toHaveTextContent("⏸");
     expect(
       screen.getByRole("img", { name: "stopped (on demand)" }),
     ).toBeInTheDocument();
@@ -74,25 +74,48 @@ describe("DashboardLinks", () => {
       />,
     );
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
-    expect(screen.getByText("stopped · port taken")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "stopped · port taken" })).toHaveTextContent(
+      "⏸ ⚠",
+    );
+    // The owner is spoken on the dot, not painted.
     expect(screen.getByRole("img", { name: clash })).toBeInTheDocument();
-    expect(
-      screen.getByText(`http://127.0.0.1:8781/ · ${clash}`),
-    ).toBeInTheDocument();
+    expect(screen.queryByText(new RegExp(clash, "u"))).not.toBeInTheDocument();
+    expect(screen.getByText("http://127.0.0.1:8781/")).toBeInTheDocument();
   });
 
-  it("spells out the URL and probe result in the detailed form", () => {
+  it("marks a clash alone with the warning glyph", () => {
+    const clash = "port 8780 held by anki-syncserver.service (pid 1735)";
+    render(<DashboardLinks dashboards={[{ ...ON_DEMAND, clash }]} />);
+    expect(screen.getByRole("img", { name: "port taken" })).toHaveTextContent("⚠");
+  });
+
+  it("adds the URL and the probe's numbers in the detailed form", () => {
     render(<DashboardLinks dashboards={SERVER.dashboards} detailed />);
     expect(
-      screen.getByText("http://127.0.0.1:8140/ · up 200 · 30.2 ms"),
+      screen.getByText("http://127.0.0.1:8140/ · 200 · 30.2 ms"),
     ).toBeInTheDocument();
+    // A probe that never ran has no numbers: the URL stands alone.
+    expect(screen.getByText("https://popes.kuhy.duckdns.org/")).toBeInTheDocument();
   });
 });
 
-it("lists probes with their kind and result", () => {
+it("lists probes with a kind glyph, the sentence spoken on the dot", () => {
   render(<ProbeList probes={SERVER.probes} />);
   expect(screen.getByText("127.0.0.1:8137")).toBeInTheDocument();
+  expect(screen.getByRole("img", { name: "tcp" })).toHaveTextContent("🔌");
   expect(
-    screen.getByText("tcp · down: [Errno 111] Connection refused"),
+    screen.getByRole("img", { name: "down: [Errno 111] Connection refused" }),
   ).toBeInTheDocument();
+});
+
+it("falls back to a bullet for a probe kind it does not know", () => {
+  render(
+    <ProbeList
+      probes={[
+        { detail: null, kind: "icmp", latency_ms: 4, status: null, target: "localhost", up: true },
+      ]}
+    />,
+  );
+  expect(screen.getByRole("img", { name: "icmp" })).toHaveTextContent("•");
+  expect(screen.getByText(/4 ms/u)).toBeInTheDocument();
 });

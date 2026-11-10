@@ -11,15 +11,35 @@ const [phone, hosts] = STATUS.subsystems as [SubsystemStatus, SubsystemStatus];
 describe("SubsystemDetail", () => {
   it("shows the facts that explain why a subsystem exists", () => {
     render(<SubsystemDetail subsystem={phone} />);
-    expect(screen.getByText("installer")).toBeInTheDocument();
+    // The fact's key is spoken; its value (a path) is painted.
+    expect(screen.getByLabelText("installer")).toHaveTextContent("▸");
     expect(
       screen.getByText("~/src/phone-focus-mode/systemd/install.sh"),
     ).toBeInTheDocument();
   });
 
+  it("does not paint the server's reason sentence", () => {
+    render(<SubsystemDetail subsystem={phone} />);
+    expect(screen.queryByText(phone.reason)).toBeNull();
+    expect(screen.queryByText(/NOT_INSTALLED:/)).toBeNull();
+    expect(screen.queryByRole("img", { name: "disarmed on purpose" })).toBeNull();
+  });
+
+  it("shows a deliberate disarm's own note, without the server's prefix", () => {
+    const disarmed: SubsystemStatus = {
+      ...phone,
+      reason: "disarmed on purpose: until the app is done (kuhy)",
+      state: "DISARMED",
+    };
+    render(<SubsystemDetail subsystem={disarmed} />);
+    expect(screen.getByRole("img", { name: "disarmed on purpose" })).toHaveTextContent("⏸");
+    expect(screen.getByText(/until the app is done \(kuhy\)/)).toBeInTheDocument();
+    expect(screen.queryByText(/disarmed on purpose:/)).toBeNull();
+  });
+
   it("omits the facts and logs sections when there are none", () => {
     render(<SubsystemDetail subsystem={phone} />);
-    expect(screen.queryByText("Logs")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Logs" })).not.toBeInTheDocument();
   });
 
   it("lists logs with their size and links to the viewer", () => {
@@ -36,7 +56,8 @@ describe("SubsystemDetail", () => {
       logs: [{ ...hosts.logs[0]!, rotated: false }],
     };
     render(<SubsystemDetail subsystem={unrotated} />);
-    expect(screen.getByText(/no logrotate entry/)).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "no logrotate entry" })).toHaveTextContent("⚠");
+    expect(screen.getByText("54.6 MB")).toBeInTheDocument();
   });
 
   it("falls back to the unit name for a journal log", () => {
@@ -59,7 +80,7 @@ describe("SubsystemDetail", () => {
     expect(
       screen.getByRole("link", { name: "hosts-file-monitor.service" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("journal")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "journal" })).toBeInTheDocument();
   });
 });
 
@@ -93,7 +114,7 @@ describe("writable knobs", () => {
 it("shows a server's dashboards, containers and probes", () => {
   render(<SubsystemDetail subsystem={SERVER} />);
   expect(screen.getByRole("heading", { name: "Dashboards" })).toBeInTheDocument();
-  expect(screen.getByText(/up 200 · 30.2 ms/)).toBeInTheDocument();
+  expect(screen.getByText(/ · 200 · 30.2 ms$/)).toBeInTheDocument();
   expect(screen.getByRole("heading", { name: "Containers" })).toBeInTheDocument();
   expect(screen.getByText("signal-api")).toBeInTheDocument();
   expect(screen.getByRole("heading", { name: "Probes" })).toBeInTheDocument();

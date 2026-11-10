@@ -54,8 +54,8 @@ describe("WhyPanel", () => {
     await waitFor(() => {
       expect(screen.getByText("shutdown.morning-end-hour")).toBeInTheDocument();
     });
-    expect(screen.queryByText("Ratchet")).not.toBeInTheDocument();
-    expect(screen.queryByText("Cost of bypass")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Ratchet")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Cost of bypass")).not.toBeInTheDocument();
   });
 
   it("renders a sidecar warning without hiding the artifacts", async () => {
@@ -71,13 +71,45 @@ describe("WhyPanel", () => {
       ],
     });
     render(<WhyPanel id="x" />);
-    await waitFor(() => {
-      expect(screen.getByText(/no 'rules' object/)).toBeInTheDocument();
-    });
+    // The server's sentence is the note's spoken name; a warning glyph is painted.
+    const note = await screen.findByRole("note", { name: /no 'rules' object/ });
+    expect(note).toHaveTextContent("⚠");
     expect(screen.getByText(/Persistent=true on purpose/)).toBeInTheDocument();
   });
 
-  it("says plainly when nothing is recorded anywhere", async () => {
+  it("paints an info signal with its own glyph", async () => {
+    vi.spyOn(api, "fetchWhy").mockResolvedValue({
+      ...FULL,
+      signals: [{ code: "from-sidecar", level: "info", message: "read from the sidecar" }],
+    });
+    render(<WhyPanel id="x" />);
+    const note = await screen.findByRole("note", { name: "read from the sidecar" });
+    expect(note).toHaveTextContent("ℹ");
+    expect(note).not.toHaveTextContent("sidecar");
+  });
+
+  it("speaks an artifact's kind and marks the empty-audit-log placeholder", async () => {
+    vi.spyOn(api, "fetchWhy").mockResolvedValue({
+      ...FULL,
+      artifacts: [
+        ...FULL.artifacts,
+        {
+          excerpt: "no entries recorded",
+          kind: "audit-log",
+          label: "hosts audit",
+          source: "/var/log/hosts-audit.log",
+        },
+      ],
+    });
+    const { container } = render(<WhyPanel id="x" />);
+    expect(await screen.findByRole("img", { name: "unit-comment" })).toHaveTextContent("📄");
+    expect(screen.getByRole("status", { name: "no entries recorded" })).toHaveTextContent("∅");
+    // The real excerpt stays verbatim; the placeholder gets no <pre>.
+    expect(container.querySelectorAll("pre")).toHaveLength(1);
+    expect(screen.queryByText("no entries recorded")).toBeNull();
+  });
+
+  it("marks plainly when nothing is recorded anywhere", async () => {
     vi.spyOn(api, "fetchWhy").mockResolvedValue({
       artifacts: [],
       rules: [],
@@ -85,17 +117,17 @@ describe("WhyPanel", () => {
       subsystem: "x",
     });
     render(<WhyPanel id="x" />);
-    await waitFor(() => {
-      expect(screen.getByText(/No rationale is recorded/)).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByRole("status", { name: "No rationale is recorded" }),
+    ).toHaveTextContent("∅");
   });
 
   it("shows a loading state, then the error when the read fails", async () => {
     vi.spyOn(api, "fetchWhy").mockRejectedValue(new Error("boom"));
     render(<WhyPanel id="x" />);
-    expect(screen.getByText(/Reading rationale/)).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: /Reading rationale/ })).toBeInTheDocument();
     await waitFor(() => {
-      expect(screen.getByText(/boom/)).toBeInTheDocument();
+      expect(screen.getByRole("alert")).toHaveAccessibleName(/boom/);
     });
   });
 
@@ -106,6 +138,6 @@ describe("WhyPanel", () => {
     unmount();
     pending.reject(new Error("aborted"));
     await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(screen.queryByText(/aborted/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });
