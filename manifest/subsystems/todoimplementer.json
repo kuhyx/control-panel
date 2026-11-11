@@ -32,6 +32,10 @@
       "url": "http://127.0.0.1:8786/usage/"
     },
     {
+      "label": "Sessions",
+      "url": "http://127.0.0.1:8786/sessions"
+    },
+    {
       "label": "todoImplementer (public)",
       "url": "https://agents.kuhy.duckdns.org/"
     }

@@ -117,9 +117,6 @@ dashboard is structurally incapable of permitting something they would refuse.
 | `POST /api/mutate/shutdown-hours` | `screen-locker`'s `adjust_shutdown_schedule.sh`, **never with `--restore`** | the script rejects any value that is not stricter, and its stderr is relayed verbatim |
 | `POST /api/mutate/hosts-add` | append, then `hosts-blocker/install.sh` | the installer aborts if any entry disappeared, so appending is the only edit that survives |
 | `POST /api/mutate/restart` | `systemctl --user restart` / `docker restart` | allowlisted in the manifest, and the loader **refuses** `restartable` on anything but a user unit or container in a `server` subsystem. A restart leaves a unit exactly as armed as it was, so it cannot switch a guard off. |
-| `POST /api/mutate/session-resume` | `systemd-run --user --collect … terminator -x zsh -lic 'claude --resume <id>'` | approved 2026-10-22. Not a guard: the id must be a canonical UUID of a scanned session, the cwd comes from its transcript, and the transient unit has no unit file to arm or disarm. Body `{id}` or `{ids}` (at most 5, all-or-nothing). |
-| `POST /api/mutate/session-mark` | atomic write of `~/.claude/session-status.json` | approved 2026-10-22. The dashboard's own manual "done" marks for the Sessions tab; no guard reads them. Body `{id, mark}` or `{ids, mark}` (all-or-nothing). |
-| `POST /api/mutate/session-delete` | rename of `~/.claude/projects/<dir>/<uuid>.jsonl` (+ its `<uuid>/` subagent dir) into `~/.claude/projects-trash/<YYYY-MM-DD>/<dir>/` | approved 2026-10-22. Never unlinks: restore is a move back. Refuses the whole request if any id is unknown, was written in the last 10 minutes (may be live), or resolves outside `~/.claude/projects`. |
 | `GET /api/mutate/steam-exceptions` | nothing — view only | the enforcer loads `config.json` once and re-`chattr +i`s it every 3s tick, so a write here would be silently reverted. The panel says so instead of offering a dead control. |
 
 Two pre-commit hooks state the boundary rather than leaving it to discipline.
@@ -151,11 +148,11 @@ Related deliberate choices:
 
 ```bash
 python -m venv .venv && .venv/bin/pip install -e .
-.venv/bin/pytest                       # 573 tests, 100% branch coverage
+.venv/bin/pytest                       # 451 tests, 100% branch coverage
 
 pnpm --dir web install                 # pnpm only: npm cannot install
 pnpm --dir web run lint                #   @kuhyx/web-ui from a git subdirectory
-pnpm --dir web run coverage            # 241 tests, 100% branch coverage
+pnpm --dir web run coverage            # 167 tests, 100% branch coverage
 pnpm --dir web run build               # -> web/dist, served by the Python process
 
 pre-commit run --all-files

@@ -36,18 +36,8 @@ describe("parseHash", () => {
   });
 });
 
-describe("sessions and moved token routes", () => {
-  const sessions = { id: "", name: "sessions" };
+describe("moved token routes", () => {
   const usage = { id: "", name: "usage" };
-
-  it("routes the sessions page by hash and by path", () => {
-    expect(parseHash("#/sessions")).toEqual(sessions);
-    expect(parseHash("#/sessions?done=1&q=x")).toEqual(sessions);
-    expect(parseHash("#/tokens/sessions")).toEqual(sessions);
-    expect(parseHash("#/tokens/sessions?done=1")).toEqual(sessions);
-    expect(parseLocation("/sessions", "")).toEqual(sessions);
-    expect(parseLocation("/tokens/sessions/", "#/")).toEqual(sessions);
-  });
 
   it("sends every other token route to the usage redirect", () => {
     expect(parseHash("#/tokens")).toEqual(usage);

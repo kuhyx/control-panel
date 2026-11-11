@@ -4,7 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./app.tsx";
 import * as api from "./lib/api.ts";
 import { STATUS } from "./test/fixture.ts";
-import { stubSessionsFetch } from "./test/sessions-fixture.ts";
 
 function goto(hash: string): void {
   globalThis.location.hash = hash;
@@ -33,11 +32,11 @@ describe("App", () => {
     expect(screen.getByText(/1557 ms/)).toBeInTheDocument();
   });
 
-  it("links Sessions and the external Usage page", async () => {
+  it("links the external Sessions and Usage pages", async () => {
     render(<App />);
     expect(screen.getByRole("link", { name: "Sessions" })).toHaveAttribute(
       "href",
-      "#/sessions",
+      "http://127.0.0.1:8786/sessions",
     );
     expect(screen.getByRole("link", { name: "Usage" })).toHaveAttribute(
       "href",
@@ -55,16 +54,6 @@ describe("App", () => {
       await screen.findByRole("status", { name: "Token usage moved" }),
     ).toBeInTheDocument();
     expect(replace).toHaveBeenCalledWith("http://127.0.0.1:8786/usage/");
-    vi.unstubAllGlobals();
-  });
-
-  it("routes to the sessions tab", async () => {
-    stubSessionsFetch();
-    render(<App />);
-    goto("#/sessions");
-    expect(
-      await screen.findByRole("heading", { name: "Sessions" }),
-    ).toBeInTheDocument();
     vi.unstubAllGlobals();
   });
 

@@ -99,11 +99,6 @@ repos:
       # by the next hook, and to an allowlist by the manifest loader, which
       # refuses `restartable` on anything but a user unit or container in a
       # `server` subsystem.
-      #
-      # Approved by kuhy on 2026-10-22 for the sessions tab:
-      # mutations/_session_resume.py launches `systemd-run --user --collect`
-      # around a terminal. That is a transient unit with no unit file, so it
-      # cannot arm or disarm anything; this hook still bans every verb above.
       - id: never-change-unit-state
         name: Nothing may start, stop, enable, disable or mask a unit
         entry: >-

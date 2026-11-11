@@ -1,5 +1,3 @@
-import type { SessionStatus } from "./sessions-api.ts";
-import type { MarkFilter } from "./sessions-query.ts";
 import type { Arming, Category, JournalSource } from "./types.ts";
 
 // kuhy's textgate rule: nothing he sees carries words he did not ask for.
@@ -46,26 +44,6 @@ export const SCOPE_GLYPH: Record<JournalSource, string> = {
   user: "$",
 };
 
-// Plain characters, not red emoji: the badge's own fill is red for the two
-// that want kuhy, and a red glyph vanished on it.
-export const SESSION_GLYPH: Record<SessionStatus, string> = {
-  continuing: "↻",
-  done: "✓",
-  needs_action: "!",
-  question: "?",
-  running: "▶",
-  untagged: "⬚",
-};
-
-// Session done-marks: by hand, by the session's own DONE tag, not done; `all`
-// is the filter's no-filter option.
-export const MARK_GLYPH: Record<MarkFilter, string> = {
-  all: "∗",
-  manual: "✋",
-  open: "○",
-  tag: "🏷",
-};
-
 // systemd UnitFileState values; anything else falls back to a bullet with the
 // raw value spoken.
 const UNIT_FILE_GLYPH: Readonly<Record<string, string>> = {
@@ -88,33 +66,24 @@ export const GLYPH = {
   age: "⏱",
   clear: "✕",
   containers: "📦",
-  copy: "⧉",
   dashboards: "📊",
-  delete: "🗑",
   error: "⚠",
   fail: "✕",
   findings: "✦",
   home: "⌂",
   logs: "📜",
-  mark: "✔",
   none: "∅",
   notes: "📝",
   ok: "✓",
   probes: "📡",
-  project: "📁",
   reading: "⟳",
   refused: "⊘",
   restart: "↻",
-  resume: "▶",
-  search: "🔍",
   sessions: "⌨",
   state: "🚦",
   stricter: "🔒",
   subsystem: "🧩",
-  title: "💬",
-  undo: "↶",
   units: "⚙",
-  unknown: "🗃",
   usage: "📉",
   why: "💡",
 } as const;

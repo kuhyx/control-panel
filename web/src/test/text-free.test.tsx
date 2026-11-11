@@ -8,7 +8,6 @@ import { BlockDomain } from "../components/block-domain.tsx";
 import { TightenCurfew } from "../components/tighten-curfew.tsx";
 import * as api from "../lib/api.ts";
 import { STATUS } from "./fixture.ts";
-import { SESSIONS, stubSessionsFetch } from "./sessions-fixture.ts";
 
 // kuhy's textgate rule, as a test: nothing painted on any page may hold a
 // 2+-letter word unless that word is CONTENT (a name, title, path or session
@@ -83,7 +82,7 @@ function collect(node: unknown, isContent: boolean, into: Set<string>): void {
 
 const CONTENT: string[] = (() => {
   const found = new Set<string>();
-  for (const source of [STATUS, SESSIONS, UNKNOWN, WHY, JOURNAL]) collect(source, false, found);
+  for (const source of [STATUS, UNKNOWN, WHY, JOURNAL]) collect(source, false, found);
   // A finding's sentence is chrome; the subsystem id it links to is content.
   collect(STATUS.anomalies.map((a) => a.subsystem), true, found);
   return [...found].toSorted((a, b) => b.length - a.length);
@@ -179,24 +178,6 @@ describe("text-free UI", () => {
       expect(offenders()).toEqual([]);
     },
   );
-
-  it("paints no chrome words on the sessions page, with a row open and selected", async () => {
-    stubSessionsFetch();
-    render(<App />);
-    goto("#/sessions");
-    const title = await screen.findByRole("button", { name: "title of alpha" });
-    fireEvent.click(title);
-    fireEvent.click(screen.getByRole("checkbox", { name: "Select alpha" }));
-    fireEvent.click(screen.getByRole("button", { name: "Delete alpha" }));
-    expect(offenders()).toEqual([]);
-    // The empty state too: a filter that hides every row.
-    fireEvent.change(screen.getByRole("searchbox", { name: "Filter sessions" }), {
-      target: { value: "nothing-matches" },
-    });
-    expect(screen.getByRole("cell", { name: "No sessions match." })).toBeInTheDocument();
-    expect(offenders()).toEqual([]);
-    vi.unstubAllGlobals();
-  });
 
   it("paints no chrome words on the two tighten-only forms, armed", () => {
     render(

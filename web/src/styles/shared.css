@@ -1,4 +1,4 @@
-/* Rules shared by the fleet and Sessions views: masthead nav, page title,
+/* Rules shared by the fleet view: masthead nav, page title,
    filter bar, scrolling table and the sanitised markdown viewer. Every value
    is a token from @kuhyx/web-ui/tokens.css. */
 

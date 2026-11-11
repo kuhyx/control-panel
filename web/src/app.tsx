@@ -8,7 +8,6 @@ import { FleetTable } from "./components/fleet-table.tsx";
 import { Freshness } from "./components/freshness.tsx";
 import { LogViewer } from "./components/log-viewer.tsx";
 import { RollupTiles } from "./components/rollup-tiles.tsx";
-import { SessionsPage } from "./components/sessions/sessions-page.tsx";
 import { SubsystemDetail } from "./components/subsystem-detail.tsx";
 import { UnknownSection } from "./components/unknown-section.tsx";
 import { UsageRedirect } from "./components/usage-redirect.tsx";
@@ -16,7 +15,7 @@ import { fetchStatus } from "./lib/api.ts";
 import { formatTimestamp } from "./lib/format.ts";
 import { GLYPH } from "./lib/glyphs.ts";
 import { useRoute } from "./lib/router.ts";
-import { USAGE_URL } from "./lib/usage-url.ts";
+import { SESSIONS_URL, USAGE_URL } from "./lib/usage-url.ts";
 
 // Poll rather than stream: the server is a plain do_GET-only ThreadingHTTPServer
 // with no SSE, and a 5s refresh is far finer than anything in this fleet moves.
@@ -62,7 +61,7 @@ export function App(): React.JSX.Element {
           <a aria-label="fleet" href="#/">
             <span aria-hidden="true">{GLYPH.home}</span>
           </a>
-          <a aria-label="Sessions" href="#/sessions">
+          <a aria-label="Sessions" href={SESSIONS_URL}>
             <span aria-hidden="true">{GLYPH.sessions}</span>
           </a>
           <a aria-label="Usage" href={USAGE_URL}>
@@ -91,7 +90,6 @@ function Page({
   route: ReturnType<typeof useRoute>;
   status: FleetStatus | null;
 }>): React.JSX.Element {
-  if (route.name === "sessions") return <SessionsPage />;
   return route.name === "usage" ? (
     <UsageRedirect />
   ) : (

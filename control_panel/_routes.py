@@ -21,14 +21,10 @@ from control_panel._types import to_payload
 from control_panel.mutations import (
     _hosts_add,
     _restart,
-    _session_delete,
-    _session_mark,
-    _session_resume,
     _shutdown_hours,
     _steam_view,
 )
 from control_panel.mutations import _types as _mutation_types
-from control_panel.sessions import _api as _sessions_api
 
 if TYPE_CHECKING:
     from control_panel._runner import CommandRunner
@@ -36,8 +32,6 @@ if TYPE_CHECKING:
 API_PREFIX = "/api/"
 # /api/journal/<source>/<name>: a scope or "docker", then a unit or container.
 _JOURNAL_SEGMENTS = 2
-# Mutations that cannot change fleet state, so they skip the ~2 s re-collect.
-_FLEET_NEUTRAL = frozenset({"session-resume", "session-mark", "session-delete"})
 
 
 class Router:
@@ -89,7 +83,6 @@ class Router:
             "journal": lambda _: self._journal_route(segments[1:], parts.query),
             "unknown": lambda _: self._unknown_route(),
             "tray": lambda _: self._tray_route(),
-            "sessions": lambda _: _sessions_api.route(segments[1:], parts.query),
         }
         handler = routes.get(head)
         if handler is None:
@@ -109,22 +102,16 @@ class Router:
     # POST bodies are dispatched here. The table is explicit rather than
     # derived from the path, so a typo cannot invent an endpoint.
     def mutate(self, name: str, body: object) -> tuple[HTTPStatus, dict[str, Any]]:
-        """Apply one of the six approved changes, or refuse to know it."""
+        """Apply one of the three approved changes, or refuse to know it."""
         handlers = {
             "shutdown-hours": _shutdown_hours.apply,
             "hosts-add": _hosts_add.apply,
             "restart": _restart.apply,
-            # Approved by kuhy on 2026-10-22 for the sessions tab.
-            "session-resume": _session_resume.apply,
-            "session-mark": _session_mark.apply,
-            "session-delete": _session_delete.apply,
         }
         handler = handlers.get(name)
         if handler is None:
             return HTTPStatus.NOT_FOUND, {"error": f"no such mutation: {name}"}
         result = handler(self._runner, body)
-        if name in _FLEET_NEUTRAL:
-            return HTTPStatus.OK, _mutation_types.to_payload(result)
         # Answer only once the snapshot reflects the change, so the next GET
         # shows it instead of the up-to-10 s-old state from before.
         self.snapshot.refresh_if_warm()
