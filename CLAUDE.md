@@ -6,3 +6,4 @@
 - lint: `pre-commit run ruff --all-files`
 - coverage: `python3 -m pytest -q --cov --cov-branch --cov-report=lcov`
 - coverage-gaps: `coverage-gaps coverage.lcov`
+- deploy: `git -C ~/src/control-panel pull --ff-only && ~/src/control-panel/install.sh` (updates the live checkout, rebuilds web/dist, restarts control-panel-web, exits 1 unless /api/health answers)
