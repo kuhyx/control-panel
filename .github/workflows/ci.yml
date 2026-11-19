@@ -62,7 +62,7 @@ jobs:
         with:
           cache: pnpm
           cache-dependency-path: web/pnpm-lock.yaml
-          node-version: "26.13.0"
+          node-version: "26.13.1"
 
       # --frozen-lockfile: CI must fail on a lockfile that does not match
       # package.json rather than silently resolving something else.
@@ -94,9 +94,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      # md-naming and dependency-freshness are thin shims over ~/utils. Checking
-      # the shared gate out beats vendoring a copy, which is exactly how a gate
-      # and the thing it checks start disagreeing.
+      # md-naming is a thin shim over ~/utils. Checking the shared gate out beats
+      # vendoring a copy, which is exactly how a gate and the thing it checks
+      # start disagreeing. dependency-freshness runs only locally.
       - name: Check out the shared gates
         uses: actions/checkout@v4
         with:
@@ -107,9 +107,9 @@ jobs:
 
       # Hooks needing the built frontend or a clean-venv install are skipped:
       # the frontend job already runs vitest, and ci-mirror is a pre-push
-      # rehearsal OF this very workflow.
+      # rehearsal OF this very workflow. dependency-freshness runs only locally.
       - run: pre-commit run --all-files --show-diff-on-failure
         env:
-          SKIP: vitest-coverage,ci-mirror
+          SKIP: vitest-coverage,ci-mirror,dependency-freshness
           # The shims resolve $HOME/src/utils; point that at the checkout.
           UTILS_ROOT: ${{ github.workspace }}/.utils
