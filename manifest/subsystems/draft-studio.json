@@ -1,0 +1,26 @@
+{
+  "id": "draft-studio",
+  "title": "Draft studio",
+  "category": "server",
+  "units": [
+    {
+      "name": "draft-studio.service",
+      "scope": "user",
+      "kind": "service",
+      "why_it_matters": "the loopback editor where drafts are written with Claude; down = drafts cannot be opened (data stays in ~/.local/share/draft-studio)"
+    }
+  ],
+  "dashboards": [
+    {
+      "label": "Draft studio",
+      "url": "http://127.0.0.1:8794/",
+      "on_demand": false
+    }
+  ],
+  "docs": [
+    {
+      "path": "~/src/draft-studio/README.md",
+      "label": "draft-studio README (service: draft-studio.service)"
+    }
+  ]
+}
