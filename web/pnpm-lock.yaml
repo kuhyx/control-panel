@@ -175,6 +175,9 @@ importers:
 
   .:
     dependencies:
+      '@kuhyx/kuhy-credit':
+        specifier: github:kuhyx/utils#kuhy-credit-v0.3.0&path:kuhy_credit/web
+        version: https://codeload.github.com/kuhyx/utils/tar.gz/c3946412729991bf1e9c3b6a5cc55dbe80419fc0#path:kuhy_credit/web
       '@kuhyx/web-ui':
         specifier: github:kuhyx/utils#web_ui-v0.3.2&path:/web_ui
         version: https://codeload.github.com/kuhyx/utils/tar.gz/f7418969cf7e059fdcef92c3686947a6373cc920#path:/web_ui(react@19.3.1)
@@ -189,14 +192,14 @@ importers:
         specifier: 10.0.1
         version: 10.0.1(eslint@10.15.0(supports-color@7.2.0))
       '@testing-library/jest-dom':
-        specifier: 7.0.1
-        version: 7.0.1(@testing-library/dom@10.4.1)(vitest@5.1.1)
+        specifier: 8.0.0
+        version: 8.0.0(@testing-library/dom@10.4.1)(vitest@5.1.1)
       '@testing-library/react':
         specifier: 16.3.3
         version: 16.3.3(@testing-library/dom@10.4.1)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@testing-library/user-event':
-        specifier: 14.6.12
-        version: 14.6.12(@testing-library/dom@10.4.1)
+        specifier: 14.6.13
+        version: 14.6.13(@testing-library/dom@10.4.1)
       '@types/node':
         specifier: 26.6.6
         version: 26.6.6
@@ -432,6 +435,11 @@ packages:
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
 
+  '@kuhyx/kuhy-credit@https://codeload.github.com/kuhyx/utils/tar.gz/c3946412729991bf1e9c3b6a5cc55dbe80419fc0#path:kuhy_credit/web':
+    resolution: {gitHosted: true, integrity: sha512-XplMnwV6o8n3JS9juJGetBJhcn0PksNbp5gBQPs73NbXLsqxw3Cit04ke/xLFZjOufreRtCh1JMsOQzIza7Xiw==, path: kuhy_credit/web, tarball: https://codeload.github.com/kuhyx/utils/tar.gz/c3946412729991bf1e9c3b6a5cc55dbe80419fc0}
+    version: 0.3.0
+    engines: {node: '>=24', pnpm: '>=10'}
+
   '@kuhyx/web-ui@https://codeload.github.com/kuhyx/utils/tar.gz/f7418969cf7e059fdcef92c3686947a6373cc920#path:/web_ui':
     resolution: {gitHosted: true, integrity: sha512-rvUVUouyR1vt1He1ndlvzPAlYNyH3nxAI6d1Z/9csrax7dTw7oyv6kw+oeVJio1jD3vYPWTZhvC7yHHx0HpxKQ==, path: /web_ui, tarball: https://codeload.github.com/kuhyx/utils/tar.gz/f7418969cf7e059fdcef92c3686947a6373cc920}
     version: 0.3.2
@@ -548,12 +556,12 @@ packages:
     resolution: {integrity: sha512-o4PXJQidqJl82ckFaXUeoAW+XysPLauYI43Abki5hABd853iMhitooc6znOnczgbTYmEP6U6/y1ZyKAIsvMKGg==}
     engines: {node: '>=18'}
 
-  '@testing-library/jest-dom@7.0.1':
-    resolution: {integrity: sha512-oMDTC3oA+6CXSO2JZnvOI7CA6oVub6kij5ggk9ohwye5slmkwxYDXcPOVxgMw/RQlticjtO0C1RZkR97HgrWMw==}
+  '@testing-library/jest-dom@8.0.0':
+    resolution: {integrity: sha512-Nu45KEeFgP/ydCMipnisMblq6YHViqEFi3fKN0a40s+zdKDDD7vEPCEavS0i7i4RxmclcEIL8q2o42pu+WgNgg==}
     engines: {node: '>=22', npm: '>=6', yarn: '>=1'}
     peerDependencies:
       '@testing-library/dom': '>=10 <11'
-      vitest: '>= 0.32'
+      vitest: '>=5 <6'
     peerDependenciesMeta:
       vitest:
         optional: true
@@ -573,8 +581,8 @@ packages:
       '@types/react-dom':
         optional: true
 
-  '@testing-library/user-event@14.6.12':
-    resolution: {integrity: sha512-8yQV8v+eToBhsUO4oYrZY7fzhpTEMZx4IDx0/iuER/x0Xuy0NdqQOhsaaUNlvXE03N7vQ+4RCXUieKC0NJty9w==}
+  '@testing-library/user-event@14.6.13':
+    resolution: {integrity: sha512-2LVZGptuB5un1Cu/u31o9adkCwbsUTMp4B4p04xupI7uobvTIpgKidSdShqZiReo/mQmvR9xjgdgTgge4oAbYA==}
     engines: {node: '>=12', npm: '>=6'}
     peerDependencies:
       '@testing-library/dom': '>=7.21.4'
@@ -1900,6 +1908,8 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
+  '@kuhyx/kuhy-credit@https://codeload.github.com/kuhyx/utils/tar.gz/c3946412729991bf1e9c3b6a5cc55dbe80419fc0#path:kuhy_credit/web': {}
+
   '@kuhyx/web-ui@https://codeload.github.com/kuhyx/utils/tar.gz/f7418969cf7e059fdcef92c3686947a6373cc920#path:/web_ui(react@19.3.1)':
     dependencies:
       react: 19.3.1
@@ -1966,7 +1976,7 @@ snapshots:
       picocolors: 1.1.1
       pretty-format: 27.5.1
 
-  '@testing-library/jest-dom@7.0.1(@testing-library/dom@10.4.1)(vitest@5.1.1)':
+  '@testing-library/jest-dom@8.0.0(@testing-library/dom@10.4.1)(vitest@5.1.1)':
     dependencies:
       '@adobe/css-tools': 4.5.0
       '@testing-library/dom': 10.4.1
@@ -1988,7 +1998,7 @@ snapshots:
       '@types/react': 19.3.0
       '@types/react-dom': 19.3.0(@types/react@19.3.0)
 
-  '@testing-library/user-event@14.6.12(@testing-library/dom@10.4.1)':
+  '@testing-library/user-event@14.6.13(@testing-library/dom@10.4.1)':
     dependencies:
       '@testing-library/dom': 10.4.1
 

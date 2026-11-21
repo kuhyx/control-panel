@@ -144,3 +144,10 @@ it("lists what the manifest does not cover below the overview", async () => {
   expect(await screen.findByText("0.0.0.0:52736")).toBeInTheDocument();
   vi.restoreAllMocks();
 });
+
+it("renders the kuhy credit footer", async () => {
+  render(<App />);
+  await waitFor(() => {
+    expect(document.querySelector("footer kuhy-credit")).not.toBeNull();
+  });
+});

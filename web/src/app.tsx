@@ -77,6 +77,9 @@ export function App(): React.JSX.Element {
       </header>
 
       <Page error={error} route={route} status={status} />
+      <footer className="credit">
+        <kuhy-credit />
+      </footer>
     </main>
   );
 }

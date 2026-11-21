@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "@kuhyx/web-ui/tokens.css";
+import "@kuhyx/kuhy-credit";
 
 import "./styles/app.css";
 import "./styles/live.css";
