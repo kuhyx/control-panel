@@ -39,5 +39,11 @@
       "label": "Status API",
       "url": "http://127.0.0.1:8771/api/status"
     }
+  ],
+  "probes": [
+    {
+      "kind": "tcp",
+      "target": "127.0.0.1:8782"
+    }
   ]
 }
