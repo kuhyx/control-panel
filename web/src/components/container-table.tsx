@@ -24,6 +24,7 @@ const COLUMNS: readonly ColumnSpec<ContainerRecord>[] = [
     label: "Container",
     search: true,
     text: (c) => c.name,
+    tooltip: "container",
   },
   {
     filter: true,
@@ -33,6 +34,7 @@ const COLUMNS: readonly ColumnSpec<ContainerRecord>[] = [
     optionGlyph: armingGlyph,
     sortKey: (c) => severityRank(c.arming),
     text: (c) => c.arming,
+    tooltip: "state",
   },
 ];
 

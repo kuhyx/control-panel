@@ -95,6 +95,7 @@ export function TightenCurfew(): React.JSX.Element {
             className="danger"
             disabled={busy}
             onClick={() => void submit()}
+            title="confirm"
             type="button"
           >
             {GLYPH.stricter}?
@@ -104,6 +105,7 @@ export function TightenCurfew(): React.JSX.Element {
             onClick={() => {
               setConfirming(false);
             }}
+            title="cancel"
             type="button"
           >
             {GLYPH.clear}
@@ -116,6 +118,7 @@ export function TightenCurfew(): React.JSX.Element {
           onClick={() => {
             setConfirming(true);
           }}
+          title="stricter"
           type="button"
         >
           {GLYPH.stricter}
@@ -144,11 +147,20 @@ export function MutationOutcome({
   result,
 }: Readonly<{ result: MutationResult }>): React.JSX.Element {
   const tone = outcomeTone(result);
+  const glyph = outcomeGlyph(result);
+  let label: string;
+  if (result.ok) {
+    label = "ok";
+  } else if (result.refused) {
+    label = "refused";
+  } else {
+    label = "fail";
+  }
   return (
     <div aria-label={result.summary} className="outcome" role="status">
       <p>
         <span className="dot" style={{ backgroundColor: tone }} />
-        <span aria-hidden="true">{outcomeGlyph(result)}</span>
+        <span aria-hidden="true" title={label}>{glyph}</span>
       </p>
       {result.stderr !== "" && <pre className="log">{result.stderr}</pre>}
     </div>

@@ -58,13 +58,13 @@ export function App(): React.JSX.Element {
             visible masthead. */}
         <h1 className="sr-only">control-panel</h1>
         <nav className="masthead-nav">
-          <a aria-label="fleet" href="#/">
+          <a aria-label="fleet" href="#/" title="home">
             <span aria-hidden="true">{GLYPH.home}</span>
           </a>
-          <a aria-label="Sessions" href={SESSIONS_URL}>
+          <a aria-label="Sessions" href={SESSIONS_URL} title="sessions">
             <span aria-hidden="true">{GLYPH.sessions}</span>
           </a>
-          <a aria-label="Usage" href={USAGE_URL}>
+          <a aria-label="Usage" href={USAGE_URL} title="usage">
             <span aria-hidden="true">{GLYPH.usage}</span>
           </a>
         </nav>

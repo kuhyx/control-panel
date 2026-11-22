@@ -41,7 +41,7 @@ export function LogViewer({
   if (error !== null) return <ErrorNote error={error} />;
   if (tail === null) {
     return (
-      <p aria-label={`Loading ${id}`} className="empty" role="status">
+      <p aria-label={`Loading ${id}`} className="empty" role="status" title="loading">
         {GLYPH.reading}
       </p>
     );
@@ -73,7 +73,7 @@ export function LogViewer({
         {tail.truncated && ` / ${formatBytes(tail.total_bytes)}`}
       </p>
       {tail.note !== undefined && (
-        <p aria-label={tail.note} className="empty" role="note">
+        <p aria-label={tail.note} className="empty" role="note" title="info">
           ℹ
         </p>
       )}

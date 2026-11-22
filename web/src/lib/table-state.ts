@@ -56,6 +56,10 @@ export interface ColumnSpec<T> {
   */
   sortKey?: (row: T) => SortKey;
   text: (row: T) => string;
+  /**
+  One-word hover tooltip for the glyph (max 20 chars, no punctuation).
+  */
+  tooltip?: string;
 }
 
 export interface TableView<T> {

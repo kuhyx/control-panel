@@ -16,6 +16,7 @@ export function LogsToggle({
       aria-label={`${open ? "Hide" : "Show"} logs for ${name}`}
       className="quiet"
       onClick={onToggle}
+      title={open ? "close" : "logs"}
       type="button"
     >
       {open ? GLYPH.clear : GLYPH.logs}

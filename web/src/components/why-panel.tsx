@@ -40,7 +40,7 @@ export function WhyPanel({ id }: Readonly<{ id: string }>): React.JSX.Element {
   if (why.rules.length === 0 && why.artifacts.length === 0) {
     // Not in a unit comment, a policy document, an audit log, or the sidecar.
     return (
-      <p aria-label="No rationale is recorded" className="empty" role="status">
+      <p aria-label="No rationale is recorded" className="empty" role="status" title="none">
         {GLYPH.none}
       </p>
     );
@@ -57,7 +57,12 @@ export function WhyPanel({ id }: Readonly<{ id: string }>): React.JSX.Element {
               className="dot"
               style={{ backgroundColor: levelTone(signal.level) }}
             />
-            <span aria-hidden="true">{signal.level === "info" ? "ℹ" : GLYPH.error}</span>
+            <span
+              aria-hidden="true"
+              title={signal.level === "info" ? "info" : "warning"}
+            >
+              {signal.level === "info" ? "ℹ" : GLYPH.error}
+            </span>
           </p>
         );
       })}
@@ -69,13 +74,13 @@ export function WhyPanel({ id }: Readonly<{ id: string }>): React.JSX.Element {
           <p>{rule.why}</p>
           {rule.ratchet !== "" && (
             <p className="rule-field">
-              <span aria-label="Ratchet" className="rule-label">⏳</span>
+              <span aria-label="Ratchet" className="rule-label" title="ratchet">⏳</span>
               {rule.ratchet}
             </p>
           )}
           {rule.cost_of_bypass !== "" && (
             <p className="rule-field">
-              <span aria-label="Cost of bypass" className="rule-label">💸</span>
+              <span aria-label="Cost of bypass" className="rule-label" title="cost">💸</span>
               {rule.cost_of_bypass}
             </p>
           )}
@@ -89,11 +94,11 @@ export function WhyPanel({ id }: Readonly<{ id: string }>): React.JSX.Element {
           <summary>
             {artifact.label}
             <span className="category">
-              <Glyph glyph="📄" label={artifact.kind} />
+              <Glyph glyph="📄" label={artifact.kind} title="doc" />
             </span>
           </summary>
           {artifact.excerpt === NO_ENTRIES ? (
-            <p aria-label={NO_ENTRIES} className="empty" role="status">
+            <p aria-label={NO_ENTRIES} className="empty" role="status" title="none">
               {GLYPH.none}
             </p>
           ) : (

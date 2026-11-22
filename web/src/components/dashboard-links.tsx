@@ -35,15 +35,16 @@ function Dot({
   if (dashboard.clash === null && !dashboard.stopped) {
     return <ProbeDot probe={dashboard.probe} />;
   }
+  const isStopped = dashboard.clash === null;
   return (
     <span
       aria-label={detail(dashboard)}
       className="dot probe-dot"
       role="img"
       style={{
-        backgroundColor:
-          dashboard.clash === null ? "var(--text-muted)" : "var(--danger)",
+        backgroundColor: isStopped ? "var(--text-muted)" : "var(--danger)",
       }}
+      title={isStopped ? "stopped" : "clash"}
     />
   );
 }

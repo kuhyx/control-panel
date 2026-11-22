@@ -25,6 +25,7 @@ export function ColumnHeader<T>({
         onClick={() => {
           view.toggleSort(column.id);
         }}
+        title={column.tooltip}
         type="button"
       >
         <span aria-hidden="true">{column.glyph}</span>

@@ -17,14 +17,14 @@ import { WhyPanel } from "./why-panel.tsx";
 const DISARM_PREFIX = "disarmed on purpose: ";
 
 function LogSize({ log }: Readonly<{ log: LogReference }>): React.JSX.Element {
-  if (log.kind !== "file") return <Glyph glyph="📓" label="journal" />;
+  if (log.kind !== "file") return <Glyph glyph="📓" label="journal" title="journal" />;
   return (
     <>
       {formatBytes(log.bytes)}
       {log.rotated === false && (
         <>
           {" "}
-          <Glyph glyph={GLYPH.error} label="no logrotate entry" />
+          <Glyph glyph={GLYPH.error} label="no logrotate entry" title="logrotate" />
         </>
       )}
     </>
@@ -34,9 +34,10 @@ function LogSize({ log }: Readonly<{ log: LogReference }>): React.JSX.Element {
 function Heading({
   glyph,
   label,
-}: Readonly<{ glyph: string; label: string }>): React.JSX.Element {
+  tooltip,
+}: Readonly<{ glyph: string; label: string; tooltip: string }>): React.JSX.Element {
   return (
-    <h3 aria-label={label}>
+    <h3 aria-label={label} title={tooltip}>
       <span aria-hidden="true">{glyph}</span>
     </h3>
   );
@@ -50,7 +51,7 @@ function DisarmNote({
   if (!subsystem.reason.startsWith(DISARM_PREFIX)) return null;
   return (
     <p className="reason">
-      <Glyph glyph="⏸" label="disarmed on purpose" />{" "}
+      <Glyph glyph="⏸" label="disarmed on purpose" title="disarmed" />{" "}
       {subsystem.reason.slice(DISARM_PREFIX.length)}
     </p>
   );
@@ -72,48 +73,48 @@ export function SubsystemDetail({
 
       {subsystem.dashboards.length > 0 && (
         <>
-          <Heading glyph={GLYPH.dashboards} label="Dashboards" />
+          <Heading glyph={GLYPH.dashboards} label="Dashboards" tooltip="dashboards" />
           <DashboardLinks dashboards={subsystem.dashboards} detailed />
         </>
       )}
 
       {subsystem.containers.length > 0 && (
         <>
-          <Heading glyph={GLYPH.containers} label="Containers" />
+          <Heading glyph={GLYPH.containers} label="Containers" tooltip="containers" />
           <ContainerTable containers={subsystem.containers} />
         </>
       )}
 
       {subsystem.probes.length > 0 && (
         <>
-          <Heading glyph={GLYPH.probes} label="Probes" />
+          <Heading glyph={GLYPH.probes} label="Probes" tooltip="probes" />
           <ProbeList probes={subsystem.probes} />
         </>
       )}
 
-      <Heading glyph={GLYPH.units} label="Units" />
+      <Heading glyph={GLYPH.units} label="Units" tooltip="units" />
       <UnitTable units={subsystem.units} />
 
-      <Heading glyph={GLYPH.why} label="Why this is enforced" />
+      <Heading glyph={GLYPH.why} label="Why this is enforced" tooltip="why" />
       <WhyPanel id={subsystem.id} />
 
       {/* Only two subsystems have a writable knob, and both only tighten. */}
       {subsystem.id === "shutdown" && (
         <>
-          <Heading glyph={GLYPH.stricter} label="Make it stricter" />
+          <Heading glyph={GLYPH.stricter} label="Make it stricter" tooltip="stricter" />
           <TightenCurfew />
         </>
       )}
       {subsystem.id === "hosts" && (
         <>
-          <Heading glyph={GLYPH.stricter} label="Make it stricter" />
+          <Heading glyph={GLYPH.stricter} label="Make it stricter" tooltip="stricter" />
           <BlockDomain />
         </>
       )}
 
       {facts.length > 0 && (
         <>
-          <Heading glyph={GLYPH.notes} label="Notes" />
+          <Heading glyph={GLYPH.notes} label="Notes" tooltip="notes" />
           <dl className="facts">
             {facts.map(([key, value]) => {
               return (
@@ -129,7 +130,7 @@ export function SubsystemDetail({
 
       {subsystem.logs.length > 0 && (
         <>
-          <Heading glyph={GLYPH.logs} label="Logs" />
+          <Heading glyph={GLYPH.logs} label="Logs" tooltip="logs" />
           <ul className="logs">
             {subsystem.logs.map((log) => {
               return (

@@ -14,7 +14,7 @@ export function AnomalyBanner({
   if (anomalies.length === 0) {
     // Every declared unit is armed or deliberately retired.
     return (
-      <p aria-label="Nothing needs attention" className="empty" role="status">
+      <p aria-label="Nothing needs attention" className="empty" role="status" title="ok">
         {GLYPH.ok}
       </p>
     );
@@ -24,7 +24,7 @@ export function AnomalyBanner({
     // buried the service table under 20+ rows on every visit.
     <details aria-label="Anomalies" className="card">
       <summary>
-        <h2 aria-label="Findings">
+        <h2 aria-label="Findings" title="findings">
           {anomalies.length} {GLYPH.findings}
         </h2>
       </summary>

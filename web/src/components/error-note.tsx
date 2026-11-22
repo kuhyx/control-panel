@@ -6,7 +6,7 @@ export function ErrorNote({
   error,
 }: Readonly<{ error: string }>): React.JSX.Element {
   return (
-    <span aria-label={error} className="empty error-note" role="alert">
+    <span aria-label={error} className="empty error-note" role="alert" title="error">
       {GLYPH.error}
     </span>
   );

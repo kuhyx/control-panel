@@ -35,7 +35,7 @@ export function JournalPanel({
 
   if (error !== null) return <ErrorNote error={error} />;
   return tail === null ? (
-    <p aria-label={`Reading ${name}`} className="empty" role="status">
+    <p aria-label={`Reading ${name}`} className="empty" role="status" title="reading">
       {GLYPH.reading}
     </p>
   ) : (

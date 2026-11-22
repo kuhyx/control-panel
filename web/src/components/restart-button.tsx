@@ -42,6 +42,7 @@ export function RestartButton({
             aria-label={`Confirm restart ${name}`}
             className="danger"
             onClick={() => void submit()}
+            title="confirm"
             type="button"
           >
             {GLYPH.restart}?
@@ -52,6 +53,7 @@ export function RestartButton({
             onClick={() => {
               setConfirming(false);
             }}
+            title="cancel"
             type="button"
           >
             {GLYPH.clear}
@@ -64,6 +66,7 @@ export function RestartButton({
           onClick={() => {
             setConfirming(true);
           }}
+          title="restart"
           type="button"
         >
           {busy ? GLYPH.reading : GLYPH.restart}

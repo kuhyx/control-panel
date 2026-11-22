@@ -32,7 +32,7 @@ export function UnknownSection(): React.JSX.Element {
 
   return (
     <section aria-label="Not in the manifest" className="card unknown">
-      <h2 aria-label="Not in the manifest">🗃</h2>
+      <h2 aria-label="Not in the manifest" title="unknown">🗃</h2>
       {error !== null && <ErrorNote error={error} />}
       {report === null && error === null && (
         <progress aria-label="Looking for undeclared listeners…" />
@@ -51,6 +51,7 @@ function UnknownBody({
         aria-label="Every listening port and user unit is declared"
         className="empty"
         role="status"
+        title="ok"
       >
         {GLYPH.ok}
       </p>
@@ -60,13 +61,13 @@ function UnknownBody({
     <>
       {report.listeners.length > 0 && (
         <>
-          <h3 aria-label="Listening ports">🌐</h3>
+          <h3 aria-label="Listening ports" title="ports">🌐</h3>
           <ListenerTable listeners={report.listeners} />
         </>
       )}
       {report.units.length > 0 && (
         <>
-          <h3 aria-label="User units">👤</h3>
+          <h3 aria-label="User units" title="units">👤</h3>
           <UserUnitTable units={report.units} />
         </>
       )}

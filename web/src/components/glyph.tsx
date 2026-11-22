@@ -1,11 +1,12 @@
-// A pictogram in place of a word: painted glyph, spoken label, no tooltip
-// (a title attribute paints the word back on hover).
+// A pictogram in place of a word: painted glyph, spoken label, optional tooltip
+// (a title attribute paints the one-word name on hover; max 20 chars, no punctuation).
 export function Glyph({
   glyph,
   label,
-}: Readonly<{ glyph: string; label: string }>): React.JSX.Element {
+  title,
+}: Readonly<{ glyph: string; label: string; title?: string }>): React.JSX.Element {
   return (
-    <span aria-label={label} className="glyph" role="img">
+    <span aria-label={label} className="glyph" role="img" title={title}>
       {glyph}
     </span>
   );

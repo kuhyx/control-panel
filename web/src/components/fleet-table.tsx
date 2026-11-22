@@ -17,6 +17,7 @@ const COLUMNS: readonly ColumnSpec<SubsystemStatus>[] = [
     search: true,
     sortKey: (s) => s.title.toLowerCase(),
     text: (s) => `${s.title} ${s.category}`,
+    tooltip: "subsystem",
   },
   {
     filter: true,
@@ -26,6 +27,7 @@ const COLUMNS: readonly ColumnSpec<SubsystemStatus>[] = [
     optionGlyph: armingGlyph,
     sortKey: (s) => severityRank(s.state),
     text: (s) => s.state,
+    tooltip: "state",
   },
   {
     glyph: GLYPH.units,
@@ -34,6 +36,7 @@ const COLUMNS: readonly ColumnSpec<SubsystemStatus>[] = [
     search: true,
     sortKey: (s) => s.units.length,
     text: (s) => String(s.units.length),
+    tooltip: "units",
   },
   // No Why column: its server-built sentence ("all 7 declared unit(s)
   // armed", "down: …") repeated the badge, the unit count and the dashboard
@@ -44,6 +47,7 @@ const COLUMNS: readonly ColumnSpec<SubsystemStatus>[] = [
     label: "Dashboards",
     search: true,
     text: (s) => s.dashboards.map((d) => d.label).join(" "),
+    tooltip: "dashboards",
   },
 ];
 

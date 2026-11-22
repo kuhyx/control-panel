@@ -23,7 +23,7 @@ export function Freshness({
   }, []);
   return (
     <span title={formatTimestamp(at)}>
-      <Glyph glyph={GLYPH.reading} label="updated" /> {formatAge(at, now)}
+      <Glyph glyph={GLYPH.reading} label="updated" title="age" /> {formatAge(at, now)}
     </span>
   );
 }

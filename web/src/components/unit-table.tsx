@@ -42,6 +42,7 @@ const COLUMNS: readonly ColumnSpec<UnitRecord>[] = [
     label: "Unit",
     search: true,
     text: (u) => `${u.name} ${u.scope}`,
+    tooltip: "unit",
   },
   {
     filter: true,
@@ -51,6 +52,7 @@ const COLUMNS: readonly ColumnSpec<UnitRecord>[] = [
     optionGlyph: armingGlyph,
     sortKey: (u) => severityRank(u.arming),
     text: (u) => u.arming,
+    tooltip: "state",
   },
   {
     filter: true,
@@ -59,6 +61,7 @@ const COLUMNS: readonly ColumnSpec<UnitRecord>[] = [
     label: "Unit file",
     optionGlyph: fileGlyph,
     text: fileState,
+    tooltip: "file",
   },
   {
     glyph: GLYPH.age,
@@ -67,6 +70,7 @@ const COLUMNS: readonly ColumnSpec<UnitRecord>[] = [
     search: true,
     sortKey: nextRunKey,
     text: (u) => formatEpochMicros(u.state.next_elapse),
+    tooltip: "next",
   },
 ];
 

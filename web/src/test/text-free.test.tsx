@@ -95,6 +95,24 @@ function isHidden(element: Element | null): boolean {
   return false;
 }
 
+function attributeStrings(): string[] {
+  const out: string[] = [];
+  for (const element of document.body.querySelectorAll("[title],[placeholder]")) {
+    if (isHidden(element)) continue;
+    for (const attribute of ["title", "placeholder"]) {
+      const value = element.getAttribute(attribute);
+      if (value === null || value === "") {
+        continue;
+      }
+
+      // title tooltips are allowed (one-word, per textgate rule); ignore them
+      if (attribute === "title" && /^[\w-]{1,20}$/.test(value)) continue;
+      out.push(value);
+    }
+  }
+  return out;
+}
+
 function paintedStrings(): string[] {
   const out: string[] = [];
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -102,13 +120,7 @@ function paintedStrings(): string[] {
     const text = node.textContent?.trim() ?? "";
     if (text !== "" && !isHidden(node.parentElement)) out.push(text);
   }
-  for (const element of document.body.querySelectorAll("[title],[placeholder]")) {
-    if (isHidden(element)) continue;
-    for (const attribute of ["title", "placeholder"]) {
-      const value = element.getAttribute(attribute);
-      if (value !== null && value !== "") out.push(value);
-    }
-  }
+  out.push(...attributeStrings());
   return out;
 }
 

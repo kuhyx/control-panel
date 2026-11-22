@@ -85,6 +85,7 @@ export function BlockDomain(): React.JSX.Element {
             className="danger"
             disabled={busy}
             onClick={() => void submit()}
+            title="confirm"
             type="button"
           >
             {BLOCK}?
@@ -94,6 +95,7 @@ export function BlockDomain(): React.JSX.Element {
             onClick={() => {
               setConfirming(false);
             }}
+            title="cancel"
             type="button"
           >
             {GLYPH.clear}
@@ -106,6 +108,7 @@ export function BlockDomain(): React.JSX.Element {
           onClick={() => {
             setConfirming(true);
           }}
+          title="block"
           type="button"
         >
           {BLOCK}
