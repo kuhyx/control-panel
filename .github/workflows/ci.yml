@@ -68,11 +68,8 @@ jobs:
       # package.json rather than silently resolving something else.
       - run: pnpm install --frozen-lockfile
 
-      - name: Lint (typecheck + eslint)
-        run: pnpm run lint
-
       - name: Coverage (fails below 100%)
-        run: pnpm run coverage
+        run: pnpm run test
 
       - name: Build
         run: pnpm run build

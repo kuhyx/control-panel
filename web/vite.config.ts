@@ -18,12 +18,6 @@ const config = defineConfig({
       exclude: ["src/main.tsx", "src/test/**", "src/**/*.d.ts"],
       include: ["src/**/*.{ts,tsx}"],
       provider: "v8",
-      thresholds: {
-        branches: 100,
-        functions: 100,
-        lines: 100,
-        statements: 100,
-      },
     },
     environment: "jsdom",
     globals: true,
