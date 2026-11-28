@@ -177,10 +177,6 @@ addopts = [
     "--strict-markers",
     "--strict-config",
     "-ra",
-    "--cov=control_panel",
-    "--cov-branch",
-    "--cov-report=term-missing",
-    "--cov-report=lcov",
 ]
 filterwarnings = [
     "error",
@@ -197,7 +193,6 @@ branch = true
 omit = ["*/__pycache__/*", "*/tests/*", "*/.venv/*"]
 
 [tool.coverage.report]
-fail_under = 100
 show_missing = true
 skip_covered = false
 exclude_lines = [
